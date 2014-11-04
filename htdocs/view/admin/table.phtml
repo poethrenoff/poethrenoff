@@ -1,0 +1,104 @@
+<table class="title">
+	<tr>
+		<td class="title">
+			<b><?= $this -> title ?></b>
+		</td>
+		<td class="filter">
+<?= $this -> filter ?> 
+		</td>
+	</tr>
+</table>
+<br/>
+<?if($this -> mode == 'form'):?>
+<form id="table" action="<?=$this -> form_url?>" method="post" enctype="multipart/form-data">
+<?endif;?>
+<table class="service">
+	<tr>
+		<td class="action">
+<?if(@$this -> actions):?>
+	<?foreach($this -> actions as $name=>$action):?>
+			<a href="<?=$action['url']?>" title="<?=$action['title']?>" <?=$action['event'] ? $action['event']['method'].'="' . $action['event']['value']. '"':''?>><img src="/admin/image/action/<?=$name?>.gif" alt="<?=$action['title']?>"/></a>
+	<?endforeach;?>
+<?endif;?>
+<?if($this -> mode == 'form'):?>
+			<input type="button" value="Вернуться" class="button" onclick="location.href = '<?=$this -> back_url?>'"/>
+<?endif;?>
+		</td>
+		<td class="pages">
+<?if($this -> mode == 'form'):?>
+			<input type="submit" value="Применить" class="button"/>
+<?endif;?>
+		</td>
+	</tr>
+</table>
+<br/>
+<table class="table">
+	<tr class="header">
+<?foreach($this -> header as $field=>$column):?>
+		<td<?if($column['main']):?> class="main"<?endif;?><?if($column['type'] === 'pk'):?> class="index"<?endif;?>>
+	<?if($field === '_checkbox'):?>
+				<div style="text-align: center; width: 40px">
+					<input type="checkbox" value="" class="check" onclick="checkAllBoxes( this.checked )"/>
+				<div>
+	<?elseif($column['sort_url']):?>
+				<a href="<?=$column['sort_url']?>"><?=$column['title']?></a>
+				<?if($column['sort_sign']):?><img src="/admin/image/sort/<?=$column['sort_sign']?>.gif" alt=""/><?endif;?> 
+	<?else:?>
+				<?=$column['title']?>
+	<?endif;?>
+		</td>
+<?endforeach;?>
+	</tr>
+<?if(@$this -> records):?>
+<? $odd=true; foreach($this -> records as $record): $odd=!$odd?>
+	<tr class="record <?=$odd?'odd':'even'?>" onmouseover="this.className = 'record select'" onmouseout="this.className = 'record <?=$odd?'odd':'even'?>'">
+<?foreach($this -> header as $field=>$column):?>
+		<td<?if($column['main']):?> class="main<?if($record['_hidden']):?> hidden<?endif;?>"<?endif;?><?if($column['type'] === 'pk'):?> class="index"<?endif;?><?if($column['type'] === '_link'):?> class="link"<?endif;?><?if($field === '_action'):?> class="action"<?endif;?>>
+<?if($column['main'] && $record['_depth']):?>
+<?for($i=0;$i<$record['_depth'];$i++):?><div class="tree_offset"><?endfor;?> 
+<?endif;?>
+<?if($column['type'] === '_link'):?>
+			<a href="<?=$record[$field]['url']?>"><?=$record[$field]['title']?></a>
+<?elseif($field === '_action'):?>
+<?$count = count($record[$field]); $c=0;foreach($record[$field] as $name=>$action):$c++;?>
+<?if($name == 'separator'):?>
+<?if($c!=$count && $c!=1):?>
+			<img src="/admin/image/action/separator.gif" alt=""/>
+<?endif;?>
+<?else:?>
+			<a href="<?=$action['url']?>" title="<?=$action['title']?>" <?=$action['event'] ? $action['event']['method'].'="' . $action['event']['value']. '"':''?>><img src="/admin/image/action/<?=$name?>.gif" alt="<?=$action['title']?>"/></a>
+<?endif;?>
+<?endforeach;?>
+<?elseif($field === '_checkbox'):?>
+			<div style="text-align: center">
+				<input type="hidden" name="check[<?=$record[$field]['id']?>]" value="0">
+				<input type="checkbox" name="check[<?=$record[$field]['id']?>]" value="1" class="check" <?if($record[$field]['checked']):?> checked="checked"<?endif;?>/>
+			<div>
+<?else:?>
+			<?=$record[$field]?>
+<?endif;?>
+<?if($column['main'] && $record['_depth']):?>
+<?for($i=0;$i<$record['_depth'];$i++):?></div><?endfor;?> 
+<?endif;?>
+		</td>
+<?endforeach;?>
+	</tr>
+<?endforeach;?>
+<?endif;?>
+</table>
+<br/>
+<table class="service">
+	<tr>
+		<td class="counter">
+			Всего: <?= $this -> counter ?>
+		</td>
+<?if($this -> pages):?>
+		<td class="pages">
+			Страницы: <?= $this -> pages ?> 
+		</td>
+<?endif;?>
+	</tr>
+</table>
+<?if($this -> mode == 'form'):?>
+</form>
+<?endif;?>

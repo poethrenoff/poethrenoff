@@ -1,0 +1,18 @@
+table.main {
+	width: 100%;
+}
+
+	table.main td.header, table.main td.footer {
+		height: 50px;
+	}
+
+	table.main td.menu, table.main td.news {
+		width: 200px;
+		vertical-align: top;
+	}
+
+	table.main td.content {
+		height: 500px;
+		vertical-align: top;
+	}
+

@@ -1,0 +1,308 @@
+@import url( 'calendar.css' );
+
+body {
+	margin: 0px;
+	padding: 5px;
+	color: #333333;
+	background-color: #ffffff;
+}
+
+p, a, div, td, input, select, textarea {
+	font-size: 12px;
+	font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
+}
+
+a {
+	color: #0066aa;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #e76f00;
+	text-decoration: underline;
+}
+
+a.selected {
+	font-weight: bold;
+}
+
+img {
+	border: none;
+}
+
+form {
+	margin: 0px;
+	padding: 0px;
+}
+
+input, select, textarea {
+	border: 1px solid #aaaaaa;
+}
+
+input.button {
+	background-color: #f0f0f0;
+}
+
+input.file, input.check {
+	border: none;
+}
+
+div.tree_offset {
+	margin-left: 20px;
+}
+
+table.main {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+	table.main td {
+		padding: 10px;
+	}
+
+	table.main td.menu {
+		width: 190px;
+		text-align: left;
+		vertical-align: top;
+		border-right: 1px solid #aaaaaa;
+	}
+	
+		table.main td.menu div.logo {
+			text-align: center;
+			margin-bottom: 10px;
+			padding-bottom: 10px;
+			border-bottom: 1px solid #aaaaaa;
+		}
+
+	table.main td.content {
+		text-align: left;
+		vertical-align: top;
+	}
+	
+		table.main td.content div.admin {
+			text-align: right;
+			margin-bottom: 10px;
+			padding-bottom: 10px;
+			padding-right: 5px;
+			border-bottom: 1px solid #aaaaaa;
+		}
+
+table.table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+	table.table tr.header {
+		vertical-align: middle;
+		height: 30px;
+	}
+
+	table.table tr.header td {
+		font-weight: bold;
+		text-align: center;
+		white-space: nowrap;
+		padding-left: 5px;
+		padding-right: 5px;
+	}
+
+	table.table tr.record {
+		vertical-align: middle;
+	}
+
+	table.table tr.odd {
+		background-color: #f5f5f5;
+	}
+
+	table.table tr.even {
+		background-color: #ffffff;
+	}
+
+	table.table tr.select {
+		background-color: #f7f0cc;
+	}
+
+	table.table td {
+		padding: 3px;
+		text-align: left;
+		border: 1px solid #aaaaaa;
+	}
+
+	table.table td.main {
+		width: 100%;
+	}
+
+	table.table td.hidden {
+		text-decoration: line-through;
+	}
+
+	table.table td.index {
+		text-align: right;
+	}
+
+	table.table td.link {
+		text-align: center;
+	}
+
+	table.table td.action {
+		text-align: center;
+		white-space: nowrap;
+	}
+
+table.service {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+	table.service td {
+		padding: 3px;
+	}
+
+	table.service td.counter, table.service td.action {
+		text-align: left;
+	}
+
+	table.service td.pages {
+		text-align: right;
+	}
+
+table.title {
+	width: 100%;
+	border-collapse: collapse;
+}
+	
+	table.title td {
+		padding: 2px;
+	}
+		
+	table.title td.title {
+		vertical-align: top;
+	}
+		
+	table.title td.filter {
+		width: 450px;
+	}
+
+
+table.filter {
+	width: 100%;
+	border-collapse: collapse;
+}
+	
+	table.filter td {
+		padding: 2px;
+	}
+	
+	table.filter td.title {
+		width: 150px;
+		vertical-align: top;
+	}
+	
+	table.filter td.field {
+		width: 300px;
+	}
+		
+		table.filter select.check {
+			width: 50px;
+		}
+		
+		table.filter select.list {
+			width: 100%;
+		}
+		
+		table.filter input.text {
+			width: 99%;
+		}
+		
+		table.filter input.button {
+			width: 100px;
+		}
+
+table.record {
+	width: 100%;
+	border-collapse: collapse;
+}
+	
+	table.record td {
+		padding: 2px;
+	}
+		
+		table.record span.require {
+			color: #bb0000
+		}
+		
+		table.record td.title {
+			width: 200px;
+			vertical-align: top;
+		}
+		
+		table.record td.field {
+			vertical-align: top;
+		}
+		
+		table.record select.list {
+			width: 100%;
+		}
+		
+		table.record input.text {
+			width: 99%;
+		}
+		
+		table.record textarea {
+			width: 99%;
+			height: 100px;
+		}
+		
+		table.record input.button {
+			width: 100px;
+		}
+		
+		table.record table.date {
+			border-collapse: collapse;
+		}
+		
+			table.record table.date td {
+				padding: 0px;
+			}
+			
+			table.record table.date input {
+				width: 120px;
+			}
+			
+			table.record table.date img {
+				margin: 0px 0px 0px 4px;
+				width: 16px;
+				height: 16px;
+			}
+		
+		table.record table.file {
+			width: 100%;
+			border-collapse: collapse;
+		}
+		
+			table.record table.file td {
+				padding: 0px;
+			}
+			
+			table.record table.file input.file {
+				width: 50%;
+				margin-bottom: 5px;
+			}
+			
+			table.record table.file input.link {
+				width: 99%;
+			}
+		
+		table.record td.field div.lang {
+			position: absolute;
+			z-index: 100;
+			font-weight: bold;
+			margin-left: -20px;
+			margin-top: 2px;
+			text-align: center;
+			color: #aaaaaa;
+		}
+
+		table.record td.field div.padding {
+			font-size: 1px; height: 5px;
+		}
+

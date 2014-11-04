@@ -1,0 +1,10 @@
+<? foreach ($this->menu_tree->getChildren() as $menu_item) { ?>
+<?php if ($this->depth) { ?>
+<?php for ($offset = 0; $offset < $this->depth; $offset++) { ?><div style="margin-left: 30px;"><?php } ?> 
+<?php } ?>
+	<a<? if ($menu_item->getSelected()) { ?> style="font-weight: bold"<? } ?> href="<?= $menu_item->getMenuUrl() ?>"><?= $menu_item->getMenuTitle() ?></a><br/>
+<?= Adminko\View::block('module/menu/item', array('menu_tree' => $menu_item, 'depth' => $this->depth + 1)) ?> 
+<?php if ($this->depth) { ?>
+<?php for ($offset = 0; $offset < $this->depth; $offset++) { ?></div><?php } ?> 
+<?php } ?>
+<? } ?>

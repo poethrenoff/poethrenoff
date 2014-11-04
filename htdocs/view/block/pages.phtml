@@ -1,0 +1,19 @@
+<? if( $this -> count > $this -> by_page ) { ?>
+<? 		if( $this -> prev_page ) { ?>
+<a href="<?= $this->escape( $this -> prev_page['link'] ) ?>">&lt;</a>
+<? 		} else { ?>
+<b>&lt;</b>
+<? 		} ?>
+<? 		foreach( $this -> pages as $page ) { ?>
+<? 			if( $page['link'] ) { ?>
+<a href="<?= $this->escape( $page['link'] ) ?>"><? if ( $page['number'] ) { ?><?= $page['number'] ?><? } else { ?>&hellip;<? } ?></a>
+<? 			} else { ?>
+<b><?= $page['number'] ?></b>
+<? 			} ?>
+<?		} ?>
+<? 		if( $this -> next_page ) { ?>
+<a href="<?= $this->escape( $this -> next_page['link'] ) ?>">&gt;</a>
+<? 		} else { ?>
+<b>&gt;</b>
+<? 		} ?>
+<? } ?>

@@ -1,0 +1,48 @@
+<?if(@$this -> fields):?>
+	<form id="filter" action="<?=$this -> form_url?>" method="get">
+		<table class="filter">
+<?foreach($this -> fields as $name=>$field):?>
+			<tr>
+				<td class="title">
+					<?=$field['title']?>:
+				</td>
+				<td class="field">
+<?if($field['type'] == 'boolean' || $field['type'] == 'active'):?>
+					<select name="<?=$name?>" class="check">
+						<option value=""/>
+						<option value="1"<?if($field['value'] === true):?> selected="selected"<?endif;?>>да</option>
+						<option value="0"<?if($field['value'] === false):?> selected="selected"<?endif;?>>нет</option>
+					</select>
+<?elseif($field['type'] == 'checked'):?>
+					<select name="<?=$name?>" class="list">
+						<option value=""/>
+						<option value="1"<?if($field['value'] === true):?> selected="selected"<?endif;?>>отмеченные</option>
+						<option value="0"<?if($field['value'] === false):?> selected="selected"<?endif;?>>неотмеченные</option>
+					</select>
+<?elseif($field['type'] == 'select' || ( $field['type'] == 'table' && $field['search'] != 'text' )):?>
+					<select name="<?=$name?>" class="list">
+						<option value=""/>
+<?foreach($field['values'] as $option):?>
+						<option value="<?=$option['value']?>"<?if($option['value'] === $field['value']):?> selected="selected"<?endif;?>><?for($i=0;$i<$option['_depth'];$i++):?>&nbsp;&nbsp;&nbsp;<?endfor;?><?=$option['title']?></option>
+<?endforeach;?>
+					</select>
+<?else:?>
+					<input type="text" name="<?=$name?>" value="<?=$field['value']?>" class="text"/>
+<?endif;?>
+				</td>
+			</tr>
+<?endforeach;?>
+			<tr>
+				<td>
+					&nbsp;
+				</td>
+				<td colspan="2">
+					<input type="submit" value="Искать" class="button"/>
+<?foreach($this -> hidden as $name=>$value):?>
+					<input type="hidden" name="<?=$this->escape($name)?>" value="<?=$this->escape($value)?>"/>
+<?endforeach;?>
+				</td>
+			</tr>
+		</table>
+	</form>
+<?endif;?>

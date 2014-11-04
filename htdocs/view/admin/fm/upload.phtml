@@ -1,0 +1,33 @@
+<form id="form" action="<?=$this -> form_url?>" method="post" enctype="multipart/form-data" onsubmit="return form_submit( this )">
+	<table class="record">
+		<tr>
+			<td colspan="2" align="left">
+				<b><?=$this -> record_title?></b><br/><?=$action_title?>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2" align="right">
+				<input type="button" value="Вернуться" class="button" onclick="location.href = '<?=$this -> back_url?>'"/>
+			</td>
+		</tr>
+		<tr>
+			<td class="title">
+				Файл<span class="require">*</span>:
+			</td>
+			<td class="field">
+				<table class="file">
+					<tr>
+						<td>
+							<input type="file" name="file_file" class="file" size="70%" errors="require"/>
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2">
+				<input type="submit" value="Сохранить" class="button"/>
+			</td>
+		</tr>
+	</table>
+</form>

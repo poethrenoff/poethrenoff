@@ -1,0 +1,30 @@
+AddDefaultCharset utf-8
+
+Options -Indexes -MultiViews +FollowSymLinks
+
+php_flag magic_quotes_gpc off
+php_flag magic_quotes_runtime off
+
+php_flag short_open_tag on
+php_flag register_globals off
+php_flag register_long_arrays off
+
+php_flag file_uploads on
+php_value post_max_size 12M
+php_value upload_max_filesize 10M
+
+php_value default_charset "utf-8"
+php_value mbstring.internal_encoding "utf-8"
+
+php_value iconv.input_encoding "utf-8"
+php_value iconv.internal_encoding "utf-8"
+php_value iconv.output_encoding "utf-8"
+
+RewriteEngine On
+
+RewriteRule ^favicon.ico image/favicon.ico [L]
+
+RewriteRule ^(upload/.+\.(gif|jpg|jpe|jpeg|png))/(c|r)/(\d+)/(\d+)$ image/image.php?url=/$1&method=$3&width=$4&height=$5 [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*)$ index.php [QSA,L]

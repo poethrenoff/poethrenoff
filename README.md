@@ -1,4 +1,0 @@
-poethrenoff
-===========
-
-Сайт poethrenoff.tk

@@ -1,0 +1,5 @@
+<? foreach ($this->item_list as $item) { ?>
+<?= Adminko\Date::get($item->getNewsDate(), 'd.m.Y' ) ?> - <a href="<?= Adminko\System::urlFor(array('controller' => 'news', 'action' => 'item', 'id' => $item->getId())) ?>"><?= $item->getNewsTitle() ?></a>
+<?= $item->getNewsAnnounce() ?> 
+<? } ?>
+<a href="<?= Adminko\System::urlFor(array('controller' => 'news')) ?>">К списку новостей</a>

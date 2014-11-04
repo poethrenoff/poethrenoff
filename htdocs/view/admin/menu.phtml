@@ -1,0 +1,15 @@
+<?if(@$this -> object_tree):?>
+<?foreach($this -> object_tree as $item):?>
+<?if($item['_depth']):?>
+<?for($i=0;$i<$item['_depth'];$i++):?><div class="tree_offset"><?endfor;?> 
+<?endif;?>
+<?if($item['object_name']):?>
+	<a href="<?=$item['object_url']?>"<?if(@$item['_selected']):?> class="selected"<?endif;?>><?=$this->escape($item['object_title'])?></a><br/>
+<?else:?>
+	<b><?=$item['object_title']?></b><br/>
+<?endif;?>
+<?if($item['_depth']):?>
+<?for($i=0;$i<$item['_depth'];$i++):?></div><?endfor;?> 
+<?endif;?>
+<?endforeach;?>
+<?endif;?>

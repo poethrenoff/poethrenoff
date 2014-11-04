@@ -1,0 +1,6 @@
+<? foreach ($this->item_list as $item) { ?>
+<h3><?= Adminko\Date::get($item->getNewsDate(), 'd.m.Y') ?> - <?= $item->getNewsTitle() ?></h3>
+<?= $item->getNewsAnnounce() ?>
+<a href="<?= Adminko\System::urlFor(array('controller' => 'news', 'action' => 'item', 'id' => $item->getId())) ?>">Далее</a>
+<? } ?>
+<?= $this->pages ?>

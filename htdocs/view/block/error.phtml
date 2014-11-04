@@ -1,0 +1,40 @@
+<style>
+	.exception {
+		color: red;
+		font-size: 12px;
+		font-family: Verdana, Geneva, Arial, Helvetica, sans-serif;
+		font-weight: bold;
+	}
+	.exception.message {
+		text-align: center;
+	}
+	.exception.extra {
+		font-size: 10px;
+		text-align: left;
+		margin-top: 20px;
+	}
+	.exception.plug {
+		color: black;
+		font-size: 14px;
+		text-align: center;
+		margin-top: 200px;
+	}
+</style>
+<? if ( $this -> exception ) { ?>
+<div class="exception message">
+	<?= $this->escape( $this -> exception -> getMessage() ) ?> 
+</div>
+<div class="exception extra">
+	<?= $this->escape( $this -> exception -> getFile() ) ?> (<?= $this->escape( $this -> exception -> getLine() ) ?>)<br/><br/>
+	<?= nl2br( $this->escape( $this -> exception -> getTraceAsString() ) ) ?> 
+</div>
+<? } else if ( $this -> message ) { ?>
+<div class="exception message">
+	<?= $this->escape( $this -> message ) ?>
+</div>
+<? } else { ?>
+<div class="exception plug">
+	Извините, на сайте ведутся технические работы.<br/>Попробуйте вернуться через несколько минут.
+</div>
+<? } ?>
+
