@@ -2,6 +2,7 @@
 namespace Adminko\Admin\Table;
 
 use Adminko\System;
+use Adminko\Metadata;
 
 class ModuleParamTable extends BuilderTable
 {

@@ -1,24 +1,16 @@
+<div class="column">
 <?php if ($this->group_tree->hasChildren()) { ?>
-<div class="group_tree">
-<?= Adminko\View::block('module/work/menu', array('group_tree' => $this->group_tree, 'depth' => 0)) ?> 
-</div>
+<?= Adminko\View::block('module/work/menu', array('group_tree' => $this->group_tree, 'depth' => 0)) ?>
 <?php } ?>
+</div>
 <?php if ($this->group_tree->hasChildren() && $this->work_list) { ?>
 <div class="separator"></div>
 <?php } ?>
 <?php if ($this->work_list) { ?>
-<table class="work_table">
-	<tr>
-		<td>
-<?php $work_list_index = 0; $work_list_count = count($this->work_list); ?>
+<div class="column">
+<?php $work_list_index = 0; ?>
 <?php foreach ($this->work_list as $work_item) { ?>
-            <?= ++$work_list_index ?>.&nbsp;&nbsp;<a href="<?= $work_item->getWorkUrl() ?>"><?= $this->escape($work_item->getWorkTitle()) ?></a><br/>
-<?php if ($work_list_index == ceil($work_list_count / 2)) { ?>
-		</td>
-		<td>
+    <?= ++$work_list_index ?>.&nbsp;&nbsp;<a href="<?= $work_item->getWorkUrl() ?>"><?= $this->escape($work_item->getWorkTitle()) ?></a><br/>
 <?php } ?>
-<?php } ?>
-		</td>
-	</tr>
-</table>
+</div>
 <?php } ?>

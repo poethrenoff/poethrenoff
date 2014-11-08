@@ -24,7 +24,7 @@ class WorkModule extends Module
     }
 
     // Вывод произведения
-    protected function actionWork()
+    protected function actionView()
     {
         try {
             $work_item = Model::factory('work')->getWorkItem(System::id());
@@ -33,7 +33,7 @@ class WorkModule extends Module
         }
 
         $this->view->assign('work_item', $work_item);
-        $this->content = $this->view->fetch('module/work/work');
+        $this->content = $this->view->fetch('module/work/view');
     }
 
     // Вывод случайного произведения
@@ -46,7 +46,7 @@ class WorkModule extends Module
         }
 
         $this->view->assign('work_item', $work_item);
-        $this->content = $this->view->fetch('module/work/work');
+        $this->content = $this->view->fetch('module/work/view');
     }
 
     // Хлебные крошки
@@ -59,7 +59,7 @@ class WorkModule extends Module
                 System::notFound();
             }
             $group_id = $group_item->getId();
-        } elseif (System::action() == 'work') {
+        } elseif (System::action() == 'view' || System::action() == 'random') {
             try {
                 $work_item = Model::factory('work')->getWorkItem(System::id());
             } catch (\AlarmException $e) {
@@ -89,9 +89,7 @@ class WorkModule extends Module
             $group_path[] = $group_item;
             $group_parent = $group_item->getGroupParent();
         }
-        if ($group_path) {
-            $group_path[] = Model::factory('work_group');
-        }
+        $group_path[] = Model::factory('work_group');
 
         return array_reverse($group_path);
     }

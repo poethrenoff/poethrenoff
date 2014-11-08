@@ -69,6 +69,6 @@ class WorkModel extends Model
     
     public function getWorkUrl()
     {
-        return System::urlFor(array('action' => 'work', 'id' => $this->getId()));
+        return System::urlFor(array('controller' => 'work', 'action' => 'view', 'id' => $this->getId()));
     }
 }

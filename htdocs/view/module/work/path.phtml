@@ -1,4 +1,4 @@
 <?php $group_path_index = 0; $group_path_count = count($this->group_path); ?>
 <?php foreach ($this->group_path as $path_item) { ?>
-	<a href="<?= $path_item->getPathUrl() ?>"><?= $this->escape($path_item->getPathTitle()) ?></a><?php if (++$group_path_index != $group_path_count) { ?> :: <?php } ?>
+<a href="<?= $path_item->getPathUrl() ?>"><?= $this->escape($path_item->getPathTitle()) ?></a><?php if (++$group_path_index != $group_path_count) { ?> :: <?php } ?> 
 <?php } ?>

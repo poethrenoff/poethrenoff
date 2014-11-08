@@ -195,10 +195,7 @@ class Model
     public function save() {
         $record = array();
         foreach($this->fields_desc as $field_name => $field_desc) {
-           if (!(isset($field_desc[$this->is_new ? 'no_add' : 'no_edit']) &&
-                    $field_desc[$this->is_new ? 'no_add' : 'no_edit'] ||
-                $this->is_new && $field_desc['type'] == 'pk'))
-            {
+           if (!($this->is_new && $field_desc['type'] == 'pk')) {
                 $errors = isset($field_desc['errors']) && is_array($field_desc['errors']) ? $field_desc['errors'] : array();
                 if (!$this->fields[$field_name]->check($errors)) {
                     throw new \AlarmException('Ошибочное значение поля "' . $field_desc['title'] . '".');

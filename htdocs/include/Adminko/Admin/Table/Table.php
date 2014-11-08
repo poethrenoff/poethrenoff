@@ -693,9 +693,6 @@ class Table extends Admin
     {
         $table_object = admin::factory($table, false);
 
-        $table_object->sort_field = $table_object->main_field;
-        $table_object->sort_order = 'asc';
-
         $table_records = $table_object->getRecords();
 
         if ($table_object->parent_field) {

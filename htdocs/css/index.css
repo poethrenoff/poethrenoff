@@ -10,7 +10,7 @@ p, a, div, td, input, textarea, select {
 	font-family: Helvetica, sans-serif;
 }
 
-.main {
+.content {
 	width: 820px;
 	margin: auto;
 	padding: 50px 0px 50px 0px;
@@ -53,6 +53,20 @@ p, a, div, td, input, textarea, select {
     text-decoration: none;
 }
 
+.main, .main * {
+    font-size: 18px;
+    line-height: 50px;
+}
+
+.column {
+    -webkit-column-count: 2;
+    -moz-column-count: 2;
+    column-count: 2;
+    -webkit-column-gap: 30px;
+    -moz-column-gap: 30px;
+    column-gap: 30px;
+}
+
 h1, h2, h3 {
 	color: #444444;
 }
@@ -66,11 +80,11 @@ h3 {
 	font-size: 16px;
 }
 
-div.pages {
+.pages {
 	text-align: center;
 }
 
-div.tree_offset {
+.tree .tree {
 	margin-left: 30px;
 }
 
@@ -141,31 +155,38 @@ table.search_result {
 			text-align: right;
 		}
 
-div.separator {
+.separator {
 	width: 95%;
 	height: 1px;
 	margin: 10px auto;
 	border-bottom: 1px solid #cccccc;
 }
 
-table.work_table {
-	width: 100%;
-	border-collapse: collapse;
-}
-
-	table.work_table td {
-		width: 50%;
-		text-align: left;
-		vertical-align: top;
-	}
-
-div.work h3 {
+.work h3 {
 	margin-left: 0px;
 }
 
-div.work p {
+.work p {
 	color: #444444;
 	font-size: 14px;
 	font-family: monospace;
 	margin-left: 0px;
 }
+
+.work .prev, .work .next {
+    position: fixed;
+    color: #f5f5f5;
+    font-size: 100px;
+    text-decoration: none;
+    cursor: pointer;
+}
+.work .prev {
+    margin-left: -150px; margin-top: 10px;
+}
+.work .next {
+    margin-left: 860px; margin-top: 10px;
+}
+.work .prev:hover, .work .next:hover {
+    color: #eaeaea;
+}
+
