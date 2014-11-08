@@ -1,0 +1,4 @@
+<div class="work">
+<h3><?= trim($this->escape($this->work_item->getWorkTitle())) ?></h3>
+<p><?= nl2br(rtrim($this->work_item->getWorkText())) ?><?php if ($this->work_item->getWorkComment()) { ?><br/><br/><?= trim($this->work_item->getWorkComment()) ?><?php } ?></p>
+</div>

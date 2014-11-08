@@ -65,7 +65,7 @@
 				<div class="padding"></div>
 <?endforeach;?>
 <?else:?>
-				<textarea name="<?=$name?>" cols="" rows=""<?if(@$field['editor']):?> class="ckeditor"<?endif;?> errors="<?=join('|', $field['errors'])?>"><?=$field['value']?></textarea>
+				<textarea name="<?=$name?>" cols="" rows=""<?if(@$field['editor']):?> class="ckeditor"<?endif;?> errors="<?=join('|', $field['errors'])?>"<?php if ($name == 'work_text') { ?> style="height: 400px"<?php } ?>><?=$field['value']?></textarea>
 <?endif;?>
 <?else:?>
 <?if($field['translate']):?>

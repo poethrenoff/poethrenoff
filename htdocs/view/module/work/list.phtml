@@ -1,0 +1,24 @@
+<?php if ($this->group_tree->hasChildren()) { ?>
+<div class="group_tree">
+<?= Adminko\View::block('module/work/menu', array('group_tree' => $this->group_tree, 'depth' => 0)) ?> 
+</div>
+<?php } ?>
+<?php if ($this->group_tree->hasChildren() && $this->work_list) { ?>
+<div class="separator"></div>
+<?php } ?>
+<?php if ($this->work_list) { ?>
+<table class="work_table">
+	<tr>
+		<td>
+<?php $work_list_index = 0; $work_list_count = count($this->work_list); ?>
+<?php foreach ($this->work_list as $work_item) { ?>
+            <?= ++$work_list_index ?>.&nbsp;&nbsp;<a href="<?= $work_item->getWorkUrl() ?>"><?= $this->escape($work_item->getWorkTitle()) ?></a><br/>
+<?php if ($work_list_index == ceil($work_list_count / 2)) { ?>
+		</td>
+		<td>
+<?php } ?>
+<?php } ?>
+		</td>
+	</tr>
+</table>
+<?php } ?>

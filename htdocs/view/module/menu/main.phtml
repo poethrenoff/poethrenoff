@@ -1,1 +1,4 @@
-<?= Adminko\View::block('module/menu/item', array('menu_tree' => $this->menu_tree, 'depth' => 0)) ?> 
+<?php $count = $this->menu_tree->getChildrenCount(); $index = 0; ?>
+<?php foreach ($this->menu_tree->getChildren() as $menu_item) { ?>
+<a href="<?= $menu_item->getMenuUrl() ?>"><?= $menu_item->getMenuTitle() ?></a><?php if (++$index < $count) { ?> | <?php } ?>
+<?php } ?>

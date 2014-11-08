@@ -26,10 +26,44 @@ class Metadata
                 'menu_id' => array('title' => 'Идентификатор', 'type' => 'pk'),
                 'menu_parent' => array('title' => 'Родительский элемент', 'type' => 'parent'),
                 'menu_title' => array('title' => 'Заголовок', 'type' => 'string', 'show' => 1, 'main' => 1, 'errors' => array('require')),
-                'menu_page' => array('title' => 'Раздел', 'type' => 'table', 'table' => 'page', 'show' => 1),
-                'menu_url' => array('title' => 'URL', 'type' => 'string', 'show' => 1),
+                'menu_page' => array('title' => 'Раздел', 'type' => 'table', 'table' => 'page'),
+                'menu_url' => array('title' => 'URL', 'type' => 'string'),
                 'menu_order' => array('title' => 'Порядок', 'type' => 'order', 'group' => array('menu_parent')),
                 'menu_active' => array('title' => 'Видимость', 'type' => 'active'),
+            ),
+        ),
+        
+        /**
+         * Таблица "Произведения"
+         */
+        'work' => array(
+            'title' => 'Произведения',
+            'fields' => array(
+                'work_id' => array( 'title' => 'Идентификатор', 'type' => 'pk' ),
+                'work_group' => array( 'title' => 'Раздел', 'type' => 'table', 'table' => 'work_group', 'errors' => array('require')),
+                'work_title' => array( 'title' => 'Заголовок', 'type' => 'string', 'main' => 1),
+                'work_text' => array( 'title' => 'Текст', 'type' => 'text', 'errors' => array('require'), 'filter' => 1),
+                'work_comment' => array( 'title' => 'Комментарий', 'type' => 'string' ),
+                'work_order' => array( 'title' => 'Порядок', 'type' => 'order', 'group' => array('work_group')),
+                'work_active' => array( 'title' => 'Видимость', 'type' => 'active' ),
+            ),
+        ),
+        
+        /**
+         * Таблица "Разделы"
+         */
+        'work_group' => array(
+            'title' => 'Разделы',
+            'fields' => array(
+                'group_id' => array( 'title' => 'Идентификатор', 'type' => 'pk' ),
+                'group_parent' => array( 'title' => 'Родительский раздел', 'type' => 'parent' ),
+                'group_title' => array( 'title' => 'Название', 'type' => 'string', 'main' => 1, 'errors' => array('require') ),
+                'group_comment' => array( 'title' => 'Комментарий', 'type' => 'string' ),
+                'group_order' => array( 'title' => 'Порядок', 'type' => 'order', 'group' => array('group_parent') ),
+                'group_active' => array( 'title' => 'Видимость', 'type' => 'active' ),
+            ),
+            'links' => array(
+                'work' => array( 'table' => 'work', 'field' => 'work_group' )
             ),
         ),
         

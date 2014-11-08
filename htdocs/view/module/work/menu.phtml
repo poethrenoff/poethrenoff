@@ -1,0 +1,12 @@
+<?php foreach ($this->group_tree->getChildren() as $group_item) { ?>
+<?php if ($this->depth) { ?>
+<?php for ($offset = 0; $offset < $this->depth; $offset++) { ?><div class="tree_offset"><?php } ?> 
+<?php } ?>
+<a href="<?= $group_item->getGroupUrl() ?>"><?= $this->escape($group_item->getGroupTitle()) ?></a><?php if ($group_item->getGroupComment()) { ?> (<?= $this->escape($group_item->getGroupComment()) ?>)<?php } ?><br/>
+<?php if ($this->depth) { ?>
+<?php for ($offset = 0; $offset < $this->depth; $offset++) { ?></div><?php } ?>  
+<?php } ?>
+<?php if ($group_item->hasChildren()) { ?>
+<?= Adminko\View::block('module/work/menu', array('group_tree' => $group_item, 'depth' => $this->depth + 1)) ?> 
+<?php } ?>
+<?php } ?>

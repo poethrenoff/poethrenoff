@@ -1,35 +1,37 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ru" lang="ru">
-	<head>
-		<title><?= $this->escape( $this -> meta_title ) ?></title>
-		<meta name="keywords" content="<?= $this->escape( $this -> meta_keywords ) ?>"/> 
-		<meta name="description" content="<?= $this->escape( $this -> meta_description ) ?>"/> 
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-		<link rel="stylesheet" type="text/css" href="/css/index.css"/>
-	</head>
-	<body>
-		<table class="main" border="1">
-			<tr>
-				<td class="header" colspan="3">
-<?= Adminko\View::block( 'block/header' ) ?> 
-				</td>
-			</tr>
-			<tr>
-				<td class="menu">
-<?= $this -> menu ?> 
-				</td>
-				<td class="content">
-<?= $this -> content ?> 
-				</td>
-				<td class="news">
-<?= $this -> news ?> 
-				</td>
-			</tr>
-			<tr>
-				<td class="footer" colspan="3">
-<?= Adminko\View::block( 'block/footer' ) ?> 
-				</td>
-			</tr>
-		</table>
-	</body>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <title><?= $this->escape($this->meta_title) ?></title>
+        <meta name="keywords" content="<?= $this->escape($this->meta_keywords) ?>"/> 
+        <meta name="description" content="<?= $this->escape($this->meta_description) ?>"/> 
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <link rel="shortcut icon" href="/image/favicon.ico"/>
+        <link rel="stylesheet" type="text/css" href="/css/index.css"/>
+    </head>
+    <body>
+        <div class="header">
+            <div class="wrapper">
+                <div class="left">
+<?= $this->path ?> 
+                </div>
+                <div class="right">
+                    <a href="/">Поэт Хренов</a>
+                </div>
+            </div>
+        </div>
+        <div class="main">
+<?= $this->content ?> 
+        </div>
+        <div class="footer">
+            <div class="wrapper">
+                <div class="left">
+<?= $this->menu ?> 
+                </div>
+                <div class="right">
+<?= $this->sidebar ?> 
+                </div>
+            </div>
+        </div>
+    </body>
 </html>

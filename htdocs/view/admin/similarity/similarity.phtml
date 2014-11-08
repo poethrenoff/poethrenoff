@@ -1,0 +1,33 @@
+<b><?= $this->title ?></b><br/><br/>
+<form id="form" action="<?= $this->form_url ?>" method="post" enctype="multipart/form-data" onsubmit="return form_submit( this )">
+	<table class="record">
+		<tr>
+			<td class="title">
+				Текст <span class="require">*</span>:
+			</td>
+			<td class="field">
+				<table style="width: 100%">
+					<tr>
+						<td style="width: 50%; vertical-align: top;">
+							<textarea name="text" cols="" rows="" errors="require" style="height: 400px"><?= $this->escape($this->fromRequest('text')) ?></textarea>
+						</td>
+						<td style="width: 50%; vertical-align: top; padding-left: 20px;">
+<?php if ($this->work_title) { ?>
+							<h3><?= trim($this->work_title) ?></h3>
+                            <p><?= nl2br(rtrim($this->work_text)) ?><?php if ($this->work_comment) { ?><br/><br/><?= trim($this->work_comment) ?><?php } ?></p>
+							<p style="color: red; font-weight: bold">
+								<?= $this->result_percent ?>% (<?= $this->result_words ?>)<br>
+							</p>
+<?php } ?>
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2">
+				<input type="submit" value="Найти" class="button"/>
+			</td>
+		</tr>
+	</table>
+</form>
