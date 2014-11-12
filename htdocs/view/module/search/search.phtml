@@ -1,0 +1,28 @@
+<form class="search_form" action="<?= Adminko\System::selfUrl() ?>" method="get">
+    <input type="text" class="text" name="text" value="<?= $this->escape($this->search_text) ?>"/>
+    <input type="submit" class="button" value="Найти"/>
+</form>
+
+<?php if (!is_empty($this->search_text)) { ?>
+<div class="count">
+<?php   if ($this->search_count) { ?>
+    <p>Результатов: <?= $this->search_count ?></p>
+<?php   } else { ?>
+    <p>Ничего не найдено</p>
+<?php   } ?>
+</div>
+<?php } ?>
+
+<?php foreach ($this->search_list as $search_item) { ?>
+<div class="result">
+    <div class="index">
+        <?= $this->search_index++ ?>.
+    </div>
+    <div class="text">
+        <a href="<?= $search_item->getWorkUrl() ?>"><?= $search_item->getWorkTitle() ?></a>
+        <p><?= $search_item->getWorkText() ?></p>
+    </div>
+</div>
+<?php } ?>
+
+<?= $this->pages ?>

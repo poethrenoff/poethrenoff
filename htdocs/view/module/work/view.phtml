@@ -1,5 +1,10 @@
 <div class="work">
-<a class="prev">&larr;</a><a class="next">&rarr;</a>
+<?php if ($prev_work = $this->work_item->getPrevWork()) { ?>
+<a class="prev" href="<?= $prev_work->getWorkUrl() ?>" title="<?= trim($this->escape($prev_work->getWorkTitle())) ?>">&larr;</a>
+<?php } ?>
+<?php if ($next_work = $this->work_item->getNextWork()) { ?>
+<a class="next" href="<?= $next_work->getWorkUrl() ?>" title="<?= trim($this->escape($next_work->getWorkTitle())) ?>">&rarr;</a>
+<?php } ?>
 <h3><?= trim($this->escape($this->work_item->getWorkTitle())) ?></h3>
-<p><?= nl2br(rtrim($this->work_item->getWorkText())) ?><?php if ($this->work_item->getWorkComment()) { ?><br/><br/><?= trim($this->work_item->getWorkComment()) ?><?php } ?></p>
+<p><?= nl2br(rtrim($this->work_item->getViewText())) ?><?php if ($this->work_item->getWorkComment()) { ?><br/><br/><?= trim($this->work_item->getWorkComment()) ?><?php } ?></p>
 </div>

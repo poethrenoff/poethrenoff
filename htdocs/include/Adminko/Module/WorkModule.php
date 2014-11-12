@@ -6,7 +6,13 @@ use Adminko\Model\Model;
 
 class WorkModule extends Module
 {
-    // Вывод списка корневых разделов
+    // Текущее произведение
+    private static $work = null;
+    
+    // Текущий раздел
+    private static $work_group = null;
+    
+    // Вывод списка разделов
     protected function actionIndex()
     {
         $this->displayGroup();
@@ -15,65 +21,67 @@ class WorkModule extends Module
     // Вывод списка подразделов
     protected function actionGroup()
     {
-        try {
-            $group_item = Model::factory('work_group')->get(System::id());
-        } catch (\AlarmException $e) {
-            System::notFound();
-        }
+        $group_item = $this->getGroupItem();
+        $this->output['meta_title'] = SITE_TITLE . ' :: ' . $group_item->getGroupTitle();
         $this->displayGroup($group_item->getId());
     }
 
     // Вывод произведения
     protected function actionView()
     {
-        try {
-            $work_item = Model::factory('work')->getWorkItem(System::id());
-        } catch (\AlarmException $e) {
-            System::notFound();
-        }
-
+        $work_item = $this->getWorkItem();
         $this->view->assign('work_item', $work_item);
+        $this->output['meta_title'] = SITE_TITLE . ' :: ' . $work_item->getWorkTitle();
         $this->content = $this->view->fetch('module/work/view');
     }
 
     // Вывод случайного произведения
     protected function actionRandom()
     {
-        try {
-            $work_item = Model::factory('work')->getWorkItem();
-        } catch (\AlarmException $e) {
-            System::notFound();
-        }
-
-        $this->view->assign('work_item', $work_item);
-        $this->content = $this->view->fetch('module/work/view');
+        $this->actionView();
     }
 
     // Хлебные крошки
     protected function actionPath()
     {
         if (System::action() == 'group') {
-            try {
-                $group_item = Model::factory('work_group')->get(System::id());
-            } catch (\AlarmException $e) {
-                System::notFound();
-            }
+            $group_item = $this->getGroupItem();
             $group_id = $group_item->getId();
-        } elseif (System::action() == 'view' || System::action() == 'random') {
-            try {
-                $work_item = Model::factory('work')->getWorkItem(System::id());
-            } catch (\AlarmException $e) {
-                System::notFound();
-            }
-            $group_id = $work_item->getWorkGroup();
         } else {
-            $group_id = 0;
+            $work_item = $this->getWorkItem();
+            $group_id = $work_item->getWorkGroup();
         }
 
         $group_path = $this->getGroupPath($group_id);
 
         $this->view->assign('group_path', $group_path);
         $this->content = $this->view->fetch('module/work/path');
+    }
+    
+    // Получение произведения
+    protected function getWorkItem()
+    {
+        if (is_null(self::$work)) {
+            try {
+                self::$work = Model::factory('work')->getWorkItem(System::id());
+            } catch (\AlarmException $e) {
+                System::notFound();
+            }
+        }
+        return self::$work;
+    }
+
+    // Получение раздела
+    protected function getGroupItem()
+    {
+        if (is_null(self::$work_group)) {
+            try {
+                self::$work_group = Model::factory('work_group')->get(System::id());
+            } catch (\AlarmException $e) {
+                System::notFound();
+            }
+        }
+        return self::$work_group;
     }
     
     // Хлебные крошки
@@ -99,10 +107,11 @@ class WorkModule extends Module
     {
         $group_list = Model::factory('work_group')->getList(array('group_active' => 1), array('group_order' => 'asc'));
         $group_tree = Model::factory('work_group')->getTree($group_list, $group_id);
+        
         $work_list = Model::factory('work')->getWorkList($group_id);
 
-        $this->view->assign('group_tree', $group_tree);
         $this->view->assign('work_list', $work_list);
+        $this->view->assign('group_tree', $group_tree);
         $this->content = $this->view->fetch('module/work/list');
     }
 }
