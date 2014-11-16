@@ -31,7 +31,7 @@ class FileCache
 
         foreach ($file_list as $file_name) {
             $file_path = CACHE_DIR . '/' . $file_name;
-            if (is_file($file_path)) {
+            if (is_file($file_path) && is_empty(pathinfo($file_path, PATHINFO_EXTENSION))) {
                 @unlink($file_path);
             }
         }

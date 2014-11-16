@@ -3,6 +3,7 @@ namespace Adminko\Module;
 
 use Adminko\System;
 use Adminko\Model\Model;
+use Adminko\Cache\Cache;
 
 class WorkModule extends Module
 {
@@ -87,6 +88,12 @@ class WorkModule extends Module
     // Хлебные крошки
     protected function getGroupPath($group_parent = 0)
     {
+        $cache_key = __METHOD__ . '(' . join(', ', func_get_args()) . ')';
+
+        if (($group_path = Cache::get($cache_key)) !== false) {
+            return $group_path;
+        }
+        
         $group_path = array();
         while (true) {
             try {
@@ -98,8 +105,12 @@ class WorkModule extends Module
             $group_parent = $group_item->getGroupParent();
         }
         $group_path[] = Model::factory('work_group');
+        
+        $group_path = array_reverse($group_path);
+        
+        Cache::set($cache_key, $group_path);
 
-        return array_reverse($group_path);
+        return $group_path;
     }
     
     // Вывод списка разделов
@@ -114,4 +125,19 @@ class WorkModule extends Module
         $this->view->assign('group_tree', $group_tree);
         $this->content = $this->view->fetch('module/work/list');
     }
+
+    // Вычисляет хэш параметров модуля
+    protected function getCacheKey()
+    {
+        if ($this->action == 'view' || $this->action == 'random' || $this->action == 'path') {
+            return false;
+        }
+        return parent::getCacheKey();
+    }
+    
+    // Дополнительные параметры хэша модуля
+    protected function extCacheKey()
+    {
+        return parent::extCacheKey() + array('_id' => System::id());
+    }    
 }

@@ -3,6 +3,7 @@ namespace Adminko\Module;
 
 use Adminko\System;
 use Adminko\View;
+use Adminko\Cache\Cache;
 
 abstract class Module extends \Adminko\Object
 {
@@ -57,7 +58,7 @@ abstract class Module extends \Adminko\Object
             $this->$action_name();
 
             if ($cache_key) {
-                cache::set($cache_key, array($this->content, $this->output));
+                Cache::set($cache_key, array($this->content, $this->output));
             }
         } else {
             list($this->content, $this->output) = $cache_values;
