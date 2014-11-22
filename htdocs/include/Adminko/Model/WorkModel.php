@@ -30,10 +30,18 @@ class WorkModel extends Model
         return $this;
     }
 
-    protected function setGroupCondition($group_id)
+    protected function setGroupCondition($work_group)
     {
         $this->filter_cond[] = 'work_group = :work_group';
-        $this->filter_bind['work_group'] = $group_id;
+        $this->filter_bind['work_group'] = $work_group;
+
+        return $this;
+    }
+
+    protected function setGroupParentCondition($group_parent)
+    {
+        $this->filter_cond[] = 'group_parent = :group_parent';
+        $this->filter_bind['group_parent'] = $group_parent;
 
         return $this;
     }
@@ -66,14 +74,6 @@ class WorkModel extends Model
             }
             $this->filter_cond[] = '(' . join(' or ', $filter_word_cond) . ')';
         }
-
-        return $this;
-    }
-
-    protected function setWorkClause($work_id)
-    {
-        $this->filter_cond[] = 'work_id = :work_id';
-        $this->filter_bind['work_id'] = $work_id;
 
         return $this;
     }
@@ -148,6 +148,7 @@ class WorkModel extends Model
         } else {
             $work_query = $this
                 ->setDefaultCondition()
+                ->setGroupParentCondition(66) // Идентификатор группы "Главное"
                 ->setOrder(array('rand()' => 'asc'))
                 ->getListQuery();
         }
