@@ -11,37 +11,41 @@ $monster_list = Db::selectAll('select * from monster');
 
 foreach ($monster_list as $monster_index => $monster_item) {
     print str_pad($monster_item['monster_login'], 20, ' ', STR_PAD_RIGHT); 
-    
-    if (!$monster_item['monster_active']) {
-        print "---" . PHP_EOL; 
-        continue;
-    }
 
-    $monster_url = getUrl($monster_item);
-    
-    $page = @file_get_contents($monster_url);            
-    if (is_empty($page)) {
-        throw new \AlarmException('Ошибка. Страница "' . $monster_url . '" недоступна.');
-    }
+    try {
+        $monster_url = getUrl($monster_item);
+        
+        $page = @file_get_contents($monster_url);
+        if (is_empty($page)) {
+            throw new \AlarmException('Страница недоступна');
+        }
 
-    $count_result = preg_match('/' . iconv('UTF-8', 'Windows-1251', 'Произведений') . '\: \<b\>(\d+)\<\/b\>/', $page, $matches);
-    if (!$count_result) {
-        throw new \AlarmException('Ошибка при получении количества произведений на странице "' . $monster_url . '".');
-    }
-    $monster_list[$monster_index]['monster_count_old'] = $monster_list[$monster_index]['monster_count'];
-    $monster_list[$monster_index]['monster_count'] = $matches[1];
+        $count_result = preg_match('/' . iconv('UTF-8', 'Windows-1251', 'Произведений') . '\: \<b\>(\d+)\<\/b\>/', $page, $matches);
+        if (!$count_result) {
+            throw new \AlarmException('Ошибка при получении количества произведений');
+        }
+        $monster_item['monster_count_old'] = $monster_item['monster_count'];
+        $monster_item['monster_count'] = $matches[1];
 
-    $date_result = preg_match_all('/\d{2}\.\d{2}\.\d{4} \d{2}\:\d{2}/', $page, $matches);
-    if (!$date_result) {
-        throw new \AlarmException('Ошибка при получении дат произведений на странице "' . $monster_url . '".');
+        $date_result = preg_match_all('/\d{2}\.\d{2}\.\d{4} \d{2}\:\d{2}/', $page, $matches);
+        if (!$date_result) {
+            throw new \AlarmException('Ошибка при получении дат произведений');
+        }
+        $dates = $matches[0];
+        usort($dates, function($a, $b) {
+            return Date::set($b, 'long') > Date::set($a, 'long');
+        });
+        $monster_item['monster_date'] = Date::set(current($dates), 'long');
+        
+        $monster_item['monster_active'] = true;
+        $monster_list[$monster_index] = $monster_item;
+        
+        print "{$monster_item['monster_count']}" . PHP_EOL;
+    } catch (\AlarmException $e) {
+        $monster_list[$monster_index]['monster_active'] = false;
+        
+        print $e->getMessage(). PHP_EOL; 
     }
-    $dates = $matches[0];
-    usort($dates, function($a, $b) {
-        return Date::set($b, 'long') > Date::set($a, 'long');
-    });
-    $monster_list[$monster_index]['monster_date'] = Date::set(current($dates), 'long');
-
-    print "{$monster_list[$monster_index]['monster_count']}" . PHP_EOL;
 }
 
 usort($monster_list, function($a, $b) {
