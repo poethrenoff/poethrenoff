@@ -297,7 +297,6 @@ class Metadata
          */
         'fm' => array(
             'title' => 'Файл-менеджер',
-            'class' => 'Fm',
         ),
         
         /**
@@ -306,7 +305,14 @@ class Metadata
         'similarity' => array(
             'title' => 'Поиск дубликатов',
         ),
-   );
+        
+        /**
+         * Утилита "Монстры"
+         */
+        'monster' => array(
+            'title' => 'Монстры',
+        ),
+    );
 }
 
 //\Adminko\Db\Db::create();

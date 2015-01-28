@@ -3,7 +3,7 @@
  * Скрипт для создания книг стихов
  * 
  * @file 2fb2.php
- * @version 0.3
+ * @version 0.5
  */
 include_once dirname(dirname(dirname(__FILE__))) . '/config/config.php';
 
@@ -18,9 +18,9 @@ $last_name = 'Константинов';
 $nickname = 'poethrenoff';
 
 $program_name = basename(__FILE__);
-$program_version = '0.3';
+$program_version = '0.5';
 
-$src_url = 'http://blog.testea.ru/work';
+$src_url = 'http://poethrenoff.tk/';
 $version = '1.0';
 
 if (!isset($argv[1])) {
@@ -53,6 +53,11 @@ $FictionBook_xml = $dom_xml->createElement('FictionBook'); $dom_xml->appendChild
 			$book_title_xml = $dom_xml->createElement('book-title', $title); $title_info_xml->appendChild($book_title_xml);
 			if ($comment) {
 				$date_xml = $dom_xml->createElement('date', $comment); $title_info_xml->appendChild($date_xml);
+			}
+			if (isset($argv[2])) {
+				$coverpage_xml = $dom_xml->createElement('coverpage'); $title_info_xml->appendChild($coverpage_xml);
+					$image_xml = $dom_xml->createElement('image'); $coverpage_xml->appendChild($image_xml);
+						$image_xml->setAttribute('xlink:href', '#' . pathinfo($argv[2], PATHINFO_BASENAME));
 			}
 			$lang_xml = $dom_xml->createElement('lang', $lang); $title_info_xml->appendChild($lang_xml);
 		
@@ -106,8 +111,18 @@ foreach ($work_list as $work) {
 	}
 }
 
-$file_name = iconv('UTF-8', 'windows-1251', $title . ($comment ? (' (' . $comment . ')') : '') . '.fb2');
-file_put_contents(dirname(__FILE__) . '/' . $file_name, $dom_xml->saveXML());
+if (isset($argv[2])) {
+	$binary_xml = $dom_xml->createElement('binary', base64_encode(file_get_contents($argv[2]))); $FictionBook_xml->appendChild($binary_xml);
+		$binary_xml->setAttribute('id', pathinfo($argv[2], PATHINFO_BASENAME));
+		$binary_xml->setAttribute('content-type', 'image/jpeg');
+}
+
+$file_name = $author . ' - ' . $title . ($comment ? (' (' . $comment . ')') : '');
+
+$zip = new ZipArchive();
+$res = $zip->open(to_file_name($file_name) . '.fb2.zip', ZipArchive::CREATE);
+$zip->addFromString(iconv('UTF-8', 'CP866//TRANSLIT//IGNORE', $file_name) . '.fb2', $dom_xml->saveXML());
+$zip->close();
 
 function create_uid() {
 	return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x', mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535));
