@@ -274,11 +274,15 @@ class Captcha
     {
         if ($this->imageFormat == 'png') {
             header("Content-type: image/png");
-            ob_clean();
+            if (ob_get_length() !== false) {
+                ob_clean();
+            }
             imagepng($this->im);
         } else {
             header("Content-type: image/jpeg");
-            ob_clean();
+            if (ob_get_length() !== false) {
+                ob_clean();
+            }
             imagejpeg($this->im, null, 90);
         }
     }

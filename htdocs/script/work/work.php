@@ -3,7 +3,7 @@
     
     $text_list = explode("\r\n\r\n\r\n", $text);
     
-    $sql = ''; $order = 1;
+    $sql = ''; $order = isset($argv[3]) ? $argv[3] : 1;
     
     foreach ( $text_list as $text_item ) {
         $text_item = trim( $text_item );
