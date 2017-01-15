@@ -24,7 +24,7 @@ RewriteEngine On
 
 RewriteRule ^favicon.ico image/favicon.ico [L]
 
-RewriteRule ^(upload/.+\.(gif|jpg|jpe|jpeg|png))/(c|r)/(\d+)/(\d+)$ image/image.php?url=/$1&method=$3&width=$4&height=$5 [L]
+RewriteRule ^(upload/.+\.(gif|jpg|jpe|jpeg|png))/(c|r)/(\d+)/(\d+)$ image/image.php?url=/$1&method=$3&width=$4&height=$5 [L,NC]
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.*)$ index.php [QSA,L]

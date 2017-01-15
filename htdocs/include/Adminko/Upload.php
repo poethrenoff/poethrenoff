@@ -171,10 +171,9 @@ class Upload
      */
     private function prepareTypes($types)
     {
-        if (empty($types)) {
-            return [];
-        }
-        if (!is_array($types)) {
+        if (is_empty($types)) {
+            $types = array();
+        } elseif (!is_array($types)) {
             $types = explode('|', $types);
         }
         return array_map('strtolower', $types);

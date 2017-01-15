@@ -142,6 +142,19 @@ function decl_of_num($number, $titles, $view_number = true)
     return ($view_number ? $number . ' ' : '') . $titles[($value % 100 > 4 && $value % 100 < 20) ? 2 : $cases[min($value % 10, 5)]];
 }
 
+function format_size($size, $precision = 2, $view_size = true)
+{
+	$units = array('Б', 'кБ', 'МБ', 'ГБ', 'ТБ', 'ПБ'); 
+	
+	$size = abs($size);
+	$pow = floor(($size ? log($size) : 0) / log(1024)); 
+	$pow = min($pow, count($units) - 1); 
+	
+	$size /= pow(1024, $pow);
+	
+	return ($view_size ? round($size, $precision) . ' ' : '') . $units[$pow]; 
+}
+
 function generate_key($max = 128)
 {
     $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
