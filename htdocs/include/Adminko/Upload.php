@@ -171,6 +171,9 @@ class Upload
      */
     private function prepareTypes($types)
     {
+        if (empty($types)) {
+            return [];
+        }
         if (!is_array($types)) {
             $types = explode('|', $types);
         }

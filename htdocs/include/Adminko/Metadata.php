@@ -67,6 +67,22 @@ class Metadata
             ),
         ),
         
+        /**
+         * Таблица "Картинки"
+         */
+        'picture' => array(
+            'title' => 'Картинки',
+            'fields' => array(
+                'picture_id' => array( 'title' => 'Идентификатор', 'type' => 'pk' ),
+                'picture_title' => array( 'title' => 'Название', 'type' => 'string', 'errors' => array('require'), 'main' => 1),
+                'picture_image' => array('title' => 'Изображение', 'type' => 'file', 'upload_dir' => 'image', 'errors' => array('require')),
+                'picture_source' => array('title' => 'Исходник', 'type' => 'file', 'upload_dir' => 'image', 'errors' => array('require')),
+                'picture_date' => array('title' => 'Дата', 'type' => 'date', 'show' => true,    'errors' => array('require')),
+                'picture_order' => array( 'title' => 'Порядок', 'type' => 'order', 'group' => array('picture_date')),
+                'picture_active' => array( 'title' => 'Видимость', 'type' => 'active' ),
+            ),
+        ),
+        
         ////////////////////////////////////////////////////////////////////////////////////////
         
         /**

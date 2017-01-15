@@ -1,0 +1,21 @@
+<?php foreach ($this->picture_by_date as $date => $picture_list) { ?>
+    <h2><?= Adminko\Date::get($date) ?></h2>
+    <div class="gallery">
+<?php foreach ($picture_list as $date => $picture_item) { ?>
+        <a href="<?= $picture_item->getPictureImage() ?>" data-lightbox="gallery" data-title="<?= $picture_item->getPictureTitle() ?>">
+            <img src="<?= $picture_item->getPictureImage() . '/r/150/150' ?>" title="<?= $picture_item->getPictureTitle() ?>">
+        </a>
+<?php } ?>
+    </div>
+<?php } ?>
+
+    <link rel="stylesheet" href="/css/lightbox.css" />
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/lightbox.min.js"></script>
+
+    <script>
+        lightbox.option({
+            'albumLabel': ''
+        })
+    </script>

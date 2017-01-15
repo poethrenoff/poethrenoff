@@ -248,3 +248,16 @@ textarea {
         width: 90%;
     }
 }
+
+.gallery a {
+    display: inline-block;
+    text-align: center;
+    vertical-align: top;
+    width: 150px;
+    height: 150px;
+    margin: 20px 20px;
+}
+.gallery a img {
+    display: inline-block;
+    border: 1px solid #cccccc
+}
