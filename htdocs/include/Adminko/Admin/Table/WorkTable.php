@@ -2,6 +2,7 @@
 namespace Adminko\Admin\Table;
 
 use Adminko\Db\Db;
+use Adminko\System;
 
 class WorkTable extends Table
 {
@@ -31,7 +32,7 @@ class WorkTable extends Table
         if (is_empty($work_title)) {
             $work_text = init_string('work_text');
             $work_title = $this->getTitle($work_text);
-            Db::update($this->object, array('work_title' => $work_title), array($this->primary_field => id()));
+            Db::update($this->object, array('work_title' => $work_title), array($this->primary_field => System::id()));
         }
 
         if ($redirect) {

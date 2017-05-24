@@ -45,7 +45,9 @@ class WorkModule extends Module
     // Хлебные крошки
     protected function actionPath()
     {
-        if (System::action() == 'group') {
+        if (System::action() == 'index') {
+            $group_id = 0;
+        } elseif (System::action() == 'group') {
             $group_item = $this->getGroupItem();
             $group_id = $group_item->getId();
         } else {
