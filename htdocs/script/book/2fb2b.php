@@ -91,16 +91,18 @@ foreach ($work_list as $work) {
 		$p_xml = $dom_xml->createElement('p', $work['work_title']); $title_xml->appendChild($p_xml);
 	
 	$poem_xml = $dom_xml->createElement('poem'); $section_xml->appendChild($poem_xml);
-	
-	$stanzes = explode("\r\n\r\n", $work['work_text']);
+
+	$work['work_text'] = str_replace("\r", "\n", str_replace("\r\n", "\n", $work['work_text']));
+
+	$stanzes = explode("\n\n", $work['work_text']);
 	foreach ($stanzes as $stanza) {
 		$stanza_xml = $dom_xml->createElement('stanza'); $poem_xml->appendChild($stanza_xml);
 		
-		$lines = explode("\r\n", $stanza);
+		$lines = explode("\n", $stanza);
 		foreach ($lines as $line) {
-			$line  = preg_replace_callback ('/^ +| {2,}/m', create_function(
-				'$matches', 'return str_repeat( \'  \', strlen($matches[0]) );'
-			), $line);
+			$line  = preg_replace_callback ('/^ +| {2,}/m', function($matches) {
+				return str_repeat('  ', strlen($matches[0]) );
+			}, $line);
 			
 			$v_xml = $dom_xml->createElement('v', $line); $stanza_xml->appendChild($v_xml);
 		}
@@ -120,8 +122,8 @@ if (isset($argv[2])) {
 $file_name = $author . ' - ' . $title . ($comment ? (' (' . $comment . ')') : '');
 
 $zip = new ZipArchive();
-$res = $zip->open(to_file_name($file_name) . '.fb2.zip', ZipArchive::CREATE);
-$zip->addFromString(iconv('UTF-8', 'CP866//TRANSLIT//IGNORE', $file_name) . '.fb2', $dom_xml->saveXML());
+$res = $zip->open(dirname(__FILE__) . '/' . to_file_name($file_name) . '.fb2.zip', ZipArchive::CREATE);
+$zip->addFromString($file_name . '.fb2', $dom_xml->saveXML());
 $zip->close();
 
 function create_uid() {

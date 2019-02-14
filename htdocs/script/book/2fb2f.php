@@ -96,16 +96,18 @@ foreach ($work_list as $work) {
 		$p_xml = $dom_xml->createElement('p', $work[0]); $title_xml->appendChild($p_xml);
 	
 	$poem_xml = $dom_xml->createElement('poem'); $section_xml->appendChild($poem_xml);
-	
-	$stanzes = explode("\r\n\r\n", $work[1]);
+
+	$work['work_text'] = str_replace("\r", "\n", str_replace("\r\n", "\n", $work['work_text']));
+
+	$stanzes = explode("\n\n", $work['work_text']);
 	foreach ($stanzes as $stanza) {
 		$stanza_xml = $dom_xml->createElement('stanza'); $poem_xml->appendChild($stanza_xml);
 		
-		$lines = explode("\r\n", $stanza);
+		$lines = explode("\n", $stanza);
 		foreach ($lines as $line) {
-			$line  = preg_replace_callback ('/^ +| {2,}/m', create_function(
-				'$matches', 'return str_repeat( \'  \', strlen($matches[0]) );'
-			), $line);
+			$line  = preg_replace_callback ('/^ +| {2,}/m', function($matches) {
+				return str_repeat('  ', strlen($matches[0]) );
+			}, $line);
 			
 			$v_xml = $dom_xml->createElement('v', $line); $stanza_xml->appendChild($v_xml);
 		}
@@ -118,7 +120,7 @@ if (isset($argv[2])) {
 		$binary_xml->setAttribute('content-type', 'image/jpeg');
 }
 
-file_put_contents(dirname(__FILE__) . '/' . iconv('UTF-8', 'windows-1251', $title) . '.fb2', $dom_xml->saveXML());
+file_put_contents(dirname(__FILE__) . '/' . $title . '.fb2', $dom_xml->saveXML());
 
 function create_uid() {
 	return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x', mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(16384, 20479), mt_rand(32768, 49151), mt_rand(0, 65535), mt_rand(0, 65535), mt_rand(0, 65535));

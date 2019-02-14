@@ -12,7 +12,7 @@
         $title = trim( substr( $text_item, 0, $title_index ) );
         $content = trim( substr( $text_item, $title_index + 1 ) );
         
-        $title = ucfirst(strtolower($title));
+        $title = mb_ucfirst(mb_strtolower($title));
         
         if ($title == '* * *')
             $title = get_title( $content );
@@ -24,7 +24,7 @@
         }
         
         $sql .= "INSERT INTO `work` (`work_group`, `work_title`, `work_text`, `work_comment`, `work_order`, `work_active`)
-            VALUES({$argv[2]}, '" . sql_valid($title) . "', '" . sql_valid($content) . "', '" . sql_valid($comment) . "', " . ($order++) . ", 1);\n";
+           VALUES({$argv[2]}, '" . sql_valid($title) . "', '" . sql_valid($content) . "', '" . sql_valid($comment) . "', " . ($order++) . ", 1);\n";
     }
     
     print $sql;
@@ -46,4 +46,10 @@ function sql_valid($data) {
 	$data = str_replace("\r", "\\r", $data); 
 	$data = str_replace("\n", "\\n", $data); 
 	return($data);  
+}
+
+function mb_ucfirst($string, $enc = 'UTF-8')
+{
+  return mb_strtoupper(mb_substr($string, 0, 1, $enc), $enc) . 
+         mb_substr($string, 1, mb_strlen($string, $enc), $enc);
 }
