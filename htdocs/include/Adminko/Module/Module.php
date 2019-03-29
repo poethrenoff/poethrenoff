@@ -1,11 +1,12 @@
 <?php
 namespace Adminko\Module;
 
+use Adminko\Main;
 use Adminko\System;
 use Adminko\View;
 use Adminko\Cache\Cache;
 
-abstract class Module extends \Adminko\Object
+abstract class Module extends Main
 {
     // Параметры модуля
     protected $params = array();

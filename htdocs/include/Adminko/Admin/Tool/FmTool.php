@@ -14,7 +14,7 @@ class FmTool extends Admin
 
     public function getUploadPath()
     {
-        return realpath(filter_input(INPUT_SERVER, 'DOCUMENT_ROOT') . $this->upload_path) . DIRECTORY_SEPARATOR;
+        return realpath($_SERVER['DOCUMENT_ROOT'] . $this->upload_path) . DIRECTORY_SEPARATOR;
     }
 
     protected function actionIndex()

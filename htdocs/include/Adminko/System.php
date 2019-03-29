@@ -302,7 +302,7 @@ class System
     
     public static function selfUrl($include = array(), $exclude = array())
     {
-        $self_url = preg_replace('/\?.*$/', '', filter_input(INPUT_SERVER, 'REQUEST_URI'));
+        $self_url = preg_replace('/\?.*$/', '', $_SERVER['REQUEST_URI']);
 
         $query_string = http_build_query(self::prepareQuery($include, $exclude));
 
@@ -331,8 +331,8 @@ class System
     {
         $back_url = '/';
         
-        $http_host = filter_input(INPUT_SERVER, 'HTTP_REFERER');
-        $http_refferer = filter_input(INPUT_SERVER, 'HTTP_REFERER');
+        $http_host = $_SERVER['HTTP_REFERER'];
+        $http_refferer = $_SERVER['HTTP_REFERER'];
 
         if (!is_null($http_refferer) && strstr($http_refferer, $http_host)) {
             $back_url = $http_refferer;

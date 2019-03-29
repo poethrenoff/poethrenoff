@@ -319,7 +319,7 @@ class Image
      */
     public function getFileLink($absolute_url = false)
     {
-        return ($absolute_url ? ('http://' . filter_input(INPUT_SERVER, 'HTTP_HOST')) : '') .
+        return ($absolute_url ? ('http://' . $_SERVER['HTTP_HOST']) : '') .
             str_replace(normalize_path(UPLOAD_DIR), UPLOAD_ALIAS, $this->getFilePath());
     }
 }

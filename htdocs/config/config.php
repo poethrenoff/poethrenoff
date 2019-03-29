@@ -11,7 +11,7 @@ ini_set('date.timezone', 'Europe/Moscow');
 define('SITE_TITLE', 'Поэт Хренов');
 
 define('DB_TYPE', 'mysql'); // mysql, pgsql, sqlite
-define('DB_HOST', 'localhost');
+define('DB_HOST', 'mysql');
 define('DB_NAME', 'poethrenoff');
 define('DB_USER', 'poethrenoff');
 define('DB_PASSWORD', 'poethrenoff');
