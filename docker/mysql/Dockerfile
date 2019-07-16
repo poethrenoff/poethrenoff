@@ -1,0 +1,6 @@
+FROM mysql:5.7
+
+ENV MYSQL_DATABASE=poethrenoff
+ENV MYSQL_USER=poethrenoff
+ENV MYSQL_PASSWORD=poethrenoff
+ENV MYSQL_ALLOW_EMPTY_PASSWORD=yes
