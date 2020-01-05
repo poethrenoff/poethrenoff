@@ -5,7 +5,8 @@
 <?php if ($next_work = $this->work_item->getNextWork()) { ?>
 <noindex><a class="next" href="<?= $next_work->getWorkUrl() ?>" title="<?= trim($this->escape($next_work->getWorkTitle())) ?>">&rarr;</a></noindex>
 <?php } ?>
-<h3><?= trim($this->work_item->getWorkTitle()) ?></h3>
+<? $workTitle = preg_match('/^".+\.\.\."$/', $this->work_item->getWorkTitle()) ? '* * *' : $this->work_item->getWorkTitle(); ?>
+<h3><?= trim($workTitle) ?></h3>
 <p><?= nl2br(rtrim($this->work_item->getViewText())) ?><?php if ($this->work_item->getWorkComment()) { ?><br/>
 <br/>
 <?= trim($this->work_item->getWorkComment()) ?><?php } ?></p>
