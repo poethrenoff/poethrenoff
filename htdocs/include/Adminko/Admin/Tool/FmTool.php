@@ -70,7 +70,7 @@ class FmTool extends Admin
         }
 
         usort($file_list, function($a, $b) use ($sort_field, $sort_order) {
-            if ($sort_field == 'size') {
+            if ($sort_field == 'id' or $sort_field == 'size') {
                 $result = strnatcmp($a[$sort_field], $b[$sort_field]);
             } else {
                 $result = strcmp($a[$sort_field], $b[$sort_field]);
