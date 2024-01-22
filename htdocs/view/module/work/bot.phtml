@@ -1,9 +1,9 @@
 <?php if (!preg_match('/^".+\.\.\."$/', $this->work_item->getWorkTitle())) { ?>
-<?= trim($this->work_item->getWorkTitle()) ?>
+<?= mb_strtoupper(trim($this->work_item->getWorkTitle())) ?>
 
 
 <?php } ?>
-<?= rtrim($this->work_item->getViewText()) ?>
+<?= rtrim(html_entity_decode($this->work_item->getViewText())) ?>
 <?php if ($this->work_item->getWorkComment()) { ?>
 
 

@@ -201,14 +201,20 @@ class WorkModel extends Model
         return Db::selectCell($work_query, $this->filter_bind);
     }
     
-    public function getListByText($search_text, $limit, $offset)
+    public function getListByText($search_text, $limit, $offset, $mainOnly = false)
     {
-        $work_query = $this
+        $work_condition = $this
             ->setDefaultCondition()
             ->setTextCondition($search_text)
             ->setOrder(array('work_id' => 'desc'))
-            ->setLimit($limit)->setOffset($offset)
-            ->getListQuery();
+            ->setLimit($limit)
+            ->setOffset($offset);
+
+        if ($mainOnly) {
+            $work_condition->setGroupParentCondition(66); // Идентификатор группы "Главное"
+        }
+
+        $work_query = $work_condition->getListQuery();
         $work_list = Db::selectAll($work_query, $this->filter_bind);
         
         return $this->getBatch($work_list);
