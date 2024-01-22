@@ -37,4 +37,6 @@ define('ERROR_SUBLECT', 'Сообщение об ошибке');
 
 define('LOG_DIR', dirname(APP_DIR) . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR);
 
+define('TELEGRAM_API_TOKEN', '');
+
 include_once CLASS_DIR . 'include.php';
