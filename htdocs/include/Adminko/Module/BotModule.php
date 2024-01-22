@@ -20,6 +20,9 @@ class BotModule extends Module
             System::notFound();
         }
 
+        $error_file = LOG_DIR . 'telegram_bot.log';
+        @file_put_contents($error_file, file_get_contents('php://input') . "\n\n", FILE_APPEND);
+
         if ($text) {
             if ($text == "/start" || $text == "/help") {
                 $reply = "Отправьте боту слово или фразу из стихотворения, которое хотите найти. " .
