@@ -1,27 +1,28 @@
 <?php
 namespace Adminko\Module;
 
-use Adminko\Date;
-use Adminko\System;
+use Adminko\Paginator;
 use Adminko\Model\Model;
-use Adminko\Cache\Cache;
 
 class PictureModule extends Module
 {
     // Галерея
     protected function actionIndex()
     {
+        $count = max(intval($this->getParam('count')), 1);
+
+        $picture_model = Model::factory('picture');
+        $picture_count = $picture_model->getCount(['picture_active' => 1]);
+        $pages = Paginator::create($picture_count, array('by_page' => $count));
         $picture_list = Model::factory('picture')->getList(
-            ['picture_active' => 1],['picture_order' => 'asc']
+            ['picture_active' => 1],
+            ['picture_date' => 'desc', 'picture_order' => 'asc'],
+            $pages['by_page'],
+            $pages['offset']
         );
 
-        $picture_by_date = [];
-        foreach ($picture_list as $picture_item) {
-            $picture_by_date[$picture_item->getPictureDate()][] = $picture_item;
-        }
-        krsort($picture_by_date);
-
-        $this->view->assign('picture_by_date', $picture_by_date);
+        $this->view->assign('picture_list', $picture_list);
+        $this->view->assign('pages', Paginator::fetch($pages));
         $this->content = $this->view->fetch('module/picture/gallery');
     }
 }
