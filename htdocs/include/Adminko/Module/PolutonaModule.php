@@ -9,9 +9,9 @@ class PolutonaModule extends Module
 
     protected function actionIndex()
     {
-        if (($authors = cache::get('authors', 3600)) === false) {
+        if (($authors = cache::get('polutona:authors', 3600)) === false) {
             $authors = file_get_contents(static::MAIN_URL . 'rss/rss-authors.php');
-            cache::set('authors', $authors);
+            cache::set('polutona:authors', $authors);
         }
 
         $authorsXml = simplexml_load_string($authors);
@@ -24,8 +24,8 @@ class PolutonaModule extends Module
             return;
         }
 
-        $workPageLink = static::MAIN_URL . 'printer.php3?address=' .
-            $authorWorks[rand(0, count($authorWorks) - 1)]['show'];
+        $show = $authorWorks[rand(0, count($authorWorks) - 1)]['show'];
+        $workPageLink = static::MAIN_URL . 'printer.php3?address=' . $show;
         $workPage = file_get_contents($workPageLink);
 
         preg_match('/\<body\>(?<text>.+)\<\/body\>/isU', $workPage, $text);
@@ -34,6 +34,7 @@ class PolutonaModule extends Module
                 preg_replace('/\<img.*\>/isU', '', $text['text'])));
 
         $this->view->assign('text', $text);
+        $this->view->assign('link', static::MAIN_URL . '?show=' . $show);
         $this->content = $this->view->fetch('module/polutona/view');
     }
 

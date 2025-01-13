@@ -43,7 +43,7 @@ class Metadata
                 'work_group' => array( 'title' => 'Раздел', 'type' => 'table', 'table' => 'work_group', 'errors' => array('require')),
                 'work_title' => array( 'title' => 'Заголовок', 'type' => 'string', 'main' => 1),
                 'work_text' => array( 'title' => 'Текст', 'type' => 'text', 'errors' => array('require'), 'filter' => 1),
-                'work_comment' => array( 'title' => 'Комментарий', 'type' => 'string' ),
+                'work_comment' => array( 'title' => 'Комментарий', 'type' => 'string', 'filter' => 1),
                 'work_order' => array( 'title' => 'Порядок', 'type' => 'order', 'group' => array('work_group')),
                 'work_active' => array( 'title' => 'Видимость', 'type' => 'active' ),
             ),
