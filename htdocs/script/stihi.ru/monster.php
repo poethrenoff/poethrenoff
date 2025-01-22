@@ -10,22 +10,28 @@ use Adminko\Date;
 $monster_list = Db::selectAll('select * from monster');
 
 foreach ($monster_list as $monster_index => $monster_item) {
-    print str_pad($monster_item['monster_login'], 20, ' ', STR_PAD_RIGHT); 
+    print str_pad($monster_item['monster_login'], 20);
 
     try {
         $monster_url = getUrl($monster_item);
         
-        $page = @file_get_contents($monster_url);
+        $page = @iconv('Windows-1251', 'UTF-8', @file_get_contents($monster_url));
         if (is_empty($page)) {
             throw new \AlarmException('Страница недоступна');
         }
 
-        $count_result = preg_match('/' . iconv('UTF-8', 'Windows-1251', 'Произведений') . '\: \<b\>(\d+)\<\/b\>/', $page, $matches);
+        $count_result = preg_match('/Произведений\: \<b\>(\d+)\<\/b\>/', $page, $matches);
         if (!$count_result) {
             throw new \AlarmException('Ошибка при получении количества произведений');
         }
         $monster_item['monster_count_old'] = $monster_item['monster_count'];
         $monster_item['monster_count'] = $matches[1];
+
+        $title_result = preg_match('/\<h1\>(.+)\<\/h1\>/', $page, $matches);
+        if (!$title_result) {
+            throw new \AlarmException('Ошибка при получении имени автора');
+        }
+        $monster_item['monster_title'] = $matches[1];
 
         $date_result = preg_match_all('/\d{2}\.\d{2}\.\d{4} \d{2}\:\d{2}/', $page, $matches);
         if (!$date_result) {
@@ -37,12 +43,12 @@ foreach ($monster_list as $monster_index => $monster_item) {
         });
         $monster_item['monster_date'] = Date::set(current($dates), 'long');
         
-        $monster_item['monster_active'] = true;
+        $monster_item['monster_active'] = 1;
         $monster_list[$monster_index] = $monster_item;
         
         print "{$monster_item['monster_count']}" . PHP_EOL;
     } catch (\AlarmException $e) {
-        $monster_list[$monster_index]['monster_active'] = false;
+        $monster_list[$monster_index]['monster_active'] = 0;
         
         print $e->getMessage(). PHP_EOL; 
     }
@@ -56,7 +62,7 @@ $monster_place = 0;
 foreach ($monster_list as $monster_index => $monster_item) {
     $monster_list[$monster_index]['monster_place_old'] = $monster_list[$monster_index]['monster_place'];
     $monster_list[$monster_index]['monster_place'] = ++$monster_place;
-    
+
     Db::update('monster', $monster_list[$monster_index], array('monster_id' => $monster_item['monster_id']));
 }
 
