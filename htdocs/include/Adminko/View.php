@@ -15,8 +15,8 @@ class View
     /**
      * Передача переменной в шаблон
      *
-     * @param  $name mix
-     * @param  $data mix
+     * @param  $name mixed
+     * @param  $data mixed
      */
     public function assign($name, $data = null)
     {
@@ -101,7 +101,7 @@ class View
                 $var[$key] = $this->escape($value);
             }
         } else {
-            $var = htmlspecialchars($var, ENT_QUOTES, 'UTF-8');
+            $var = htmlspecialchars((string)$var, ENT_QUOTES, 'UTF-8');
         }
         return $var;
     }

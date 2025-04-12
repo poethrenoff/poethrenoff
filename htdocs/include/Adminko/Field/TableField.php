@@ -8,7 +8,7 @@ class TableField extends IntField
     protected $value = 0;
     
     public function set($content) {
-        $this->value = (string) $content !== '' ? $content : 0;
+        $this->value = (string) $content !== '' ? (int) $content : 0;
         return $this;
     }
     

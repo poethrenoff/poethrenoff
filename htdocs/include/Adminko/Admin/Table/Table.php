@@ -702,7 +702,7 @@ class Table extends Admin
         $result_records = array();
         foreach ($table_records as $table_record) {
             $result_records[] = array(
-                'value' => (string) $table_record[$table_object->primary_field],
+                'value' => $table_record[$table_object->primary_field],
                 'title' => Field::factory($table_object->fields[$table_object->main_field]['type'])
                         ->set($table_record[$table_object->main_field])->view(),
                 '_depth' => isset($table_record['_depth']) ? $table_record['_depth'] : '');

@@ -6,7 +6,7 @@ include_once dirname(dirname(dirname(__FILE__))) . '/config/config.php';
 
 use Adminko\Db\Db;
 
-$server = 'https://www.stihi.ru';
+$server = 'https://stihi.ru';
 $login_url = '/cgi-bin/login/intro.pl';
 $public_url = '/cgi-bin/login/page.pl';
 $put_url = '/login/page.html?put';
@@ -16,7 +16,8 @@ $user_login = 'poethrenoff';
 $user_password = '**********';
 $user_agent = 'Mozilla/5.0 (Windows NT 5.1) AppleWebKit/534.24 (KHTML, like Gecko) Chrome/11.0.696.14 Safari/534.24';
 
-$server_rubric = '36'; $local_rubric = '72'; // Вот я и согрелся (240)
+$server_rubric = '69'; $local_rubric = '108';
+$limit = 20; $offset = 250;
 
 $ch = curl_init();
 
@@ -36,8 +37,11 @@ preg_match( '/(pcode=\d+;)/', $result, $pcode_match );
 curl_setopt($ch, CURLOPT_HEADER, 0);
 curl_setopt($ch, CURLOPT_COOKIE, $login_match[1] . ' ' . $pcode_match[1]);
 
-$work_list = Db::selectAll( '
-    select * from work where work_group = :work_group and work_active = 1 order by work_order desc limit 20 offset 240',
+$work_list = Db::selectAll('
+    select * from work
+    where work_group = :work_group and work_active = 1
+    order by work_order desc
+    limit ' . $limit . ' offset ' . $offset,
         array('work_group' => $local_rubric) );
 
 foreach($work_list as $work) {
@@ -58,9 +62,13 @@ foreach($work_list as $work) {
     $text = iconv('UTF-8', 'Windows-1251', $work['work_text']);
     $comment = iconv('UTF-8', 'Windows-1251', $work['work_comment']);
     
-    $text  = preg_replace_callback ('/^ +| {2,}/m', create_function(
-        '$matches', 'return str_repeat( \'  \', strlen($matches[0]) );'
-    ), $text);
+    $text  = preg_replace_callback(
+        '/^ +| {2,}/m',
+        function ($matches) {
+            return str_repeat('  ', strlen($matches[0]));
+        },
+        $text
+     );
     
     $text = rtrim($text) . ($comment ? "\r\n\r\n" . trim($comment) : '');
     

@@ -131,7 +131,7 @@ function is_empty($var)
     if (is_array($var) || is_object($var)) {
         return empty($var);
     } else {
-        return trim($var) === '';
+        return trim((string)$var) === '';
     }
 }
 
