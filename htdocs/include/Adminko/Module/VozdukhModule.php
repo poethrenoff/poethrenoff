@@ -12,7 +12,6 @@ class VozdukhModule extends Module
         if (($numbersPage = cache::get('vozdukh:numbers', 3600)) === false) {
             $numbersPage = file_get_contents(static::MAIN_URL);
             cache::set('vozdukh:numbers', $numbersPage);
-            print 1;
         }
         preg_match_all(
             '/<a href=\/projects\/vozdukh\/issues\/(?<number>[0-9-]+)\/>/isU',

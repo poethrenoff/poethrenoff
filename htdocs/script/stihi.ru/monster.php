@@ -39,7 +39,7 @@ foreach ($monster_list as $monster_index => $monster_item) {
         }
         $dates = $matches[0];
         usort($dates, function($a, $b) {
-            return Date::set($b, 'long') > Date::set($a, 'long');
+            return Date::set($b, 'long') <=> Date::set($a, 'long');
         });
         $monster_item['monster_date'] = Date::set(current($dates), 'long');
         
@@ -55,7 +55,7 @@ foreach ($monster_list as $monster_index => $monster_item) {
 }
 
 usort($monster_list, function($a, $b) {
-    return $b['monster_count'] > $a['monster_count'];
+    return $b['monster_count'] <=> $a['monster_count'];
 });
 
 $monster_place = 0;
