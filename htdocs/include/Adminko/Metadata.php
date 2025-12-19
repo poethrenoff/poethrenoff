@@ -328,6 +328,22 @@ class Metadata
         'monster' => array(
             'title' => 'Монстры',
         ),
+
+        /**
+         * Таблица "Воздух :: Произведения"
+         */
+        'vozdukh_work' => array(
+            'title' => 'Воздух :: Произведения',
+            'fields' => array(
+                'work_id' => array( 'title' => 'Идентификатор', 'type' => 'pk' ),
+                'work_title' => array( 'title' => 'Заголовок', 'type' => 'string', 'main' => 1 ),
+                'work_subtitle' => array( 'title' => 'Подзаголовок', 'type' => 'string', 'filter' => 1 ),
+                'work_author' => array( 'title' => 'Автор', 'type' => 'string', 'filter' => 1 ),
+                'work_text' => array( 'title' => 'Текст', 'type' => 'text', 'filter' => 1 ),
+                'work_url' => array('title' => 'Ссылка', 'type' => 'string' ),
+                'work_active' => array( 'title' => 'Видимость', 'type' => 'active' ),
+            ),
+        ),
     );
 }
 
