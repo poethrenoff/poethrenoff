@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "$#" -lt 1 ]; then
+  echo "Использование: $0 <каталог_для_бэкапов>"
+  exit 1
+fi
+
+BACKUP_DIR="$1"
+mkdir -p "$BACKUP_DIR"
+
+# Параметры подключения к MySQL (совпадают с docker-compose.yml / .env.local).
+DB_SERVICE="${DB_SERVICE:-mysql}"
+DB_NAME="${MYSQL_DATABASE:-poethrenoff}"
+DB_USER="${MYSQL_USER:-poethrenoff}"
+DB_PASSWORD="${MYSQL_PASSWORD:-poethrenoff}"
+
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+BACKUP_FILE="$BACKUP_DIR/poethrenoff_${TIMESTAMP}.sql.gz"
+
+echo "Создание бэкапа БД в $BACKUP_FILE ..."
+docker compose exec -T -e "MYSQL_PWD=$DB_PASSWORD" "$DB_SERVICE" \
+  mysqldump --single-transaction --quick --no-tablespaces \
+  --user="$DB_USER" "$DB_NAME" \
+  | gzip > "$BACKUP_FILE"
+
+echo "Готово: $BACKUP_FILE"

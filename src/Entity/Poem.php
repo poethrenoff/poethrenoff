@@ -1,0 +1,229 @@
+<?php
+
+namespace App\Entity;
+
+use App\Enum\PoemStatus;
+use App\Repository\PoemRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity(repositoryClass: PoemRepository::class)]
+#[ORM\Table(name: 'poem')]
+#[ORM\Index(columns: ['status', 'deleted_at'], name: 'idx_poem_status_deleted')]
+#[ORM\Index(columns: ['position'], name: 'idx_poem_position')]
+#[ORM\HasLifecycleCallbacks]
+class Poem
+{
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: Types::INTEGER)]
+    private ?int $id = null;
+
+    #[ORM\Column(type: Types::STRING, length: 512, nullable: true)]
+    private ?string $title = null;
+
+    #[ORM\Column(type: Types::TEXT)]
+    private string $content = '';
+
+    #[ORM\Column(type: Types::STRING, length: 512, nullable: true)]
+    private ?string $comment = null;
+
+    #[ORM\Column(type: Types::STRING, length: 20, enumType: PoemStatus::class)]
+    private PoemStatus $status = PoemStatus::Draft;
+
+    #[ORM\Column(type: Types::SMALLFLOAT)]
+    private float $position = 0.0;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $deletedAt = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    private \DateTimeImmutable $createdAt;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    private \DateTimeImmutable $updatedAt;
+
+    /** @var Collection<int, PoemVersion> */
+    #[ORM\OneToMany(targetEntity: PoemVersion::class, mappedBy: 'poem', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['createdAt' => 'DESC'])]
+    private Collection $versions;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
+        $this->versions = new ArrayCollection();
+    }
+
+    #[ORM\PreUpdate]
+    public function onPreUpdate(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(?string $title): static
+    {
+        $this->title = $title;
+        return $this;
+    }
+
+    public function getContent(): string
+    {
+        return $this->content;
+    }
+
+    public function setContent(string $content): static
+    {
+        $this->content = $content;
+        return $this;
+    }
+
+    public function getComment(): ?string
+    {
+        return $this->comment;
+    }
+
+    public function setComment(?string $comment): static
+    {
+        $this->comment = $comment;
+        return $this;
+    }
+
+    public function getStatus(): PoemStatus
+    {
+        return $this->status;
+    }
+
+    public function setStatus(PoemStatus $status): static
+    {
+        $this->status = $status;
+        return $this;
+    }
+
+    public function getPosition(): float
+    {
+        return $this->position;
+    }
+
+    public function setPosition(float $position): static
+    {
+        $this->position = $position;
+        return $this;
+    }
+
+    public function getDeletedAt(): ?\DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
+
+    public function setDeletedAt(?\DateTimeImmutable $deletedAt): static
+    {
+        $this->deletedAt = $deletedAt;
+        return $this;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    public function getUpdatedAt(): \DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
+    {
+        $this->updatedAt = $updatedAt;
+        return $this;
+    }
+
+    /** @return Collection<int, PoemVersion> */
+    public function getVersions(): Collection
+    {
+        return $this->versions;
+    }
+
+    public function addVersion(PoemVersion $version): static
+    {
+        if (!$this->versions->contains($version)) {
+            $this->versions->add($version);
+            $version->setPoem($this);
+        }
+        return $this;
+    }
+
+    public function removeVersion(PoemVersion $version): static
+    {
+        if ($this->versions->removeElement($version)) {
+            if ($version->getPoem() === $this) {
+                $version->setPoem(null);
+            }
+        }
+        return $this;
+    }
+
+    public function createSnapshot(): PoemVersion
+    {
+        $version = new PoemVersion();
+        $version->setPoem($this);
+        $version->setTitle($this->title);
+        $version->setContent($this->content);
+        $version->setComment($this->comment);
+
+        $this->addVersion($version);
+
+        return $version;
+    }
+
+    public function restoreFromVersion(PoemVersion $version): static
+    {
+        $this->title = $version->getTitle();
+        $this->content = $version->getContent();
+        $this->comment = $version->getComment();
+
+        return $this;
+    }
+
+    public function trash(): static
+    {
+        $this->status = PoemStatus::Trash;
+        $this->deletedAt = new \DateTimeImmutable();
+        return $this;
+    }
+
+    public function restore(): static
+    {
+        $this->status = PoemStatus::Draft;
+        $this->deletedAt = null;
+        return $this;
+    }
+
+    public function getFirstLine(): string
+    {
+        $lines = explode("\n", trim($this->content));
+        $firstLine = trim($lines[0] ?? '');
+
+        return mb_strlen($firstLine) > 60
+            ? mb_substr($firstLine, 0, 57) . '…'
+            : $firstLine;
+    }
+}
