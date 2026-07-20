@@ -28,8 +28,7 @@
 - Создание миграций: `make makemigrations`.
 - Выполнение миграций: `make migrate`.
 - Создание администратора: `docker compose exec php bin/console app:create-admin <email> <password>`.
-- Миграция блога: `docker compose exec php bin/console app:migrate:legacy:blog`.
-- Миграция сайта: `docker compose exec php bin/console app:migrate:legacy:site`.
+- Миграция всех данных: `docker compose exec php bin/console app:migrate:legacy`.
 
 ## Архитектура Multi-Domain
 
