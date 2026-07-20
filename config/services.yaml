@@ -28,3 +28,51 @@ services:
             - { name: sonata.admin, model_class: App\Entity\User, manager_type: orm, group: admin, label: User }
         calls:
             - [setPasswordHasher, ['@security.user_password_hasher']]
+
+    App\Admin\TagAdmin:
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\Tag, manager_type: orm, group: blog, label: Tags }
+
+    App\Admin\BlogPostAdmin:
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\BlogPost, manager_type: orm, group: blog, label: Posts }
+
+    App\Admin\BlogCommentAdmin:
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\BlogComment, manager_type: orm, group: blog, label: Comments }
+
+    App\Admin\PoemAdmin:
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\Poem, manager_type: orm, group: poems, label: Poems }
+
+    App\Admin\PoemVersionAdmin:
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\PoemVersion, manager_type: orm, group: poems, label: Versions }
+
+    App\Admin\WorkGroupAdmin:
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\WorkGroup, manager_type: orm, group: work, label: Groups }
+
+    App\Admin\WorkAdmin:
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\Work, manager_type: orm, group: work, label: Works }
+
+    App\Admin\WorkCommentAdmin:
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\WorkComment, manager_type: orm, group: work, label: Comments }
+
+    App\Admin\WorkVoteAdmin:
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\WorkVote, manager_type: orm, group: work, label: Votes }
+
+    App\Admin\AudioAdmin:
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\Audio, manager_type: orm, group: media, label: Audio }
+
+    App\Admin\PictureAdmin:
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\Picture, manager_type: orm, group: media, label: Pictures }
+
+    App\Admin\StaticTextAdmin:
+        tags:
+            - { name: sonata.admin, model_class: App\Entity\StaticText, manager_type: orm, group: site, label: Static Texts }

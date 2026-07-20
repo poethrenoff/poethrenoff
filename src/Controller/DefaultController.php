@@ -8,9 +8,21 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class DefaultController extends AbstractController
 {
-    #[Route('/', name: 'app_default')]
-    public function index(): Response
+    #[Route('/', name: 'app_www_index', condition: "request.server.get('APP_SITE_CONTEXT') == 'www'")]
+    public function wwwIndex(): Response
     {
-        return $this->render('default/index.html.twig');
+        return $this->render('default/www.html.twig');
+    }
+
+    #[Route('/', name: 'app_blog_index', condition: "request.server.get('APP_SITE_CONTEXT') == 'blog'")]
+    public function blogIndex(): Response
+    {
+        return $this->render('default/blog.html.twig');
+    }
+
+    #[Route('/', name: 'app_work_index', condition: "request.server.get('APP_SITE_CONTEXT') == 'work'")]
+    public function workIndex(): Response
+    {
+        return $this->render('default/work.html.twig');
     }
 }

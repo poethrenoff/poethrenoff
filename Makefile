@@ -19,6 +19,9 @@ makemigrations:
 migrate:
 	@docker compose -f docker-compose.yml exec php bin/console doctrine:migrations:migrate --no-interaction
 
+loaddata:
+	@docker compose -f docker-compose.yml exec php bin/console doctrine:fixtures:load --no-interaction
+
 backup:
 	@bin/backup .data
 
