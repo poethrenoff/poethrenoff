@@ -81,6 +81,11 @@ class Audio
         return $this;
     }
 
+    public function __toString(): string
+    {
+        return $this->title;
+    }
+
     public function getFormattedDuration(): ?string
     {
         if ($this->duration === null) {

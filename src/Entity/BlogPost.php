@@ -85,6 +85,13 @@ class BlogPost
         return $this;
     }
 
+    public function __toString(): string
+    {
+        return mb_strlen($this->content) > 100
+            ? mb_substr($this->content, 0, 97) . '…'
+            : $this->content;
+    }
+
     public function getTags(): Collection
     {
         return $this->tags;

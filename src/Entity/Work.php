@@ -66,6 +66,11 @@ class Work
         return $this;
     }
 
+    public function __toString(): string
+    {
+        return $this->title;
+    }
+
     public function getGroup(): ?WorkGroup
     {
         return $this->group;

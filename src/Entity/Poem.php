@@ -217,6 +217,11 @@ class Poem
         return $this;
     }
 
+    public function __toString(): string
+    {
+        return (string) $this->title;
+    }
+
     public function getFirstLine(): string
     {
         $lines = explode("\n", trim($this->content));

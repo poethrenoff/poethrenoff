@@ -85,6 +85,11 @@ class WorkVote
         return $this;
     }
 
+    public function __toString(): string
+    {
+        return sprintf('%s (%s)', $this->voteType, $this->ipHash);
+    }
+
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;

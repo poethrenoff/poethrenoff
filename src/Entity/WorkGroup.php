@@ -54,6 +54,11 @@ class WorkGroup
         return $this;
     }
 
+    public function __toString(): string
+    {
+        return $this->title;
+    }
+
     public function getParent(): ?WorkGroup
     {
         return $this->parent;

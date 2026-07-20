@@ -60,6 +60,11 @@ class Picture
         return $this;
     }
 
+    public function __toString(): string
+    {
+        return $this->title;
+    }
+
     public function getImagePath(): string
     {
         return $this->imagePath;
