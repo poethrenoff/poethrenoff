@@ -9,7 +9,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: WorkGroupRepository::class)]
-#[ORM\Table(name: 'work_group')]
 #[ORM\Index(columns: ['parent_id', 'position'], name: 'idx_group_parent_position')]
 class WorkGroup
 {

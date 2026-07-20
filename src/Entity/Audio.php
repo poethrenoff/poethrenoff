@@ -7,7 +7,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: AudioRepository::class)]
-#[ORM\Table(name: 'audio')]
 class Audio
 {
     #[ORM\Id]

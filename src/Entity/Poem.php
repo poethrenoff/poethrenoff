@@ -10,7 +10,6 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: PoemRepository::class)]
-#[ORM\Table(name: 'poem')]
 #[ORM\Index(columns: ['status', 'deleted_at'], name: 'idx_poem_status_deleted')]
 #[ORM\Index(columns: ['position'], name: 'idx_poem_position')]
 #[ORM\HasLifecycleCallbacks]
