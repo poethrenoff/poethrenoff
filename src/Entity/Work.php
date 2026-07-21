@@ -98,6 +98,11 @@ class Work
         return $this->text;
     }
 
+    public function getDisplayTitle(): string
+    {
+        return preg_match('/\".*\.\.\.\"$/', $this->title) ? '* * *' : $this->title;
+    }
+
     public function setText(string $text): static
     {
         $this->text = $text;

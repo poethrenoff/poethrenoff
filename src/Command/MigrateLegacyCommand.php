@@ -12,6 +12,7 @@ use App\Entity\Vozdukh;
 use App\Entity\Work;
 use App\Entity\WorkGroup;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -41,8 +42,10 @@ class MigrateLegacyCommand extends Command
      */
     private array $postIdMap = [];
 
-    public function __construct(EntityManagerInterface $entityManager, string $projectDir)
-    {
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        #[Autowire(param: 'kernel.project_dir')] string $projectDir
+    ) {
         parent::__construct();
         $this->entityManager = $entityManager;
         $this->projectDir = $projectDir;

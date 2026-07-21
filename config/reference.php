@@ -706,15 +706,27 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     generate_final_classes?: bool|Param, // Default: true
  *     generate_final_entities?: bool|Param, // Default: false
  * }
- * @psalm-type KnpMenuConfig = array{
- *     providers?: array{
- *         builder_alias?: bool|Param, // Default: true
+ * @psalm-type KnpPaginatorConfig = array{
+ *     default_options?: array{
+ *         sort_field_name?: scalar|Param|null, // Default: "sort"
+ *         sort_direction_name?: scalar|Param|null, // Default: "direction"
+ *         filter_field_name?: scalar|Param|null, // Default: "filterField"
+ *         filter_value_name?: scalar|Param|null, // Default: "filterValue"
+ *         page_name?: scalar|Param|null, // Default: "page"
+ *         distinct?: bool|Param, // Default: true
+ *         page_out_of_range?: scalar|Param|null, // Default: "ignore"
+ *         default_limit?: scalar|Param|null, // Default: 10
  *     },
- *     twig?: array{
- *         template?: scalar|Param|null, // Default: "@KnpMenu/menu.html.twig"
+ *     template?: array{
+ *         pagination?: scalar|Param|null, // Default: "@KnpPaginator/Pagination/sliding.html.twig"
+ *         rel_links?: scalar|Param|null, // Default: "@KnpPaginator/Pagination/rel_links.html.twig"
+ *         filtration?: scalar|Param|null, // Default: "@KnpPaginator/Pagination/filtration.html.twig"
+ *         sortable?: scalar|Param|null, // Default: "@KnpPaginator/Pagination/sortable_link.html.twig"
  *     },
- *     templating?: bool|Param, // Default: false
- *     default_renderer?: scalar|Param|null, // Default: "twig"
+ *     page_range?: scalar|Param|null, // Default: 5
+ *     page_limit?: scalar|Param|null, // Default: null
+ *     convert_exception?: bool|Param, // Default: false
+ *     remove_first_page_param?: bool|Param, // Default: false
  * }
  * @psalm-type TwigConfig = array{
  *     form_themes?: list<scalar|Param|null>,
@@ -1504,6 +1516,16 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     filter_persister?: scalar|Param|null, // Default: "sonata.admin.filter_persister.session"
  *     show_mosaic_button?: bool|Param, // Show mosaic button on all admin screens // Default: true
  * }
+ * @psalm-type KnpMenuConfig = array{
+ *     providers?: array{
+ *         builder_alias?: bool|Param, // Default: true
+ *     },
+ *     twig?: array{
+ *         template?: scalar|Param|null, // Default: "@KnpMenu/menu.html.twig"
+ *     },
+ *     templating?: bool|Param, // Default: false
+ *     default_renderer?: scalar|Param|null, // Default: "twig"
+ * }
  * @psalm-type SonataDoctrineOrmAdminConfig = array{
  *     entity_manager?: scalar|Param|null, // Default: null
  *     audit?: array{
@@ -1545,7 +1567,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     parameters?: ParametersConfig,
  *     services?: ServicesConfig,
  *     framework?: FrameworkConfig,
- *     knp_menu?: KnpMenuConfig,
+ *     knp_paginator?: KnpPaginatorConfig,
  *     twig?: TwigConfig,
  *     stimulus?: StimulusConfig,
  *     security?: SecurityConfig,
@@ -1555,6 +1577,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     sonata_form?: SonataFormConfig,
  *     sonata_twig?: SonataTwigConfig,
  *     sonata_admin?: SonataAdminConfig,
+ *     knp_menu?: KnpMenuConfig,
  *     sonata_doctrine_orm_admin?: SonataDoctrineOrmAdminConfig,
  *     doctrine_migrations?: DoctrineMigrationsConfig,
  *     "when@dev"?: array{
@@ -1563,7 +1586,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         services?: ServicesConfig,
  *         framework?: FrameworkConfig,
  *         maker?: MakerConfig,
- *         knp_menu?: KnpMenuConfig,
+ *         knp_paginator?: KnpPaginatorConfig,
  *         twig?: TwigConfig,
  *         stimulus?: StimulusConfig,
  *         security?: SecurityConfig,
@@ -1573,6 +1596,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         sonata_form?: SonataFormConfig,
  *         sonata_twig?: SonataTwigConfig,
  *         sonata_admin?: SonataAdminConfig,
+ *         knp_menu?: KnpMenuConfig,
  *         sonata_doctrine_orm_admin?: SonataDoctrineOrmAdminConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
  *     },
@@ -1581,7 +1605,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         parameters?: ParametersConfig,
  *         services?: ServicesConfig,
  *         framework?: FrameworkConfig,
- *         knp_menu?: KnpMenuConfig,
+ *         knp_paginator?: KnpPaginatorConfig,
  *         twig?: TwigConfig,
  *         stimulus?: StimulusConfig,
  *         security?: SecurityConfig,
@@ -1591,6 +1615,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         sonata_form?: SonataFormConfig,
  *         sonata_twig?: SonataTwigConfig,
  *         sonata_admin?: SonataAdminConfig,
+ *         knp_menu?: KnpMenuConfig,
  *         sonata_doctrine_orm_admin?: SonataDoctrineOrmAdminConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
  *     },
@@ -1599,7 +1624,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         parameters?: ParametersConfig,
  *         services?: ServicesConfig,
  *         framework?: FrameworkConfig,
- *         knp_menu?: KnpMenuConfig,
+ *         knp_paginator?: KnpPaginatorConfig,
  *         twig?: TwigConfig,
  *         stimulus?: StimulusConfig,
  *         security?: SecurityConfig,
@@ -1609,6 +1634,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         sonata_form?: SonataFormConfig,
  *         sonata_twig?: SonataTwigConfig,
  *         sonata_admin?: SonataAdminConfig,
+ *         knp_menu?: KnpMenuConfig,
  *         sonata_doctrine_orm_admin?: SonataDoctrineOrmAdminConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
  *     },

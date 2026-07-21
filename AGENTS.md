@@ -21,6 +21,9 @@
 - Добавлены `.htaccess` файлы и симлинки на ассеты для совместимости с хостингом.
 - В `DefaultController` реализованы отдельные точки входа для каждого сайта с использованием `condition` в роутах.
 - Настроена сквозная авторизация между всеми доменами через общий `cookie_domain` (`.poethrenoff.ru`).
+- Исправлена ошибка отсутствия сервиса `knp_menu.factory`: зарегистрирован `KnpMenuBundle` в `config/bundles.php`.
+- Восстановлена стандартная конфигурация `services.yaml` (добавлены `_defaults` и автозагрузка из `src/`), исправлен автовайринг в `MigrateLegacyCommand`.
+- Исправлена ошибка `Undefined array key "currentPageNumber"` в `SiteController`: обновлены ключи пагинации для `KnpPaginator`.
 
 ### Команды
 - Очистка кэша: `make cache-clear` (удаляет все файлы) или `docker compose exec php bin/console cache:clear` (теперь автоматически чистит и прогревает кэш для всех контекстов: www, blog, work).

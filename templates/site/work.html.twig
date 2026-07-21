@@ -1,0 +1,44 @@
+{% extends 'site/base.html.twig' %}
+
+{% block title %}{{ work.title|default('Произведение') }} - Поэт Хренов{% endblock %}
+
+{% block body %}
+<div class="container mx-auto p-4">
+
+    <article class="bg-white p-6 rounded prose max-w-none w-full"> {# prose for basic styling amplification #}
+        <h1 class="text-2xl font-bold mb-4">{{ work.displayTitle }}</h1>
+
+        {# Main content of the work #}
+        <div class="content">
+            <pre>{{ work.text|raw }}</pre>
+        </div>
+
+        <p class="text-sm text-gray-500">
+            {{ work.comment }}
+        </p>
+
+        {# Social-like counts, if Denormalized #}
+        {% if work.likesCount is not null or work.dislikesCount is not null %}
+            <div class="mt-6 pt-4 border-t">
+                <span class="mr-4">👍 {{ work.likesCount|default(0) }}</span>
+                <span class="mr-4">👎 {{ work.dislikesCount|default(0) }}</span>
+            </div>
+        {% endif %}
+    </article>
+
+    {# Navigation to previous/next work in the same group #}
+    {% if prev_work or next_work %}
+    <div class="flex justify-between mt-8">
+        {% if prev_work %}
+            <a href="{{ path('site_work', {'id': prev_work.id}) }}" class="text-blue-500 hover:underline">&larr; Предыдущее: {{ prev_work.title }}</a>
+        {% else %}
+            <span></span> {# Placeholder to push next link to the right #}
+        {% endif %}
+        {% if next_work %}
+            <a href="{{ path('site_work', {'id': next_work.id}) }}" class="text-blue-500 hover:underline">Следующее: {{ next_work.title }} &rarr;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

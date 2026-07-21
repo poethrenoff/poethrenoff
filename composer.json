@@ -10,6 +10,7 @@
         "doctrine/doctrine-bundle": "^3.2",
         "doctrine/doctrine-migrations-bundle": "^4.0",
         "doctrine/orm": "^3.6",
+        "knplabs/knp-paginator-bundle": "*",
         "sonata-project/admin-bundle": "^4.43",
         "sonata-project/doctrine-orm-admin-bundle": "^4.21",
         "symfony/asset": "8.1.*",

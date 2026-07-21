@@ -1,0 +1,12 @@
+{% for item in tree %}
+    <div class="mb-4">
+        <p class="mb-2">
+            <a href="{{ path('site_group', {'id': item.group.id}) }}">{{ item.group.title }}</a>
+        </p>
+        {% if item.children is not empty %}
+            <div class="ml-4">
+                {% include 'site/_tree.html.twig' with {'tree': item.children} %}
+            </div>
+        {% endif %}
+    </div>
+{% endfor %}

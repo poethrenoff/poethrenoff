@@ -1,0 +1,18 @@
+{% extends 'site/base.html.twig' %}
+
+{% block title %}Главная - Поэт Хренов{% endblock %}
+
+{% block body %}
+<div class="container mx-auto p-4">
+    <h1 class="text-3xl font-bold mb-4">Избранные сборники</h1>
+    
+    {# Content from StaticText with slug 'index' will be rendered here #}
+    <div class="content">
+        {% if homepageContent %}
+            {{ homepageContent.content|raw }}
+        {% else %}
+            <p>Добро пожаловать на сайт "Поэт Хренов"!</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

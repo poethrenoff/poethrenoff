@@ -1,0 +1,69 @@
+{% extends 'site/base.html.twig' %}
+
+{% block title %}Поиск - Поэт Хренов{% endblock %}
+
+{% block body %}
+<div class="container mx-auto p-4">
+
+    <h1 class="text-3xl font-bold mb-4">Поиск по сайту</h1>
+
+    <div class="bg-white p-6 rounded shadow mb-8">
+        <form action="{{ path('site_search') }}" method="get" class="flex items-center">
+            <input type="text" name="q" value="{{ query|default('') }}" placeholder="Введите поисковый запрос..." class="flex-grow border-2 border-gray-300 p-2 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Искать</button>
+        </form>
+    </div>
+
+    {% if query is not empty %}
+        <h2 class="text-2xl font-semibold mb-4">Результаты поиска для "{{ query }}"</h2>
+
+        {% if searchResults is not empty %}
+            <div class="grid grid-cols-1 gap-4">
+                {% for result in searchResults %}
+                    <div class="bg-white p-4 rounded shadow">
+                        <h3 class="text-xl font-semibold mb-2"><a href="{{ path('site_work', {'id': result.id}) }}">{{ result.title }}</a></h3>
+                        {# Display snippet with highlighted query #}
+                        <p class="text-gray-700 text-sm mb-2">
+                            {{ result.snippet|raw }} {# The snippet should contain highlighted matches #}
+                        </p>
+                        <p class="text-sm text-gray-500">
+                            {% if result.group %}<a href="{{ path('site_group', {'id': result.group.id}) }}" class="hover:underline">{{ result.group.title }}</a>{% endif %}
+                        </p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {# Pagination for search results #}
+            {% if pagination is defined and pagination.total_pages > 1 %}
+                <div class="mt-8 flex justify-center">
+                    {# Similar pagination logic as in picture.html.twig #}
+                    {% if pagination.prev_page %}
+                        <a href="{{ path('site_search', {'q': query, 'page': pagination.prev_page}) }}" class="px-4 py-2 mx-1 rounded shadow bg-white hover:bg-gray-100">&laquo; Назад</a>
+                    {% endif %}
+                    
+                    {% for page in range(1, pagination.total_pages) %}
+                        {% if page == pagination.current_page %}
+                            <span class="px-4 py-2 mx-1 rounded shadow bg-blue-500 text-white">{{ page }}</span>
+                        {% elseif page in [pagination.current_page - 2, pagination.current_page - 1, pagination.current_page + 1, pagination.current_page + 2] %}
+                            <a href="{{ path('site_search', {'q': query, 'page': page}) }}" class="px-4 py-2 mx-1 rounded shadow bg-white hover:bg-gray-100">{{ page }}</a>
+                        {% elseif page == 1 or page == pagination.total_pages %}
+                             <a href="{{ path('site_search', {'q': query, 'page': page}) }}" class="px-4 py-2 mx-1 rounded shadow bg-white hover:bg-gray-100">{{ page }}</a>
+                        {% elseif page == pagination.current_page - 3 or page == pagination.current_page + 3 %}
+                            <span class="px-4 py-2 mx-1">...</span>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if pagination.next_page %}
+                        <a href="{{ path('site_search', {'q': query, 'page': pagination.next_page}) }}" class="px-4 py-2 mx-1 rounded shadow bg-white hover:bg-gray-100">Вперед &raquo;</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+        {% else %}
+            <p>По вашему запросу ничего не найдено.</p>
+        {% endif %}
+    {% else %}
+        <p>Введите запрос в поле выше для поиска произведений.</p>
+    {% endif %}
+</div>
+{% endblock %}

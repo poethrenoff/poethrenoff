@@ -1,78 +1,123 @@
-# yaml-language-server: $schema=../vendor/symfony/dependency-injection/Loader/schema/services.schema.json
-
-# This file is the entry point to configure your own services.
-# Files in the packages/ subdirectory configure your dependencies.
-# See also https://symfony.com/doc/current/service_container/import.html
-
-# Put parameters here that don't need to change on each machine where the app is deployed
-# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
 
-services:
-    # default configuration for services in *this* file
-    _defaults:
-        autowire: true      # Automatically injects dependencies in your services.
-        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
-        bind:
-            string $projectDir: '%kernel.project_dir%'
+# Parameters for the current project Kilo
+# See https://kilo.ai/docs/default-agent/t/config/parameter-overrides for more info.
 
-    # makes classes in src/ available to be used as services
-    # this creates a service per class whose id is the fully-qualified class name
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
     App\:
         resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
 
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
-    App\Admin\UserAdmin:
-        tags:
-            - { name: sonata.admin, model_class: App\Entity\User, manager_type: orm, group: admin, label: User }
-        calls:
-            - [setPasswordHasher, ['@security.user_password_hasher']]
+    # Sonata Admin Service Configurations using non-FQCN aliases
+    # Each admin now includes the required "model_class" attribute.
 
-    App\Admin\TagAdmin:
+    # UserAdmin
+    sonata.admin.user:
+        class: App\Admin\UserAdmin
+        public: true
+        autowire: true
         tags:
-            - { name: sonata.admin, model_class: App\Entity\Tag, manager_type: orm, group: blog, label: Tags }
+            - { name: sonata.admin, manager_type: orm, group: admin, label: User, model_class: App\Entity\User }
 
-    App\Admin\BlogPostAdmin:
+    # TagAdmin
+    sonata.admin.tag:
+        class: App\Admin\TagAdmin
+        public: true
+        autowire: true
         tags:
-            - { name: sonata.admin, model_class: App\Entity\BlogPost, manager_type: orm, group: blog, label: Posts }
+            - { name: sonata.admin, manager_type: orm, group: blog, label: Tags, model_class: App\Entity\Tag }
 
-    App\Admin\BlogCommentAdmin:
+    # PostAdmin (BlogPost)
+    sonata.admin.post:
+        class: App\Admin\BlogPostAdmin
+        public: true
+        autowire: true
         tags:
-            - { name: sonata.admin, model_class: App\Entity\BlogComment, manager_type: orm, group: blog, label: Comments }
+            - { name: sonata.admin, manager_type: orm, group: blog, label: Posts, model_class: App\Entity\BlogPost }
 
-    App\Admin\PoemAdmin:
+    # BlogCommentAdmin
+    sonata.admin.blog_comment:
+        class: App\Admin\BlogCommentAdmin
+        public: true
+        autowire: true
         tags:
-            - { name: sonata.admin, model_class: App\Entity\Poem, manager_type: orm, group: poems, label: Poems }
+            - { name: sonata.admin, manager_type: orm, group: blog, label: Comments, model_class: App\Entity\BlogComment }
 
-    App\Admin\PoemVersionAdmin:
+    # PoemAdmin
+    sonata.admin.poem:
+        class: App\Admin\PoemAdmin
+        public: true
+        autowire: true
         tags:
-            - { name: sonata.admin, model_class: App\Entity\PoemVersion, manager_type: orm, group: poems, label: Versions }
+            - { name: sonata.admin, manager_type: orm, group: poems, label: Poems, model_class: App\Entity\Poem }
 
-    App\Admin\WorkGroupAdmin:
+    # PoemVersionAdmin
+    sonata.admin.poem_version:
+        class: App\Admin\PoemVersionAdmin
+        public: true
+        autowire: true
         tags:
-            - { name: sonata.admin, model_class: App\Entity\WorkGroup, manager_type: orm, group: work, label: Groups }
+            - { name: sonata.admin, manager_type: orm, group: poems, label: Versions, model_class: App\Entity\PoemVersion }
 
-    App\Admin\WorkAdmin:
+    # WorkGroupAdmin
+    sonata.admin.work_group:
+        class: App\Admin\WorkGroupAdmin
+        public: true
+        autowire: true
         tags:
-            - { name: sonata.admin, model_class: App\Entity\Work, manager_type: orm, group: work, label: Works }
+            - { name: sonata.admin, manager_type: orm, group: work, label: Groups, model_class: App\Entity\WorkGroup }
 
-    App\Admin\WorkCommentAdmin:
+    # WorkAdmin
+    sonata.admin.work:
+        class: App\Admin\WorkAdmin
+        public: true
+        autowire: true
         tags:
-            - { name: sonata.admin, model_class: App\Entity\WorkComment, manager_type: orm, group: work, label: Comments }
+            - { name: sonata.admin, manager_type: orm, group: work, label: Works, model_class: App\Entity\Work }
 
-    App\Admin\WorkVoteAdmin:
+    # WorkCommentAdmin
+    sonata.admin.work_comment:
+        class: App\Admin\WorkCommentAdmin
+        public: true
+        autowire: true
         tags:
-            - { name: sonata.admin, model_class: App\Entity\WorkVote, manager_type: orm, group: work, label: Votes }
+            - { name: sonata.admin, manager_type: orm, group: work, label: Comments, model_class: App\Entity\WorkComment }
 
-    App\Admin\AudioAdmin:
+    # WorkVoteAdmin
+    sonata.admin.work_vote:
+        class: App\Admin\WorkVoteAdmin
+        public: true
+        autowire: true
         tags:
-            - { name: sonata.admin, model_class: App\Entity\Audio, manager_type: orm, group: media, label: Audio }
+            - { name: sonata.admin, manager_type: orm, group: work, label: Votes, model_class: App\Entity\WorkVote }
 
-    App\Admin\PictureAdmin:
+    # AudioAdmin
+    sonata.admin.audio:
+        class: App\Admin\AudioAdmin
+        public: true
+        autowire: true
         tags:
-            - { name: sonata.admin, model_class: App\Entity\Picture, manager_type: orm, group: media, label: Pictures }
+            - { name: sonata.admin, manager_type: orm, group: media, label: Audio, model_class: App\Entity\Audio }
 
-    App\Admin\StaticTextAdmin:
+    # PictureAdmin
+    sonata.admin.picture:
+        class: App\Admin\PictureAdmin
+        public: true
+        autowire: true
         tags:
-            - { name: sonata.admin, model_class: App\Entity\StaticText, manager_type: orm, group: site, label: Static Texts }
+            - { name: sonata.admin, manager_type: orm, group: media, label: Pictures, model_class: App\Entity\Picture }
+
+    # StaticTextAdmin
+    sonata.admin.static_text:
+        class: App\Admin\StaticTextAdmin
+        public: true
+        autowire: true
+        tags:
+            - { name: sonata.admin, manager_type: orm, group: site, label: Static Texts, model_class: App\Entity\StaticText }
