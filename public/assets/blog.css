@@ -1,0 +1,173 @@
+/* Blog specific CSS */
+@import url('normalize.min.css');
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+a {
+    color: #d63384;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+header {
+    border-bottom: 2px solid #eee;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+}
+
+.site-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.site-title a {
+    color: #333;
+}
+
+.post {
+    margin-bottom: 4rem;
+}
+
+.post-date {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.post-content {
+    margin-top: 1rem;
+}
+
+.post-content img {
+    max-width: 100%;
+    height: auto;
+}
+
+.post-tags {
+    margin-top: 1rem;
+}
+
+.tag {
+    background: #eee;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    margin-right: 0.5rem;
+    color: #555;
+    display: inline-block;
+    margin-bottom: 0.25rem;
+}
+
+.tag:hover {
+    background: #ddd;
+    text-decoration: none;
+}
+
+/* Comment Tree */
+.comments-section {
+    margin-top: 4rem;
+    border-top: 1px solid #eee;
+    padding-top: 2rem;
+}
+
+.comment {
+    margin-top: 1.5rem;
+    padding-left: 1.5rem;
+    border-left: 2px solid #eee;
+}
+
+.comment-author {
+    font-weight: bold;
+}
+
+.comment-date {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.comment-content {
+    margin-top: 0.5rem;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0;
+}
+
+.pagination li {
+    margin: 0 0.25rem;
+}
+
+.pagination a, .pagination span {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.pagination .current span {
+    background: #d63384;
+    color: #fff;
+    border-color: #d63384;
+}
+
+/* Search */
+.search-form {
+    margin-bottom: 2rem;
+}
+
+.search-input {
+    padding: 0.5rem;
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+.search-button {
+    padding: 0.5rem 1rem;
+    background: #d63384;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.tag-cloud {
+    margin-bottom: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+mark {
+    background-color: #fff3cd;
+    padding: 0.1rem 0.2rem;
+}
+
+.nav-links {
+    margin-top: 1rem;
+}
+
+.nav-links a {
+    margin-right: 1rem;
+    font-size: 0.9rem;
+}

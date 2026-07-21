@@ -1,0 +1,30 @@
+{% extends 'blog/base.html.twig' %}
+
+{% block title %}{{ post.publishedAt|date('d.m.Y H:i') }} - {{ parent() }}{% endblock %}
+
+{% block body %}
+    <article class="post">
+        <div class="post-date">
+            {{ post.publishedAt|date('d.m.Y H:i') }}
+        </div>
+        <div class="post-content">
+            {{ post.content|raw }}
+        </div>
+        {% if post.tags|length > 0 %}
+            <div class="post-tags">
+                {% for tag in post.tags %}
+                    <a href="{{ path('blog_search', {tag: tag.title}) }}" class="tag">{{ tag.title }}</a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </article>
+
+    <section class="comments-section">
+        <h3>Комментарии</h3>
+        {% if rootComments is not empty %}
+            {{ include('blog/_comment_tree.html.twig', {comments: rootComments}) }}
+        {% else %}
+            <p>Комментариев пока нет.</p>
+        {% endif %}
+    </section>
+{% endblock %}

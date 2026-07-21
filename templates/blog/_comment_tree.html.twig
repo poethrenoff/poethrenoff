@@ -1,0 +1,23 @@
+{% for comment in comments %}
+    <div class="comment" id="comment-{{ comment.id }}">
+        <div class="comment-author">{{ comment.author }}</div>
+        <div class="comment-date">{{ comment.createdAt|date('d.m.Y H:i') }}</div>
+        <div class="comment-content">
+            {{ comment.content|raw }}
+        </div>
+        {% if comment.children|length > 0 %}
+            <div class="comment-children">
+                {% set activeChildren = [] %}
+                {% for child in comment.children %}
+                    {% if child.isActive %}
+                        {% set activeChildren = activeChildren|merge([child]) %}
+                    {% endif %}
+                {% endfor %}
+
+                {% if activeChildren|length > 0 %}
+                    {{ include('blog/_comment_tree.html.twig', {comments: activeChildren}) }}
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+{% endfor %}

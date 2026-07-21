@@ -1,0 +1,50 @@
+{% extends 'blog/base.html.twig' %}
+
+{% block body %}
+    {% for post in pagination %}
+        <article class="post">
+            <div class="post-date">
+                <a href="{{ path('blog_post', {id: post.id}) }}">
+                    {{ post.publishedAt|date('d.m.Y H:i') }}
+                </a>
+            </div>
+            <div class="post-content">
+                {{ post.content|raw }}
+            </div>
+            {% if post.tags|length > 0 %}
+                <div class="post-tags">
+                    {% for tag in post.tags %}
+                        <a href="{{ path('blog_search', {tag: tag.title}) }}" class="tag">{{ tag.title }}</a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </article>
+    {% else %}
+        <p>Постов пока нет.</p>
+    {% endfor %}
+
+    {# Pagination #}
+    {% if pagination_data is defined and pagination_data.total_pages > 1 %}
+        <div class="pagination">
+            {% if pagination_data.prev_page %}
+                <li><a href="{{ path('blog_homepage', {'page': pagination_data.prev_page}) }}">&laquo; Назад</a></li>
+            {% endif %}
+            
+            {% for page in range(1, pagination_data.total_pages) %}
+                {% if page == pagination_data.current_page %}
+                    <li class="current"><span>{{ page }}</span></li>
+                {% elseif page in [pagination_data.current_page - 2, pagination_data.current_page - 1, pagination_data.current_page + 1, pagination_data.current_page + 2] %}
+                    <li><a href="{{ path('blog_homepage', {'page': page}) }}">{{ page }}</a></li>
+                {% elseif page == 1 or page == pagination_data.total_pages %}
+                     <li><a href="{{ path('blog_homepage', {'page': page}) }}">{{ page }}</a></li>
+                {% elseif page == pagination_data.current_page - 3 or page == pagination_data.current_page + 3 %}
+                    <li><span>...</span></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if pagination_data.next_page %}
+                <li><a href="{{ path('blog_homepage', {'page': pagination_data.next_page}) }}">Вперед &raquo;</a></li>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}

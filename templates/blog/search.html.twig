@@ -1,0 +1,71 @@
+{% extends 'blog/base.html.twig' %}
+
+{% block title %}Поиск - {{ parent() }}{% endblock %}
+
+{% block body %}
+    <div class="search-form">
+        <form action="{{ path('blog_search') }}" method="get">
+            <input type="text" name="text" value="{{ searchText }}" placeholder="Поиск по блогу..." class="search-input">
+            <button type="submit" class="search-button">Искать</button>
+        </form>
+    </div>
+
+    <div class="tag-cloud">
+        {% for tag in tags %}
+            <a href="{{ path('blog_search', {tag: tag.title}) }}" class="tag {% if tag.title == currentTag %}active{% endif %}">
+                {{ tag.title }}
+            </a>
+        {% endfor %}
+    </div>
+
+    {% if searchResults is not empty %}
+        <h2>Результаты поиска {% if currentTag %}по тегу "{{ currentTag }}"{% elseif searchText %}для "{{ searchText }}"{% endif %}</h2>
+        
+        {% for result in searchResults %}
+            <article class="post">
+                <div class="post-date">
+                    <a href="{{ path('blog_post', {id: result.id}) }}">
+                        {{ result.publishedAt|date('d.m.Y H:i') }}
+                    </a>
+                </div>
+                <div class="post-content">
+                    {{ result.content|raw }}
+                </div>
+                {% if result.tags|length > 0 %}
+                    <div class="post-tags">
+                        {% for tag in result.tags %}
+                            <a href="{{ path('blog_search', {tag: tag.title}) }}" class="tag">{{ tag.title }}</a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </article>
+        {% endfor %}
+
+        {# Pagination #}
+        {% if pagination_data is defined and pagination_data.total_pages > 1 %}
+            <div class="pagination">
+                {% if pagination_data.prev_page %}
+                    <li><a href="{{ path('blog_search', app.request.query.all|merge({'page': pagination_data.prev_page})) }}">&laquo; Назад</a></li>
+                {% endif %}
+                
+                {% for page in range(1, pagination_data.total_pages) %}
+                    {% if page == pagination_data.current_page %}
+                        <li class="current"><span>{{ page }}</span></li>
+                    {% elseif page in [pagination_data.current_page - 2, pagination_data.current_page - 1, pagination_data.current_page + 1, pagination_data.current_page + 2] %}
+                        <li><a href="{{ path('blog_search', app.request.query.all|merge({'page': page})) }}">{{ page }}</a></li>
+                    {% elseif page == 1 or page == pagination_data.total_pages %}
+                         <li><a href="{{ path('blog_search', app.request.query.all|merge({'page': page})) }}">{{ page }}</a></li>
+                    {% elseif page == pagination_data.current_page - 3 or page == pagination_data.current_page + 3 %}
+                        <li><span>...</span></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if pagination_data.next_page %}
+                    <li><a href="{{ path('blog_search', app.request.query.all|merge({'page': pagination_data.next_page})) }}">Вперед &raquo;</a></li>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% elseif searchText or currentTag %}
+        <p>Ничего не найдено.</p>
+    {% endif %}
+{% endblock %}
