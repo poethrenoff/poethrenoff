@@ -15,109 +15,89 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    # Sonata Admin Service Configurations using non-FQCN aliases
+    # Sonata Admin Service Configurations using FQCN
     # Each admin now includes the required "model_class" attribute.
 
     # UserAdmin
-    sonata.admin.user:
-        class: App\Admin\UserAdmin
+    App\Admin\UserAdmin:
         public: true
-        autowire: true
         tags:
             - { name: sonata.admin, manager_type: orm, group: admin, label: User, model_class: App\Entity\User }
 
     # TagAdmin
-    sonata.admin.tag:
-        class: App\Admin\TagAdmin
+    App\Admin\TagAdmin:
         public: true
-        autowire: true
         tags:
             - { name: sonata.admin, manager_type: orm, group: blog, label: Tags, model_class: App\Entity\Tag }
 
     # PostAdmin (BlogPost)
-    sonata.admin.post:
-        class: App\Admin\BlogPostAdmin
+    App\Admin\BlogPostAdmin:
         public: true
-        autowire: true
+        calls:
+            - [setTemplate, [layout, admin/layout.html.twig]]
         tags:
             - { name: sonata.admin, manager_type: orm, group: blog, label: Posts, model_class: App\Entity\BlogPost }
 
     # BlogCommentAdmin
-    sonata.admin.blog_comment:
-        class: App\Admin\BlogCommentAdmin
+    App\Admin\BlogCommentAdmin:
         public: true
-        autowire: true
+        calls:
+            - [setTemplate, [layout, admin/layout.html.twig]]
         tags:
             - { name: sonata.admin, manager_type: orm, group: blog, label: Comments, model_class: App\Entity\BlogComment }
 
     # PoemAdmin
-    sonata.admin.poem:
-        class: App\Admin\PoemAdmin
+    App\Admin\PoemAdmin:
         public: true
-        autowire: true
         tags:
             - { name: sonata.admin, manager_type: orm, group: poems, label: Poems, model_class: App\Entity\Poem }
 
     # PoemVersionAdmin
-    sonata.admin.poem_version:
-        class: App\Admin\PoemVersionAdmin
+    App\Admin\PoemVersionAdmin:
         public: true
-        autowire: true
         tags:
             - { name: sonata.admin, manager_type: orm, group: poems, label: Versions, model_class: App\Entity\PoemVersion }
 
     # WorkGroupAdmin
-    sonata.admin.work_group:
-        class: App\Admin\WorkGroupAdmin
+    App\Admin\WorkGroupAdmin:
         public: true
-        autowire: true
         tags:
             - { name: sonata.admin, manager_type: orm, group: work, label: Groups, model_class: App\Entity\WorkGroup }
 
     # WorkAdmin
-    sonata.admin.work:
-        class: App\Admin\WorkAdmin
+    App\Admin\WorkAdmin:
         public: true
-        autowire: true
         tags:
             - { name: sonata.admin, manager_type: orm, group: work, label: Works, model_class: App\Entity\Work }
 
     # WorkCommentAdmin
-    sonata.admin.work_comment:
-        class: App\Admin\WorkCommentAdmin
+    App\Admin\WorkCommentAdmin:
         public: true
-        autowire: true
         tags:
             - { name: sonata.admin, manager_type: orm, group: work, label: Comments, model_class: App\Entity\WorkComment }
 
     # WorkVoteAdmin
-    sonata.admin.work_vote:
-        class: App\Admin\WorkVoteAdmin
+    App\Admin\WorkVoteAdmin:
         public: true
-        autowire: true
         tags:
             - { name: sonata.admin, manager_type: orm, group: work, label: Votes, model_class: App\Entity\WorkVote }
 
     # AudioAdmin
-    sonata.admin.audio:
-        class: App\Admin\AudioAdmin
+    App\Admin\AudioAdmin:
         public: true
-        autowire: true
         tags:
             - { name: sonata.admin, manager_type: orm, group: media, label: Audio, model_class: App\Entity\Audio }
 
     # PictureAdmin
-    sonata.admin.picture:
-        class: App\Admin\PictureAdmin
+    App\Admin\PictureAdmin:
         public: true
-        autowire: true
         tags:
             - { name: sonata.admin, manager_type: orm, group: media, label: Pictures, model_class: App\Entity\Picture }
 
     # StaticTextAdmin
-    sonata.admin.static_text:
-        class: App\Admin\StaticTextAdmin
+    App\Admin\StaticTextAdmin:
         public: true
-        autowire: true
+        calls:
+            - [setTemplate, [layout, admin/layout.html.twig]]
         tags:
             - { name: sonata.admin, manager_type: orm, group: site, label: Static Texts, model_class: App\Entity\StaticText }
