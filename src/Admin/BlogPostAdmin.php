@@ -2,23 +2,23 @@
 
 namespace App\Admin;
 
+use App\Entity\Tag;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Form\FormMapper;
-use Sonata\AdminBundle\Form\Type\ModelType;
+use Sonata\AdminBundle\Form\Type\ModelAutocompleteType;
 use Sonata\AdminBundle\Show\ShowMapper;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 
 class BlogPostAdmin extends AbstractAdmin
 {
     protected function configureFormFields(FormMapper $form): void
     {
         $form
-            ->add('content', TextareaType::class, [
-                'attr' => ['rows' => 10]
+            ->add('content', null, [
+                'attr' => ['class' => 'trumbowyg-editor'],
             ])
             ->add('publishedAt', DateTimeType::class, [
                 'widget' => 'single_text',
@@ -27,8 +27,8 @@ class BlogPostAdmin extends AbstractAdmin
             ->add('isActive', CheckboxType::class, [
                 'required' => false,
             ])
-            ->add('tags', ModelType::class, [
-                'class' => 'App\Entity\Tag',
+            ->add('tags', ModelAutocompleteType::class, [
+                'class' => Tag::class,
                 'property' => 'title',
                 'multiple' => true,
                 'required' => false,
@@ -39,6 +39,7 @@ class BlogPostAdmin extends AbstractAdmin
     protected function configureDatagridFilters(DatagridMapper $filter): void
     {
         $filter
+            ->add('id')
             ->add('content')
             ->add('isActive')
             ->add('tags')
@@ -49,9 +50,7 @@ class BlogPostAdmin extends AbstractAdmin
     {
         $list
             ->addIdentifier('id')
-            ->add('content', null, [
-                'template' => '@SonataAdmin/CRUD/list_string.html.twig',
-            ])
+            ->add('content')
             ->add('publishedAt')
             ->add('isActive', null, ['editable' => true])
             ->add('tags')

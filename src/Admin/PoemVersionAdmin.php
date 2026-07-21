@@ -2,11 +2,12 @@
 
 namespace App\Admin;
 
+use App\Entity\Poem;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Form\FormMapper;
-use Sonata\AdminBundle\Form\Type\ModelType;
+use Sonata\AdminBundle\Form\Type\ModelAutocompleteType;
 use Sonata\AdminBundle\Show\ShowMapper;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -16,8 +17,8 @@ class PoemVersionAdmin extends AbstractAdmin
     protected function configureFormFields(FormMapper $form): void
     {
         $form
-            ->add('poem', ModelType::class, [
-                'class' => 'App\Entity\Poem',
+            ->add('poem', ModelAutocompleteType::class, [
+                'class' => Poem::class,
                 'property' => 'title',
             ])
             ->add('title', TextType::class, ['required' => false])

@@ -21,6 +21,7 @@ class TagAdmin extends AbstractAdmin
     protected function configureDatagridFilters(DatagridMapper $filter): void
     {
         $filter
+            ->add('id')
             ->add('title')
         ;
     }

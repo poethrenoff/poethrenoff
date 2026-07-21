@@ -2,15 +2,16 @@
 
 namespace App\Admin;
 
+use App\Entity\BlogComment;
+use App\Entity\BlogPost;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Form\FormMapper;
-use Sonata\AdminBundle\Form\Type\ModelType;
+use Sonata\AdminBundle\Form\Type\ModelAutocompleteType;
 use Sonata\AdminBundle\Show\ShowMapper;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 class BlogCommentAdmin extends AbstractAdmin
@@ -18,17 +19,19 @@ class BlogCommentAdmin extends AbstractAdmin
     protected function configureFormFields(FormMapper $form): void
     {
         $form
-            ->add('post', ModelType::class, [
-                'class' => 'App\Entity\BlogPost',
+            ->add('post', ModelAutocompleteType::class, [
+                'class' => BlogPost::class,
                 'property' => 'id',
             ])
-            ->add('parent', ModelType::class, [
-                'class' => 'App\Entity\BlogComment',
+            ->add('parent', ModelAutocompleteType::class, [
+                'class' => BlogComment::class,
                 'property' => 'id',
                 'required' => false,
             ])
             ->add('author', TextType::class)
-            ->add('content', TextareaType::class)
+            ->add('content', null, [
+                'attr' => ['class' => 'trumbowyg-editor'],
+            ])
             ->add('info', TextType::class, [
                 'required' => false,
             ])
@@ -45,6 +48,7 @@ class BlogCommentAdmin extends AbstractAdmin
     protected function configureDatagridFilters(DatagridMapper $filter): void
     {
         $filter
+            ->add('id')
             ->add('post')
             ->add('author')
             ->add('isActive')

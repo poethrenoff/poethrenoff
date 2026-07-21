@@ -61,7 +61,6 @@ class PictureAdmin extends AbstractAdmin
             ->add('id')
             ->add('title')
             ->add('imagePath')
-            ->add('sourcePath')
             ->add('date')
             ->add('position')
             ->add('isActive')

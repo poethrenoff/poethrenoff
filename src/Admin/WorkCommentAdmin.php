@@ -2,11 +2,13 @@
 
 namespace App\Admin;
 
+use App\Entity\Work;
+use App\Entity\WorkComment;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Form\FormMapper;
-use Sonata\AdminBundle\Form\Type\ModelType;
+use Sonata\AdminBundle\Form\Type\ModelAutocompleteType;
 use Sonata\AdminBundle\Show\ShowMapper;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
@@ -18,12 +20,12 @@ class WorkCommentAdmin extends AbstractAdmin
     protected function configureFormFields(FormMapper $form): void
     {
         $form
-            ->add('work', ModelType::class, [
-                'class' => 'App\Entity\Work',
+            ->add('work', ModelAutocompleteType::class, [
+                'class' => Work::class,
                 'property' => 'title',
             ])
-            ->add('parent', ModelType::class, [
-                'class' => 'App\Entity\WorkComment',
+            ->add('parent', ModelAutocompleteType::class, [
+                'class' => WorkComment::class,
                 'property' => 'id',
                 'required' => false,
             ])
@@ -45,6 +47,7 @@ class WorkCommentAdmin extends AbstractAdmin
     protected function configureDatagridFilters(DatagridMapper $filter): void
     {
         $filter
+            ->add('id')
             ->add('work')
             ->add('author')
             ->add('isActive')

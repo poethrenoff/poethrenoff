@@ -18,7 +18,10 @@ class StaticTextAdmin extends AbstractAdmin
             ->add('slug', TextType::class)
             ->add('title', TextType::class)
             ->add('content', TextareaType::class, [
-                'attr' => ['rows' => 15]
+                'attr' => [
+                    'rows' => 15,
+                    'class' => 'trumbowyg-editor',
+                ]
             ])
         ;
     }

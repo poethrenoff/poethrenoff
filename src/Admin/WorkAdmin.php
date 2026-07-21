@@ -2,11 +2,12 @@
 
 namespace App\Admin;
 
+use App\Entity\WorkGroup;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Form\FormMapper;
-use Sonata\AdminBundle\Form\Type\ModelType;
+use Sonata\AdminBundle\Form\Type\ModelAutocompleteType;
 use Sonata\AdminBundle\Show\ShowMapper;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
@@ -19,8 +20,8 @@ class WorkAdmin extends AbstractAdmin
     protected function configureFormFields(FormMapper $form): void
     {
         $form
-            ->add('group', ModelType::class, [
-                'class' => 'App\Entity\WorkGroup',
+            ->add('group', ModelAutocompleteType::class, [
+                'class' => WorkGroup::class,
                 'property' => 'title',
             ])
             ->add('title', TextType::class)
@@ -38,6 +39,7 @@ class WorkAdmin extends AbstractAdmin
     protected function configureDatagridFilters(DatagridMapper $filter): void
     {
         $filter
+            ->add('id')
             ->add('title')
             ->add('group')
             ->add('isActive')

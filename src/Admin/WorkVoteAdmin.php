@@ -6,7 +6,6 @@ use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Form\FormMapper;
-use Sonata\AdminBundle\Route\RouteCollectionInterface;
 use Sonata\AdminBundle\Show\ShowMapper;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
@@ -14,13 +13,6 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 class WorkVoteAdmin extends AbstractAdmin
 {
-    protected function configureRoutes(RouteCollectionInterface $collection): void
-    {
-        // Typically votes are not edited manually, but let's keep it for now
-        // $collection->remove('create');
-        // $collection->remove('edit');
-    }
-
     protected function configureFormFields(FormMapper $form): void
     {
         $form
