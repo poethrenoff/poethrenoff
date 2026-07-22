@@ -760,10 +760,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         html_to_text_converter?: scalar|Param|null, // A service implementing the "Symfony\Component\Mime\HtmlToTextConverter\HtmlToTextConverterInterface". // Default: null
  *     },
  * }
- * @psalm-type StimulusConfig = array{
- *     controller_paths?: list<scalar|Param|null>,
- *     controllers_json?: scalar|Param|null, // Default: "%kernel.project_dir%/assets/controllers.json"
- * }
  * @psalm-type SecurityConfig = array{
  *     access_denied_url?: scalar|Param|null, // Default: null
  *     session_fixation_strategy?: "none"|"migrate"|"invalidate"|Param, // Default: "migrate"
@@ -1569,7 +1565,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     framework?: FrameworkConfig,
  *     knp_paginator?: KnpPaginatorConfig,
  *     twig?: TwigConfig,
- *     stimulus?: StimulusConfig,
  *     security?: SecurityConfig,
  *     doctrine?: DoctrineConfig,
  *     sonata_block?: SonataBlockConfig,
@@ -1588,7 +1583,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         maker?: MakerConfig,
  *         knp_paginator?: KnpPaginatorConfig,
  *         twig?: TwigConfig,
- *         stimulus?: StimulusConfig,
  *         security?: SecurityConfig,
  *         doctrine?: DoctrineConfig,
  *         sonata_block?: SonataBlockConfig,
@@ -1607,7 +1601,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         framework?: FrameworkConfig,
  *         knp_paginator?: KnpPaginatorConfig,
  *         twig?: TwigConfig,
- *         stimulus?: StimulusConfig,
  *         security?: SecurityConfig,
  *         doctrine?: DoctrineConfig,
  *         sonata_block?: SonataBlockConfig,
@@ -1626,7 +1619,6 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         framework?: FrameworkConfig,
  *         knp_paginator?: KnpPaginatorConfig,
  *         twig?: TwigConfig,
- *         stimulus?: StimulusConfig,
  *         security?: SecurityConfig,
  *         doctrine?: DoctrineConfig,
  *         sonata_block?: SonataBlockConfig,
