@@ -35,9 +35,9 @@ class SiteController extends AbstractController
     #[Route('/', name: 'site_homepage')]
     public function homepage(): Response
     {
-        $homepageContent = $this->staticTextRepository->findOneBySlug('index');
+        $favoriteGroups = $this->workGroupRepository->findFavoriteActiveSorted();
         return $this->render('site/homepage.html.twig', [
-            'homepageContent' => $homepageContent,
+            'favoriteGroups' => $favoriteGroups,
         ]);
     }
 

@@ -175,6 +175,7 @@ final class Version20260720053240 extends AbstractMigration
               title VARCHAR(255) NOT NULL,
               comment VARCHAR(255) DEFAULT NULL,
               position FLOAT NOT NULL,
+              is_favorite TINYINT NOT NULL,
               is_active TINYINT NOT NULL,
               parent_id INT DEFAULT NULL,
               INDEX IDX_453B3FEA727ACA70 (parent_id),

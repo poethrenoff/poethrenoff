@@ -35,6 +35,9 @@ class WorkGroup
     private float $position = 0.0;
 
     #[ORM\Column(type: Types::BOOLEAN)]
+    private bool $isFavorite = false;
+
+    #[ORM\Column(type: Types::BOOLEAN)]
     private bool $isActive = true;
 
     public function __construct()
@@ -123,6 +126,17 @@ class WorkGroup
     public function setPosition(float $position): static
     {
         $this->position = $position;
+        return $this;
+    }
+
+    public function getIsFavorite(): bool
+    {
+        return $this->isFavorite;
+    }
+
+    public function setIsFavorite(bool $isFavorite): static
+    {
+        $this->isFavorite = $isFavorite;
         return $this;
     }
 

@@ -4,15 +4,16 @@
 
 {% block body %}
 <div class="container mx-auto p-4">
-    <h1 class="text-3xl font-bold mb-4">Избранные сборники</h1>
-    
-    {# Content from StaticText with slug 'index' will be rendered here #}
-    <div class="content">
-        {% if homepageContent %}
-            {{ homepageContent.content|raw }}
-        {% else %}
-            <p>Добро пожаловать на сайт "Поэт Хренов"!</p>
-        {% endif %}
-    </div>
+    {% if favoriteGroups|length > 0 %}
+        <div class="grid grid-cols-2">
+            {% for group in favoriteGroups %}
+                <a href="{{ path('site_group', {'id': group.id}) }}" class="block border rounded hover:bg-gray-50">
+                    {{ group.title }} ({{ group.comment }})
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Пока нет избранных сборников.</p>
+    {% endif %}
 </div>
 {% endblock %}

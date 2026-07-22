@@ -30,4 +30,16 @@ class WorkGroupRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findFavoriteActiveSorted(): array
+    {
+        return $this->createQueryBuilder('wg')
+            ->andWhere('wg.isActive = :active')
+            ->andWhere('wg.isFavorite = :favorite')
+            ->setParameter('active', true)
+            ->setParameter('favorite', true)
+            ->orderBy('wg.position', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

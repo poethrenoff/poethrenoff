@@ -1,5 +1,9 @@
 # AGENTS.md — инструкции агента для проекта "PoetHrenoff"
 
+## Текущее состояние (2026-07-22)
+
+- Исправлена ошибка `Unknown "stimulus_controller" function` в шаблонах Sonata Admin. Пакет `symfony/stimulus-bundle` присутствовал в `vendor`, но не был зарегистрирован. Вместо добавления в `config/bundles.php` (который загрузил бы сервисы, зависящие от `asset_mapper`), создан `config/packages/stimulus.yaml` с ручным определением `stimulus.helper` и Twig-расширения `StimulusTwigExtension`. Пакет добавлен в `composer.json` как явная зависимость.
+
 ## Текущее состояние (2026-07-20)
 
 - Проект перезапущен с нуля.

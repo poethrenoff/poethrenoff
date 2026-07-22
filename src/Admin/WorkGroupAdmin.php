@@ -26,6 +26,7 @@ class WorkGroupAdmin extends AbstractAdmin
             ->add('title', TextType::class)
             ->add('comment', TextType::class, ['required' => false])
             ->add('position', NumberType::class)
+            ->add('isFavorite', CheckboxType::class, ['required' => false])
             ->add('isActive', CheckboxType::class, ['required' => false])
         ;
     }
@@ -35,6 +36,7 @@ class WorkGroupAdmin extends AbstractAdmin
         $filter
             ->add('id')
             ->add('title')
+            ->add('isFavorite')
             ->add('isActive')
         ;
     }
@@ -45,6 +47,7 @@ class WorkGroupAdmin extends AbstractAdmin
             ->addIdentifier('title')
             ->add('parent')
             ->add('position', null, ['editable' => true])
+            ->add('isFavorite', null, ['editable' => true])
             ->add('isActive', null, ['editable' => true])
             ->add(ListMapper::NAME_ACTIONS, null, [
                 'actions' => [
@@ -65,6 +68,7 @@ class WorkGroupAdmin extends AbstractAdmin
             ->add('comment')
             ->add('position')
             ->add('isActive')
+            ->add('isFavorite')
         ;
     }
 }
