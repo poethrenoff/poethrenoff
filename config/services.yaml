@@ -52,12 +52,6 @@ services:
         tags:
             - { name: sonata.admin, manager_type: orm, group: poems, label: Poems, model_class: App\Entity\Poem }
 
-    # PoemVersionAdmin
-    App\Admin\PoemVersionAdmin:
-        public: true
-        tags:
-            - { name: sonata.admin, manager_type: orm, group: poems, label: Versions, model_class: App\Entity\PoemVersion }
-
     # WorkGroupAdmin
     App\Admin\WorkGroupAdmin:
         public: true

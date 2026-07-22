@@ -36,7 +36,7 @@ class SiteController extends AbstractController
     public function homepage(): Response
     {
         $favoriteGroups = $this->workGroupRepository->findFavoriteActiveSorted();
-        return $this->render('site/homepage.html.twig', [
+        return $this->render('site/index.html.twig', [
             'favoriteGroups' => $favoriteGroups,
         ]);
     }

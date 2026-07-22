@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20260720053240 extends AbstractMigration
+final class Version20260722090207 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -64,6 +64,20 @@ final class Version20260720053240 extends AbstractMigration
               INDEX IDX_AB6DDA3AA77FBEAF (blog_post_id),
               INDEX IDX_AB6DDA3ABAD26311 (tag_id),
               PRIMARY KEY (blog_post_id, tag_id)
+            ) DEFAULT CHARACTER SET utf8mb4
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE TABLE monster (
+              id INT AUTO_INCREMENT NOT NULL,
+              login VARCHAR(255) NOT NULL,
+              author VARCHAR(255) NOT NULL,
+              poems INT NOT NULL,
+              poems_old INT NOT NULL,
+              place INT DEFAULT NULL,
+              place_old INT DEFAULT NULL,
+              last_visit_date DATETIME DEFAULT NULL,
+              is_active TINYINT NOT NULL,
+              PRIMARY KEY (id)
             ) DEFAULT CHARACTER SET utf8mb4
         SQL);
         $this->addSql(<<<'SQL'
@@ -133,6 +147,18 @@ final class Version20260720053240 extends AbstractMigration
               roles JSON NOT NULL,
               password VARCHAR(255) NOT NULL,
               UNIQUE INDEX UNIQ_IDENTIFIER_EMAIL (email),
+              PRIMARY KEY (id)
+            ) DEFAULT CHARACTER SET utf8mb4
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE TABLE vozdukh (
+              id INT AUTO_INCREMENT NOT NULL,
+              title VARCHAR(255) NOT NULL,
+              subtitle VARCHAR(255) DEFAULT NULL,
+              author VARCHAR(255) NOT NULL,
+              text LONGTEXT NOT NULL,
+              url VARCHAR(255) DEFAULT NULL,
+              is_active TINYINT NOT NULL,
               PRIMARY KEY (id)
             ) DEFAULT CHARACTER SET utf8mb4
         SQL);
@@ -277,12 +303,14 @@ final class Version20260720053240 extends AbstractMigration
         $this->addSql('DROP TABLE blog_comment');
         $this->addSql('DROP TABLE blog_post');
         $this->addSql('DROP TABLE tag_blog_post');
+        $this->addSql('DROP TABLE monster');
         $this->addSql('DROP TABLE picture');
         $this->addSql('DROP TABLE poem');
         $this->addSql('DROP TABLE poem_version');
         $this->addSql('DROP TABLE static_text');
         $this->addSql('DROP TABLE tag');
         $this->addSql('DROP TABLE user');
+        $this->addSql('DROP TABLE vozdukh');
         $this->addSql('DROP TABLE work');
         $this->addSql('DROP TABLE work_comment');
         $this->addSql('DROP TABLE work_group');

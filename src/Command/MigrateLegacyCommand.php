@@ -146,6 +146,7 @@ class MigrateLegacyCommand extends Command
                 'title' => $row['group_title'],
                 'comment' => $row['group_comment'] ?: null,
                 'position' => (float)$row['group_order'],
+                'is_favorite' => (int)($row['group_parent'] == 66),
                 'is_active' => (int)(bool)$row['group_active'],
                 'parent_id' => null,
             ]);

@@ -1,0 +1,459 @@
+{% extends 'work/base.html.twig' %}
+
+{% block body %}
+    <div x-data="app" x-cloak>
+        <header>
+            <h1>Блокнот</h1>
+            <p x-show="generalError" class="general-error" x-text="generalError"></p>
+            <nav>
+                <a href="#" @click.prevent="go('feed')" :class="view==='feed' ? 'active' : ''">Лента</a>
+                <a href="#" @click.prevent="go('trash')" :class="view==='trash' ? 'active' : ''">Корзина</a>
+            </nav>
+        </header>
+
+        <div class="dashboard-panel" x-show="stats.total !== undefined">
+            <div class="dash-stat">
+                <span class="dash-value" x-text="stats.total"></span>
+                <span class="dash-label">Стихов</span>
+            </div>
+            <div class="dash-stat" x-show="stats.trash > 0">
+                <span class="dash-value" x-text="stats.trash"></span>
+                <span class="dash-label">В корзине</span>
+            </div>
+        </div>
+
+        <main x-show="view==='feed'">
+            <div class="toolbar">
+                <button class="btn" @click="openNew()">+ Новый стих</button>
+                <span x-show="loading" class="loading">Загрузка…</span>
+            </div>
+
+            <div x-show="showNew" class="poem" x-ref="newForm">
+                <div class="poem-header">
+                    <div class="title">
+                        <input class="title-input" tabindex="1" x-model="newTitle" placeholder="Название" @keydown.enter="create()" @keydown.escape="showNew = false">
+                    </div>
+                    <div class="poem-actions edit-actions">
+                        <button class="icon-btn" @click="create()" title="Сохранить">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </button>
+                        <button class="icon-btn" @click="cancelNew()" title="Отмена">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+                </div>
+                <textarea class="poem-textarea" tabindex="2" x-model="newContent" placeholder="Текст стиха" rows="10" @keydown.escape="showNew = false"></textarea>
+                <input class="comment-input" tabindex="3" x-model="newComment" placeholder="Комментарий" @keydown.enter="create()" @keydown.escape="showNew = false">
+            </div>
+
+            <div x-ref="list">
+                <template x-for="poem in poems" :key="poem.id">
+                    <div class="poem" :class="{ editing: editingId === poem.id }">
+                        <button class="icon-btn drag-handle" title="Перетащить" @click.prevent>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg>
+                        </button>
+                        <div class="poem-header">
+                            <div class="poem-body" x-show="editingId !== poem.id">
+                                <div class="poem-title" x-text="poem.title || '* * *'"></div>
+                                <div class="poem-content" x-text="poem.content"></div>
+                                <div class="poem-comment" x-show="poem.comment" x-text="poem.comment"></div>
+                            </div>
+                            <input class="title-input" tabindex="1" x-model="poem.title" x-show="editingId === poem.id" placeholder="Название" @keydown.enter="saveEdit(poem)" @keydown.escape="cancelEdit()">
+                            <div class="poem-actions view-actions" x-show="editingId !== poem.id">
+                                <button class="icon-btn copy-btn" :data-copy-id="poem.id" @click="copyPoem(poem)" title="Копировать">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </button>
+                                <button class="icon-btn" @click="edit(poem)" title="Редактировать">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                </button>
+                                <button class="icon-btn" @click="trash(poem)" title="В корзину">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </button>
+                            </div>
+                            <div class="poem-actions edit-actions" x-show="editingId === poem.id">
+                                <button class="icon-btn" @click="saveEdit(poem)" title="Сохранить">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                </button>
+                                <button class="icon-btn" @click="cancelEdit()" title="Отмена">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <textarea class="poem-textarea" tabindex="2" x-model="poem.content" x-show="editingId === poem.id" placeholder="Текст стиха" rows="10" tabindex="2" @keydown.escape="cancelEdit()"></textarea>
+                        <input class="comment-input" tabindex="3" x-model="poem.comment" x-show="editingId === poem.id" placeholder="Комментарий" tabindex="3" @keydown.enter="saveEdit(poem)" @keydown.escape="cancelEdit()">
+                    </div>
+                </template>
+            </div>
+
+            <div x-show="!loading && poems.length === 0" class="empty">
+                Пока пусто. Нажмите «Новый стих», чтобы начать.
+            </div>
+        </main>
+        <main x-show="view==='trash'">
+            <div class="toolbar">
+                <button class="btn secondary" @click="go('feed')">← В ленту</button>
+                <span x-show="loading" class="loading">Загрузка…</span>
+            </div>
+
+            <template x-for="poem in poems" :key="poem.id">
+                <div class="poem">
+                    <div class="poem-header">
+                        <div class="poem-body">
+                            <div class="poem-title" x-text="poem.title || '* * *'"></div>
+                            <div class="poem-content" x-text="poem.content"></div>
+                            <div class="poem-comment" x-show="poem.comment" x-text="poem.comment"></div>
+                        </div>
+                        <div class="poem-actions">
+                            <button class="icon-btn" @click="restore(poem)" title="Восстановить">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                            </button>
+                            <button class="icon-btn" @click="remove(poem)" title="Удалить навсегда">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <div x-show="!loading && poems.length === 0" class="empty">
+                Корзина пуста.
+            </div>
+        </main>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('app', () => ({
+                username: '',
+                password: '',
+                generalError: '',
+                view: 'feed',
+                poems: [],
+                loading: false,
+                showNew: false,
+                newTitle: '',
+                newContent: '',
+                newComment: '',
+                sortable: null,
+                editingId: null,
+                originalPoem: null,
+                draftKey: 'newPoemDraft',
+                stats: { total: 0, trash: 0 },
+
+                async api(url, options = {}) {
+                    options.headers = options.headers || {};
+                    if (options.body && !options.headers['Content-Type']) {
+                        options.headers['Content-Type'] = 'application/json';
+                    }
+                    if (!options.headers['Accept']) {
+                        options.headers['Accept'] = 'application/json';
+                    }
+
+                    try {
+                        const res = await fetch(url, options);
+                        if (res.status === 401) {
+                            window.location.reload();
+                            return null;
+                        }
+                        return res;
+                    } catch (e) {
+                        console.error('API Error:', e);
+                        return null;
+                    }
+                },
+
+                init() {
+                    this.view = 'feed';
+                    this.load();
+                    this.loadStats();
+
+                    this.$watch('newTitle', () => this.saveDraft());
+                    this.$watch('newContent', () => this.saveDraft());
+                    this.$watch('newComment', () => this.saveDraft());
+                },
+
+                openNew() {
+                    this.showNew = true;
+                    try {
+                        const raw = localStorage.getItem(this.draftKey);
+                        if (raw) {
+                            const draft = JSON.parse(raw);
+                            this.newTitle = draft.title || '';
+                            this.newContent = draft.content || '';
+                            this.newComment = draft.comment || '';
+                        }
+                    } catch (e) {
+                        this.clearDraft();
+                    }
+                    this.$nextTick(() => {
+                        const el = this.$refs.newForm.querySelector('.poem-textarea');
+                        if (el) el.focus();
+                    });
+                },
+
+                cancelNew() {
+                    this.showNew = false;
+                    this.newTitle = '';
+                    this.newContent = '';
+                    this.newComment = '';
+                    this.clearDraft();
+                },
+
+                clearDraft() {
+                    localStorage.removeItem(this.draftKey);
+                },
+
+                saveDraft() {
+                    if (!this.showNew) return;
+                    if (!this.newTitle && !this.newContent && !this.newComment) {
+                        this.clearDraft();
+                        return;
+                    }
+                    localStorage.setItem(this.draftKey, JSON.stringify({
+                        title: this.newTitle,
+                        content: this.newContent,
+                        comment: this.newComment,
+                    }));
+                },
+
+                go(target) {
+                    this.view = target;
+                    this.poems = [];
+                    this.load();
+                },
+
+                async extractError(res) {
+                    if (!res) return 'Ошибка сети';
+                    try {
+                        const data = await res.json();
+                        if (data.error) {
+                            return data.error.message || 'Ошибка';
+                        }
+                        if (typeof data === 'object') {
+                            const msgs = [];
+                            for (const [k, v] of Object.entries(data)) {
+                                if (Array.isArray(v)) msgs.push(...v);
+                                else msgs.push(String(v));
+                            }
+                            if (msgs.length) return msgs[0];
+                        }
+                        return res.statusText || 'Ошибка';
+                    } catch (e) {
+                        return res.statusText || 'Ошибка';
+                    }
+                },
+
+                async load() {
+                     this.loading = true;
+                     this.generalError = '';
+                     const status = this.view === 'trash' ? 'trash' : 'draft';
+                     const res = await this.api(`/poems/?status=${status}`, {
+                         headers: {
+                             'Accept': 'application/json'
+                         }
+                     });
+                     if (!res) {
+                         this.loading = false;
+                         return;
+                     }
+                     if (!res.ok) {
+                         this.poems = [];
+                         this.generalError = await this.extractError(res);
+                         this.loading = false;
+                         return;
+                     }
+                     const data = await res.json();
+                     this.poems = data.results || data;
+                     if (this.view === 'feed' && data.total !== undefined) {
+                         this.stats.total = data.total;
+                     }
+                     if (this.view === 'feed') this.initSortable();
+                     this.loading = false;
+                 },
+
+                async loadStats() {
+                    const res = await this.api('/poems/stats/');
+                    if (res && res.ok) {
+                        const data = await res.json();
+                        this.stats.total = data.total;
+                        this.stats.trash = data.trash;
+                    }
+                },
+
+                _sortableMovedEl: null,
+                _sortableMovedNext: null,
+
+                initSortable() {
+                    if (this.sortable) this.sortable.destroy();
+                    if (!this.$refs.list) return;
+                    this.sortable = Sortable.create(this.$refs.list, {
+                        animation: 150,
+                        handle: '.drag-handle',
+                        onStart: (evt) => {
+                            this._sortableMovedEl = evt.item;
+                            this._sortableMovedNext = evt.item.nextSibling;
+                        },
+                        onEnd: (evt) => this.onReorder(evt),
+                    });
+                },
+
+                async onReorder(evt) {
+                    const oldIndex = evt.oldIndex;
+                    const newIndex = evt.newIndex;
+                    if (newIndex === oldIndex) return;
+
+                    if (this._sortableMovedEl && this._sortableMovedNext) {
+                        this.$refs.list.insertBefore(this._sortableMovedEl, this._sortableMovedNext);
+                    } else if (this._sortableMovedEl) {
+                        this.$refs.list.appendChild(this._sortableMovedEl);
+                    }
+                    this._sortableMovedEl = null;
+                    this._sortableMovedNext = null;
+
+                    const moved = this.poems[oldIndex];
+                    const newPoems = [...this.poems];
+                    newPoems.splice(oldIndex, 1);
+                    newPoems.splice(newIndex, 0, moved);
+                    this.poems = newPoems;
+
+                    const beforeNeighbor = newPoems[newIndex + 1] || null;
+                    const afterNeighbor = newPoems[newIndex - 1] || null;
+
+                    const payload = {
+                        before_id: beforeNeighbor && beforeNeighbor.id !== moved.id ? beforeNeighbor.id : null,
+                        after_id: afterNeighbor && afterNeighbor.id !== moved.id ? afterNeighbor.id : null,
+                    };
+
+                    const res = await this.api(`/poems/${moved.id}/reorder/`, {
+                        method: 'POST',
+                        body: JSON.stringify(payload),
+                    });
+
+                    if (!res || !res.ok) {
+                        await this.load();
+                        if (res) {
+                            this.generalError = await this.extractError(res);
+                        }
+                    }
+                },
+
+                async create() {
+                     if (!this.newContent.trim() && !this.newTitle.trim()) return;
+
+                     this.generalError = '';
+                     const res = await this.api('/poems/', {
+                         method: 'POST',
+                         body: JSON.stringify({
+                             title: this.newTitle || null,
+                             content: this.newContent,
+                             comment: this.newComment || null,
+                         })
+                     });
+                     if (res && res.ok) {
+                         this.newTitle = '';
+                         this.newContent = '';
+                         this.newComment = '';
+                         this.showNew = false;
+                         this.clearDraft();
+                         await this.load();
+                         this.loadStats();
+                     } else if (res) {
+                         this.generalError = await this.extractError(res);
+                     }
+                },
+
+                edit(poem) {
+                    this.originalPoem = { ...poem };
+                    this.editingId = poem.id;
+                    this.$nextTick(() => {
+                        const el = document.querySelector(`.editing .poem-textarea`);
+                        if (el) el.focus();
+                    });
+                },
+
+                copyPoem(poem) {
+                     const title = poem.title || '* * *';
+                     const content = poem.content || '';
+                     const comment = poem.comment || '';
+                     const parts = [title, content];
+                     if (comment) parts.push(comment);
+                     const text = parts.join('\n\n');
+                     const ta = document.createElement('textarea');
+                     ta.value = text;
+                     ta.style.position = 'fixed';
+                     ta.style.left = '-9999px';
+                     document.body.appendChild(ta);
+                     ta.select();
+                     const successful = document.execCommand('copy');
+                     document.body.removeChild(ta);
+                     if (successful) {
+                         const btn = document.querySelector(`[data-copy-id="${poem.id}"]`);
+                         if (btn) {
+                             btn.classList.add('copied');
+                             setTimeout(() => btn.classList.remove('copied'), 1500);
+                         }
+                     }
+                 },
+
+                cancelEdit() {
+                    this.editingId = null;
+                    this.originalPoem = null;
+                },
+
+                async saveEdit(poem) {
+                    this.generalError = '';
+                    const res = await this.api(`/poems/${poem.id}/`, {
+                        method: 'PUT',
+                        body: JSON.stringify({
+                            title: poem.title || null,
+                            content: poem.content,
+                            comment: poem.comment || null,
+                        }),
+                    });
+                    if (res && res.ok) {
+                        this.editingId = null;
+                        this.originalPoem = null;
+                    } else if (res) {
+                        this.generalError = await this.extractError(res);
+                    }
+                },
+
+                async trash(poem) {
+                    this.generalError = '';
+                    const res = await this.api(`/poems/${poem.id}/trash/`, { method: 'POST' });
+                    if (res && res.ok) {
+                        await this.load();
+                        this.loadStats();
+                    } else if (res) {
+                        this.generalError = await this.extractError(res);
+                    }
+                },
+
+                async restore(poem) {
+                    this.generalError = '';
+                    const res = await this.api(`/poems/${poem.id}/restore/`, { method: 'POST' });
+                    if (res && res.ok) {
+                        await this.load();
+                        this.loadStats();
+                    } else if (res) {
+                        this.generalError = await this.extractError(res);
+                    }
+                },
+
+                async remove(poem) {
+                    if (!confirm('Удалить навсегда? Это действие необратимо.')) return;
+                    this.generalError = '';
+                    const res = await this.api(`/poems/${poem.id}/`, { method: 'DELETE' });
+                    if (res && res.ok) {
+                        await this.load();
+                        this.loadStats();
+                    } else if (res) {
+                        this.generalError = await this.extractError(res);
+                    }
+                },
+            }));
+        });
+    </script>
+{% endblock %}
