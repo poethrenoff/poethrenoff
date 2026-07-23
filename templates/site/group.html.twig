@@ -3,17 +3,17 @@
 {% block title %}Поэт Хренов :: {% if group is not empty %}{{ group.title }}{% else %}Все{% endif %}{% endblock %}
 
 {% block body %}
-<div class="container mx-auto p-4 grid grid-cols-2">
+<div class="container p-4">
+    <div class="columns-2">
     {% if tree is not empty %}
         {% include 'site/_tree.html.twig' with {'tree': tree} %}
     {% elseif works is not empty %}
         {% for work in works %}
-            <p class="mb-2">
-                <a href="{{ path('site_work', {'id': work.id}) }}">{{ work.title }}</a>
-            </p>
+            <div class="py-1">
+                {{ loop.index }}. <a href="{{ path('site_work', {'id': work.id}) }}">{{ work.title }}</a>
+            </div>
         {% endfor %}
-    {% else %}
-        <p>В этом разделе пока нет произведений.</p>
     {% endif %}
+    </div>
 </div>
 {% endblock %}

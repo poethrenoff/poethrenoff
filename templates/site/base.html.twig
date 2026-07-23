@@ -6,48 +6,45 @@
     <title>{% block title %}Поэт Хренов{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('assets/normalize.min.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css}">
     <link rel="stylesheet" href="{{ asset('assets/site.css') }}">
     {% block stylesheets %}{% endblock %}
 </head>
 <body>
-    <header class="fixed top-0 left-0 right-0 bg-white shadow-inner z-50 h-16">
-        <div class="container flex flex-wrap justify-between items-center h-full">
-            <nav aria-label="breadcrumb" class="flex-1 min-w-0">
-                <ol class="breadcrumb flex flex-wrap items-center">
+    <header class="site-header">
+        <div class="container site-header-bar">
+            <nav>
+                <ol class="breadcrumb">
                 {% if breadcrumbs is defined and breadcrumbs is not empty %}
                     {% for breadcrumb in breadcrumbs %}
                         <li>
-                            {% if breadcrumb.path is defined and breadcrumb.path %}
-                                <a href="{{ breadcrumb.path }}">{{ breadcrumb.label }}</a>
-                            {% else %}
-                                {{ breadcrumb.label }}
-                            {% endif %}
+                            <a href="{{ breadcrumb.path }}">{{ breadcrumb.label }}</a>
                         </li>
                     {% endfor %}
                 {% endif %}
                 </ol>
             </nav>
-            <h1 class="text-xl font-bold ml-4"><a href="{{ path('site_homepage') }}" class="text-black no-underline hover:no-underline">Поэт Хренов</a></h1>
+            <a href="{{ path('site_homepage') }}" class="site-title">Поэт Хренов</a>
         </div>
     </header>
 
-    <main class="flex-1 container mx-auto p-4 pt-16 pb-16">
+    <main class="container main-content">
         {% block body %}{% endblock %}
     </main>
 
-    <footer class="fixed bottom-0 left-0 right-0 bg-white shadow-inner z-50 h-16">
-        <div class="container h-full flex flex-col justify-center gap-2 text-xs text-gray-400 text-center">
-            <div class="flex flex-wrap justify-between items-center text-sm text-gray-500 w-full text-left gap-2">
-                <a href="{{ path('site_about') }}" class="text-blue-500 hover:underline">Об авторе</a>
-                <span>|</span>
-                <a href="{{ path('site_picture') }}" class="text-blue-500 hover:underline">Картинки</a>
-                <span>|</span>
-                <a href="{{ path('site_search') }}" class="text-blue-500 hover:underline">Поиск</a>
-                <a href="{{ path('site_work_index') }}" class="text-blue-500 hover:underline ml-auto">Все</a>
-                <span>|</span>
-                <a href="{{ path('site_random') }}" class="text-blue-500 hover:underline">Случайное</a>
+    <footer class="site-footer">
+        <div class="container site-footer-bar">
+            <div class="site-footer-links">
+                <div>
+                    <a href="{{ path('site_about') }}">Об авторе</a> |
+                    <a href="{{ path('site_picture') }}">Картинки</a> |
+                    <a href="{{ path('site_search') }}">Поиск</a>
+                </div>
+                <div>
+                    <a href="{{ path('site_work_index') }}">Все</a> |
+                    <a href="{{ path('site_random') }}">Случайное</a>
+                </div>
             </div>
             <!-- Yandex.Metrika counter -->
             <script type="text/javascript" >

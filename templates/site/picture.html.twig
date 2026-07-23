@@ -7,19 +7,15 @@
 {% endblock %}
 
 {% block body %}
-<div class="container mx-auto p-4">
-
-    <h1 class="text-3xl font-bold mb-4">Галерея</h1>
-
-    {# Grid of thumbnails #}
-    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+<div class="container p-4">
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
         {% for picture in pictures %}
-            <div class="aspect-square overflow-hidden rounded shadow-md">
-                <a href="{{ picture.imagePath }}" class="glightbox" data-gallery="gallery1" data-title="{{ picture.title|default('') }}">
+            <div class="border">
+                <a href="{{ picture.imagePath }}" class="glightbox" data-gallery="gallery" data-title="{{ picture.title|default('') }}">
                     <img
                         src="{{ picture.imagePath }}"
                         alt="{{ picture.title|default('Gallery image') }}"
-                        class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        class="w-full h-full object-cover hover:scale-105 transition-transform"
                         loading="lazy"
                     />
                 </a>
@@ -27,27 +23,26 @@
         {% endfor %}
     </div>
 
-    {# Pagination #}
     {% if pictures is not empty and pagination is defined %}
-        <div class="mt-8 flex justify-center">
+        <div class="pagination">
             {% if pagination.prev_page %}
-                <a href="{{ path('site_picture', {'page': pagination.prev_page}) }}" class="px-4 py-2 mx-1 rounded shadow bg-white hover:bg-gray-100">&laquo; Назад</a>
+                <a href="{{ path('site_picture', {'page': pagination.prev_page}) }}" class="pagination-link">&laquo; Назад</a>
             {% endif %}
 
             {% for page in range(1, pagination.total_pages) %}
                 {% if page == pagination.current_page %}
-                    <span class="px-4 py-2 mx-1 rounded shadow bg-blue-500 text-white">{{ page }}</span>
+                    <span class="pagination-current">{{ page }}</span>
                 {% elseif page in [pagination.current_page - 2, pagination.current_page - 1, pagination.current_page + 1, pagination.current_page + 2] %}
-                    <a href="{{ path('site_picture', {'page': page}) }}" class="px-4 py-2 mx-1 rounded shadow bg-white hover:bg-gray-100">{{ page }}</a>
+                    <a href="{{ path('site_picture', {'page': page}) }}" class="pagination-link">{{ page }}</a>
                 {% elseif page == 1 or page == pagination.total_pages %}
-                     <a href="{{ path('site_picture', {'page': page}) }}" class="px-4 py-2 mx-1 rounded shadow bg-white hover:bg-gray-100">{{ page }}</a>
+                     <a href="{{ path('site_picture', {'page': page}) }}" class="pagination-link">{{ page }}</a>
                 {% elseif page == pagination.current_page - 3 or page == pagination.current_page + 3 %}
-                    <span class="px-4 py-2 mx-1">...</span>
+                    <span class="pagination-ellipsis">...</span>
                 {% endif %}
             {% endfor %}
 
             {% if pagination.next_page %}
-                <a href="{{ path('site_picture', {'page': pagination.next_page}) }}" class="px-4 py-2 mx-1 rounded shadow bg-white hover:bg-gray-100">Вперед &raquo;</a>
+                <a href="{{ path('site_picture', {'page': pagination.next_page}) }}" class="pagination-link">Вперед &raquo;</a>
             {% endif %}
         </div>
     {% endif %}

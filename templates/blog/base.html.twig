@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('assets/normalize.min.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css">
     <link rel="stylesheet" href="{{ asset('assets/blog.css') }}">
     {% block stylesheets %}{% endblock %}
 </head>
@@ -18,10 +18,6 @@
             <div class="site-title">
                 <a href="{{ path('blog_homepage') }}">Не дождетесь!</a>
             </div>
-            <nav class="nav-links">
-                <a href="//lo.poethrenoff.ru/">Сайт</a>
-                <a href="{{ path('blog_search') }}">Поиск</a>
-            </nav>
         </header>
 
         <main>
