@@ -1,6 +1,6 @@
 {% extends 'site/base.html.twig' %}
 
-{% block title %}Поиск - Поэт Хренов{% endblock %}
+{% block title %}Поэт Хренов :: Поиск{% endblock %}
 
 {% block body %}
 <div class="container mx-auto p-4">
@@ -40,7 +40,7 @@
                     {% if pagination.prev_page %}
                         <a href="{{ path('site_search', {'q': query, 'page': pagination.prev_page}) }}" class="px-4 py-2 mx-1 rounded shadow bg-white hover:bg-gray-100">&laquo; Назад</a>
                     {% endif %}
-                    
+
                     {% for page in range(1, pagination.total_pages) %}
                         {% if page == pagination.current_page %}
                             <span class="px-4 py-2 mx-1 rounded shadow bg-blue-500 text-white">{{ page }}</span>

@@ -1,6 +1,6 @@
 {% extends 'site/base.html.twig' %}
 
-{% block title %}Галерея - Поэт Хренов{% endblock %}
+{% block title %}Поэт Хренов :: Картинки{% endblock %}
 
 {% block stylesheets %}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
@@ -16,11 +16,11 @@
         {% for picture in pictures %}
             <div class="aspect-square overflow-hidden rounded shadow-md">
                 <a href="{{ picture.imagePath }}" class="glightbox" data-gallery="gallery1" data-title="{{ picture.title|default('') }}">
-                    <img 
-                        src="{{ picture.imagePath }}" 
-                        alt="{{ picture.title|default('Gallery image') }}" 
+                    <img
+                        src="{{ picture.imagePath }}"
+                        alt="{{ picture.title|default('Gallery image') }}"
                         class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                        loading="lazy" 
+                        loading="lazy"
                     />
                 </a>
             </div>
@@ -33,7 +33,7 @@
             {% if pagination.prev_page %}
                 <a href="{{ path('site_picture', {'page': pagination.prev_page}) }}" class="px-4 py-2 mx-1 rounded shadow bg-white hover:bg-gray-100">&laquo; Назад</a>
             {% endif %}
-            
+
             {% for page in range(1, pagination.total_pages) %}
                 {% if page == pagination.current_page %}
                     <span class="px-4 py-2 mx-1 rounded shadow bg-blue-500 text-white">{{ page }}</span>
