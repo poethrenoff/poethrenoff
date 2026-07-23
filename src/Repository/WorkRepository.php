@@ -34,20 +34,16 @@ class WorkRepository extends ServiceEntityRepository
      * @param int $limit Items per page.
      * @return \Knp\Component\Pager\Pagination\PaginationInterface
      */
-    public function findActiveByGroup(WorkGroup $group, int $page = 1, int $limit = 10): \Knp\Component\Pager\Pagination\PaginationInterface
+    public function findActiveByGroup(WorkGroup $group): array
     {
-        $qb = $this->createQueryBuilder('w')
+        return $this->createQueryBuilder('w')
             ->andWhere('w.group = :group')
             ->andWhere('w.isActive = :active')
             ->setParameter('group', $group)
             ->setParameter('active', true)
-            ->orderBy('w.position', 'ASC');
-
-        return $this->paginator->paginate(
-            $qb,
-            $page,
-            $limit
-        );
+            ->orderBy('w.position', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 
     /**

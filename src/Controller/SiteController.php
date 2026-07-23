@@ -86,7 +86,7 @@ class SiteController extends AbstractController
 
         $works = [];
         if (!$hasChildren) {
-            $works = $this->workRepository->findActiveByGroup($group, 1, 100);
+            $works = $this->workRepository->findActiveByGroup($group);
         }
 
         return $this->render('site/group.html.twig', [
@@ -155,7 +155,6 @@ class SiteController extends AbstractController
             $words = array_filter($words);
 
             $searchResults = [];
-            /** @var \App\Entity\Work $work */
             foreach ($searchPagination->getItems() as $work) {
                 $text = strip_tags($work->getText());
                 $snippet = mb_substr($text, 0, 300);
