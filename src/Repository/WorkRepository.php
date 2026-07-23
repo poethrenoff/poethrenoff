@@ -191,12 +191,15 @@ class WorkRepository extends ServiceEntityRepository
      * Finds a random active work.
      * Efficiently fetches a random record by using a random offset based on total count.
      */
-    public function findRandomActive(): ?Work
+    public function findRandomActiveFromFavorites(): ?Work
     {
         $count = $this->createQueryBuilder('w')
             ->select('COUNT(w.id)')
+            ->innerJoin('w.group', 'g')
             ->andWhere('w.isActive = :active')
+            ->andWhere('g.isFavorite = :favorite')
             ->setParameter('active', true)
+            ->setParameter('favorite', true)
             ->getQuery()
             ->getSingleScalarResult();
 
@@ -207,8 +210,11 @@ class WorkRepository extends ServiceEntityRepository
         $offset = max(0, rand(0, $count - 1));
 
         return $this->createQueryBuilder('w')
+            ->innerJoin('w.group', 'g')
             ->andWhere('w.isActive = :active')
+            ->andWhere('g.isFavorite = :favorite')
             ->setParameter('active', true)
+            ->setParameter('favorite', true)
             ->setFirstResult($offset)
             ->setMaxResults(1)
             ->getQuery()

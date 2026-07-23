@@ -190,13 +190,26 @@ class SiteController extends AbstractController
     #[Route('/work/random', name: 'site_random')]
     public function random(): Response
     {
-        $randomWork = $this->workRepository->findRandomActive();
+        $randomWork = $this->workRepository->findRandomActiveFromFavorites();
 
         if (!$randomWork) {
             throw $this->createNotFoundException('No works available.');
         }
 
-        return $this->redirectToRoute('site_work', ['id' => $randomWork->getId()]);
+        $group = $randomWork->getGroup();
+        $breadcrumbs = [];
+        if ($group) {
+            $breadcrumbs = $this->buildBreadcrumbs($group);
+        }
+
+        $prevNext = $this->workRepository->findPrevNext($randomWork);
+
+        return $this->render('site/work.html.twig', [
+            'work' => $randomWork,
+            'prev_work' => $prevNext['prev'],
+            'next_work' => $prevNext['next'],
+            'breadcrumbs' => $breadcrumbs,
+        ]);
     }
 
     /**
