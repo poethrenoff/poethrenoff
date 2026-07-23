@@ -1,13 +1,14 @@
 /* Blog specific CSS */
 body {
     font-family: 'Inter', sans-serif;
-    background-color: #f8f9fa;
-    color: #333;
+    background-color: #ffffff;
+    color: #444444;
     line-height: 1.6;
+    font-size: 1rem;
 }
 
 a {
-    color: #d63384;
+    color: #1982d1;
     text-decoration: none;
 }
 
@@ -22,19 +23,19 @@ a:hover {
 }
 
 header {
-    border-bottom: 2px solid #eee;
+    border-bottom: 2px solid #e5e7eb;
     margin-bottom: 2rem;
     padding-bottom: 1rem;
 }
 
 .site-title {
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: bold;
-    color: #333;
+    color: #444444;
 }
 
 .site-title a {
-    color: #333;
+    color: #444444;
 }
 
 .post {
@@ -42,8 +43,7 @@ header {
 }
 
 .post-date {
-    color: #888;
-    font-size: 0.9rem;
+    color: #888888;
 }
 
 .post-content {
@@ -60,32 +60,31 @@ header {
 }
 
 .tag {
-    background: #eee;
+    background: #e5e7eb;
     padding: 0.2rem 0.5rem;
     border-radius: 3px;
-    font-size: 0.8rem;
     margin-right: 0.5rem;
-    color: #555;
+    color: #666666;
     display: inline-block;
     margin-bottom: 0.25rem;
 }
 
 .tag:hover {
-    background: #ddd;
+    background: #d1d5db;
     text-decoration: none;
 }
 
 /* Comment Tree */
 .comments-section {
     margin-top: 4rem;
-    border-top: 1px solid #eee;
+    border-top: 1px solid #e5e7eb;
     padding-top: 2rem;
 }
 
 .comment {
     margin-top: 1.5rem;
     padding-left: 1.5rem;
-    border-left: 2px solid #eee;
+    border-left: 2px solid #e5e7eb;
 }
 
 .comment-author {
@@ -93,8 +92,8 @@ header {
 }
 
 .comment-date {
-    font-size: 0.8rem;
-    color: #999;
+    font-size: 0.875rem;
+    color: #999999;
 }
 
 .comment-content {
@@ -116,15 +115,15 @@ header {
 
 .pagination a, .pagination span {
     padding: 0.5rem 0.75rem;
-    border: 1px solid #ddd;
+    border: 1px solid #d1d5db;
     border-radius: 3px;
     display: inline-block;
 }
 
 .pagination .current span {
-    background: #d63384;
-    color: #fff;
-    border-color: #d63384;
+    background: #1982d1;
+    color: #ffffff;
+    border-color: #1982d1;
 }
 
 /* Search */
@@ -132,18 +131,22 @@ header {
     margin-bottom: 2rem;
 }
 
+.search-form form {
+    display: flex;
+    gap: 0.5rem;
+}
+
 .search-input {
+    flex: 1 1 auto;
     padding: 0.5rem;
-    width: 100%;
-    max-width: 400px;
-    border: 1px solid #ddd;
+    border: 1px solid #d1d5db;
     border-radius: 3px;
 }
 
 .search-button {
     padding: 0.5rem 1rem;
-    background: #d63384;
-    color: #fff;
+    background: #1982d1;
+    color: #ffffff;
     border: none;
     border-radius: 3px;
     cursor: pointer;
@@ -154,18 +157,4 @@ header {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-}
-
-mark {
-    background-color: #fff3cd;
-    padding: 0.1rem 0.2rem;
-}
-
-.nav-links {
-    margin-top: 1rem;
-}
-
-.nav-links a {
-    margin-right: 1rem;
-    font-size: 0.9rem;
 }
