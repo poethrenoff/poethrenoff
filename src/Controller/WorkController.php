@@ -144,7 +144,7 @@ class WorkController extends AbstractController
         return $this->json(['status' => 'ok']);
     }
 
-    #[Route('/poems/{id}/restore', name: 'work_api_poems_restore', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[Route('/poems/{id}/restore/', name: 'work_api_poems_restore', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function restore(Poem $poem): JsonResponse
     {
         if ($poem->getStatus() !== PoemStatus::Trash || $poem->getDeletedAt() === null) {
