@@ -7,8 +7,7 @@
 {% endblock %}
 
 {% block body %}
-<div class="container p-4">
-    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
+    <div class="grid grid-cols-2 mt-8 md:grid-cols-4 lg:grid-cols-6">
         {% for picture in pictures %}
             <div class="border">
                 <a href="{{ picture.imagePath }}" class="glightbox" data-gallery="gallery" data-title="{{ picture.title|default('') }}">
@@ -46,7 +45,6 @@
             {% endif %}
         </div>
     {% endif %}
-</div>
 {% endblock %}
 
 {% block javascripts %}

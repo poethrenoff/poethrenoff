@@ -1,7 +1,5 @@
 {% extends 'blog/base.html.twig' %}
 
-{% block title %}Поиск - {{ parent() }}{% endblock %}
-
 {% block body %}
     <div class="search-form">
         <form action="{{ path('blog_search') }}" method="get">
@@ -12,28 +10,28 @@
 
     <div class="tag-cloud">
         {% for tag in tags %}
-            <a href="{{ path('blog_search', {tag: tag.title}) }}" class="tag {% if tag.title == currentTag %}active{% endif %}">
-                {{ tag.title }}
+            <a href="{{ path('blog_search', {tag: tag[0].title}) }}" class="tag {% if tag[0].title == currentTag %}active{% endif %}">
+                {{ tag[0].title }}
             </a>
         {% endfor %}
     </div>
 
     {% if searchResults is not empty %}
         <h2>Результаты поиска {% if currentTag %}по тегу "{{ currentTag }}"{% elseif searchText %}для "{{ searchText }}"{% endif %}</h2>
-        
-        {% for result in searchResults %}
+
+        {% for post in searchResults %}
             <article class="post">
-                <div class="post-date">
-                    <a href="{{ path('blog_post', {id: result.id}) }}">
-                        {{ result.publishedAt|date('d.m.Y H:i') }}
+                <h3>
+                    <a href="{{ path('blog_post', {id: post.id}) }}">
+                        {{ post.publishedAt|date('d.m.Y H:i') }}
                     </a>
-                </div>
+                </h3>
                 <div class="post-content">
-                    {{ result.content|raw }}
+                    {{ post.content|raw }}
                 </div>
-                {% if result.tags|length > 0 %}
+                {% if post.tags|length > 0 %}
                     <div class="post-tags">
-                        {% for tag in result.tags %}
+                        {% for tag in post.tags %}
                             <a href="{{ path('blog_search', {tag: tag.title}) }}" class="tag">{{ tag.title }}</a>
                         {% endfor %}
                     </div>
@@ -41,27 +39,26 @@
             </article>
         {% endfor %}
 
-        {# Pagination #}
-        {% if pagination_data is defined and pagination_data.total_pages > 1 %}
+        {% if pagination is defined and pagination.total_pages > 1 %}
             <div class="pagination">
-                {% if pagination_data.prev_page %}
-                    <li><a href="{{ path('blog_search', app.request.query.all|merge({'page': pagination_data.prev_page})) }}">&laquo; Назад</a></li>
+                {% if pagination.prev_page %}
+                    <a href="{{ path('blog_search', app.request.query.all|merge({'page': pagination.prev_page})) }}" class="pagination-link">&laquo; Назад</a>
                 {% endif %}
-                
-                {% for page in range(1, pagination_data.total_pages) %}
-                    {% if page == pagination_data.current_page %}
-                        <li class="current"><span>{{ page }}</span></li>
-                    {% elseif page in [pagination_data.current_page - 2, pagination_data.current_page - 1, pagination_data.current_page + 1, pagination_data.current_page + 2] %}
-                        <li><a href="{{ path('blog_search', app.request.query.all|merge({'page': page})) }}">{{ page }}</a></li>
-                    {% elseif page == 1 or page == pagination_data.total_pages %}
-                         <li><a href="{{ path('blog_search', app.request.query.all|merge({'page': page})) }}">{{ page }}</a></li>
-                    {% elseif page == pagination_data.current_page - 3 or page == pagination_data.current_page + 3 %}
-                        <li><span>...</span></li>
+
+                {% for page in range(1, pagination.total_pages) %}
+                    {% if page == pagination.current_page %}
+                        <span class="pagination-current">{{ page }}</span>
+                    {% elseif page in [pagination.current_page - 2, pagination.current_page - 1, pagination.current_page + 1, pagination.current_page + 2] %}
+                        <a href="{{ path('blog_search', app.request.query.all|merge({'page': page})) }}" class="pagination-link">{{ page }}</a>
+                    {% elseif page == 1 or page == pagination.total_pages %}
+                        <a href="{{ path('blog_search', app.request.query.all|merge({'page': page})) }}" class="pagination-link">{{ page }}</a>
+                    {% elseif page == pagination.current_page - 3 or page == pagination.current_page + 3 %}
+                        <span class="pagination-ellipsis">...</span>
                     {% endif %}
                 {% endfor %}
 
-                {% if pagination_data.next_page %}
-                    <li><a href="{{ path('blog_search', app.request.query.all|merge({'page': pagination_data.next_page})) }}">Вперед &raquo;</a></li>
+                {% if pagination.next_page %}
+                    <a href="{{ path('blog_search', app.request.query.all|merge({'page': pagination.next_page})) }}" class="pagination-link">Вперед &raquo;</a>
                 {% endif %}
             </div>
         {% endif %}

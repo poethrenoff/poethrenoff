@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Tag;
 use App\Repository\BlogPostRepository;
 use App\Repository\BlogCommentRepository;
 use App\Repository\TagRepository;
@@ -24,11 +25,19 @@ class BlogController extends AbstractController
     public function index(Request $request): Response
     {
         $page = $request->query->getInt('page', 1);
-        $pagination = $this->postRepository->findActivePaginated($page, 10);
+        $postResults = $this->postRepository->findActivePaginated($page, 10);
+        $paginationData = $postResults->getPaginationData();
+
+        $pagination = [
+            'total_pages' => $paginationData['pageCount'],
+            'current_page' => $paginationData['current'],
+            'prev_page' => $paginationData['previous'] ?? null,
+            'next_page' => $paginationData['next'] ?? null,
+        ];
 
         $response = $this->render('blog/index.html.twig', [
+            'postResults' => $postResults,
             'pagination' => $pagination,
-            'pagination_data' => $this->getPaginationData($pagination),
         ]);
 
         return $this->addNoindexHeader($response);
@@ -59,15 +68,14 @@ class BlogController extends AbstractController
         $text = $request->query->get('text');
         $tag = $request->query->get('tag');
         $page = $request->query->getInt('page', 1);
-        
-        $pagination = null;
-        $paginationData = null;
+
         $searchResults = [];
+        $pagination = null;
 
         if ($tag) {
-            $pagination = $this->postRepository->findActiveByTagPaginated($tag, $page, 10);
-            $paginationData = $this->getPaginationData($pagination);
-            foreach ($pagination as $post) {
+            $searchPagination = $this->postRepository->findActiveByTagPaginated($tag, $page, 10);
+            $paginationData = $searchPagination->getPaginationData();
+            foreach ($searchPagination as $post) {
                 $searchResults[] = [
                     'id' => $post->getId(),
                     'publishedAt' => $post->getPublishedAt(),
@@ -75,17 +83,24 @@ class BlogController extends AbstractController
                     'tags' => $post->getTags(),
                 ];
             }
+
+            $pagination = [
+                'total_pages' => $paginationData['pageCount'],
+                'current_page' => $paginationData['current'],
+                'prev_page' => $paginationData['previous'] ?? null,
+                'next_page' => $paginationData['next'] ?? null,
+            ];
         } elseif ($text) {
-            $pagination = $this->postRepository->searchByText($text, $page, 10);
-            $paginationData = $this->getPaginationData($pagination);
-            
+            $searchPagination = $this->postRepository->searchByText($text, $page, 10);
+            $paginationData = $searchPagination->getPaginationData();
+
             $words = explode(' ', $text);
             $words = array_filter($words);
 
-            foreach ($pagination as $post) {
+            foreach ($searchPagination as $post) {
                 $content = $post->getContent();
                 foreach ($words as $word) {
-                    $content = preg_replace('/(' . preg_quote($word, '/') . ')/ui', '<mark>$1</mark>', $content);
+                    $content = preg_replace('/(' . preg_quote($word, '/') . ')/ui', '<b>$1</b>', $content);
                 }
 
                 $searchResults[] = [
@@ -95,13 +110,20 @@ class BlogController extends AbstractController
                     'tags' => $post->getTags(),
                 ];
             }
+
+            $pagination = [
+                'total_pages' => $paginationData['pageCount'],
+                'current_page' => $paginationData['current'],
+                'prev_page' => $paginationData['previous'] ?? null,
+                'next_page' => $paginationData['next'] ?? null,
+            ];
         }
 
-        $tags = $this->tagRepository->findBy([], ['title' => 'ASC']);
+        $tags = $this->tagRepository->findTagCloud(50);
 
         $response = $this->render('blog/search.html.twig', [
             'searchResults' => $searchResults,
-            'pagination_data' => $paginationData,
+            'pagination' => $pagination,
             'tags' => $tags,
             'currentTag' => $tag,
             'searchText' => $text,
@@ -114,16 +136,5 @@ class BlogController extends AbstractController
     {
         $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
         return $response;
-    }
-
-    private function getPaginationData(PaginationInterface $pagination): array
-    {
-        $data = $pagination->getPaginationData();
-        return [
-            'total_pages' => $data['pageCount'],
-            'current_page' => $data['current'],
-            'prev_page' => $data['previous'] ?? null,
-            'next_page' => $data['next'] ?? null,
-        ];
     }
 }

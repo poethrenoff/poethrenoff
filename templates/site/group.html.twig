@@ -3,7 +3,6 @@
 {% block title %}Поэт Хренов :: {% if group is not empty %}{{ group.title }}{% else %}Все{% endif %}{% endblock %}
 
 {% block body %}
-<div class="container p-4">
     {% if tree is not empty %}
         <div class="columns-2">
             {% include 'site/_tree.html.twig' with {'tree': tree} %}
@@ -19,6 +18,5 @@
             {% endfor %}
         </div>
     {% endif %}
-</div>
 {% endblock %}
 

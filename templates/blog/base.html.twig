@@ -13,17 +13,15 @@
     {% block stylesheets %}{% endblock %}
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="site-title">
-                <a href="{{ path('blog_homepage') }}">Не дождетесь!</a>
-            </div>
-        </header>
+    <header class="site-header">
+        <div class="container site-header-bar">
+            <a href="{{ path('blog_homepage') }}" class="site-title">Не дождетесь!</a>
+        </div>
+    </header>
 
-        <main>
-            {% block body %}{% endblock %}
-        </main>
-    </div>
+    <main class="container main-content">
+        {% block body %}{% endblock %}
+    </main>
 
     {% block javascripts %}{% endblock %}
 </body>

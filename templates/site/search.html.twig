@@ -3,7 +3,6 @@
 {% block title %}Поэт Хренов :: Поиск{% endblock %}
 
 {% block body %}
-<div class="container p-4">
     <div class="search-form">
         <form action="{{ path('site_search') }}" method="get">
             <input type="text" name="q" value="{{ query|default('') }}" placeholder="Поиск по сайту..." class="search-input">
@@ -16,17 +15,15 @@
 
         {% if searchResults is not empty %}
             {% for result in searchResults %}
-                <div class="mb-8">
-                    <h3>
-                        <a href="{{ path('site_work', {'id': result.id}) }}">{{ result.title }}</a>
-                    </h3>
-                    <p>
-                        {{ result.snippet|raw }} {# The snippet should contain highlighted matches #}
-                    </p>
-                    <p class="text-sm text-gray-500">
-                        {% if result.group %}<a href="{{ path('site_group', {'id': result.group.id}) }}" class="hover:underline">{{ result.group.title }}</a>{% endif %}
-                    </p>
-                </div>
+                <h3>
+                    <a href="{{ path('site_work', {'id': result.id}) }}">{{ result.title }}</a>
+                </h3>
+                <p>
+                    {{ result.snippet|raw }} {# The snippet should contain highlighted matches #}
+                </p>
+                <p class="text-sm text-gray-500">
+                    {% if result.group %}<a href="{{ path('site_group', {'id': result.group.id}) }}" class="hover:underline">{{ result.group.title }}</a>{% endif %}
+                </p>
             {% endfor %}
 
             {% if pagination is defined and pagination.total_pages > 1 %}
@@ -57,5 +54,4 @@
             <p>По вашему запросу ничего не найдено.</p>
         {% endif %}
     {% endif %}
-</div>
 {% endblock %}

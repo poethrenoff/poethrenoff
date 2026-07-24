@@ -15,4 +15,15 @@ class TagRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Tag::class);
     }
+
+    public function findTagCloud(int $limit): array
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->select('t', 'COUNT(p.id) AS cnt')
+            ->join('t.posts', 'p')
+            ->groupBy('t.id')
+            ->orderBy('cnt', 'DESC')
+            ->setMaxResults($limit);
+        return $qb->getQuery()->getResult();
+    }
 }

@@ -141,11 +141,13 @@ class SiteController extends AbstractController
     public function search(Request $request): Response
     {
         $query = $request->query->get('q');
+        $page = $request->query->getInt('page', 1);
+
         $searchResults = [];
         $pagination = null;
 
         if (!empty($query)) {
-            $searchPagination = $this->workRepository->search($query, $request->query->getInt('page', 1), 10);
+            $searchPagination = $this->workRepository->search($query, $page, 10);
             $paginationData = $searchPagination->getPaginationData();
 
             $words = explode(' ', $query);

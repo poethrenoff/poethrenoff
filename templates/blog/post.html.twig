@@ -1,12 +1,12 @@
 {% extends 'blog/base.html.twig' %}
 
-{% block title %}{{ post.publishedAt|date('d.m.Y H:i') }} - {{ parent() }}{% endblock %}
-
 {% block body %}
     <article class="post">
-        <div class="post-date">
-            {{ post.publishedAt|date('d.m.Y H:i') }}
-        </div>
+        <h3>
+            <a href="{{ path('blog_post', {id: post.id}) }}">
+                {{ post.publishedAt|date('d.m.Y H:i') }}
+            </a>
+        </h3>
         <div class="post-content">
             {{ post.content|raw }}
         </div>
