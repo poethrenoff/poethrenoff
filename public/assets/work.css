@@ -273,25 +273,3 @@ main {
     font-size: 0.875rem;
     color: var(--muted);
 }
-
-@media (max-width: 900px) {
-    .dashboard-panel {
-        position: static;
-        width: auto;
-        margin-bottom: 16px;
-        box-shadow: none;
-    }
-
-    main {
-        padding: 16px;
-    }
-
-    .drag-handle {
-        display: none;
-    }
-
-    .poem-actions.view-actions {
-        position: static;
-        margin-top: 8px;
-    }
-}
