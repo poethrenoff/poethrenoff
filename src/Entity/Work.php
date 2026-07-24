@@ -95,7 +95,7 @@ class Work
 
     public function getText(): string
     {
-        return $this->text;
+        return rtrim($this->text);
     }
 
     public function getDisplayTitle(): string

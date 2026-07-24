@@ -1,6 +1,6 @@
 {% extends 'work/base.html.twig' %}
 
-{% block body %}
+{% block content %}
     <div x-data="app" x-cloak>
         <header>
             <h1>Блокнот</h1>
@@ -123,6 +123,7 @@
 {% endblock %}
 
 {% block javascripts %}
+    {{ parent() }}
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('app', () => ({

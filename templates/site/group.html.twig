@@ -2,10 +2,10 @@
 
 {% block title %}Поэт Хренов :: {% if group is not empty %}{{ group.title }}{% else %}Все{% endif %}{% endblock %}
 
-{% block body %}
+{% block content %}
     {% if tree is not empty %}
         <div class="columns-2">
-            {% include 'site/_tree.html.twig' with {'tree': tree} %}
+            {% include 'site/_group_tree.html.twig' with {'tree': tree} %}
         </div>
     {% endif %}
 

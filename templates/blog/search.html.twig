@@ -1,6 +1,6 @@
 {% extends 'blog/base.html.twig' %}
 
-{% block body %}
+{% block content %}
     <div class="search-form">
         <form action="{{ path('blog_search') }}" method="get">
             <input type="text" name="text" value="{{ searchText }}" placeholder="Поиск по блогу..." class="search-input">
@@ -39,30 +39,8 @@
             </article>
         {% endfor %}
 
-        {% if pagination is defined and pagination.total_pages > 1 %}
-            <div class="pagination">
-                {% if pagination.prev_page %}
-                    <a href="{{ path('blog_search', app.request.query.all|merge({'page': pagination.prev_page})) }}" class="pagination-link">&laquo; Назад</a>
-                {% endif %}
-
-                {% for page in range(1, pagination.total_pages) %}
-                    {% if page == pagination.current_page %}
-                        <span class="pagination-current">{{ page }}</span>
-                    {% elseif page in [pagination.current_page - 2, pagination.current_page - 1, pagination.current_page + 1, pagination.current_page + 2] %}
-                        <a href="{{ path('blog_search', app.request.query.all|merge({'page': page})) }}" class="pagination-link">{{ page }}</a>
-                    {% elseif page == 1 or page == pagination.total_pages %}
-                        <a href="{{ path('blog_search', app.request.query.all|merge({'page': page})) }}" class="pagination-link">{{ page }}</a>
-                    {% elseif page == pagination.current_page - 3 or page == pagination.current_page + 3 %}
-                        <span class="pagination-ellipsis">...</span>
-                    {% endif %}
-                {% endfor %}
-
-                {% if pagination.next_page %}
-                    <a href="{{ path('blog_search', app.request.query.all|merge({'page': pagination.next_page})) }}" class="pagination-link">Вперед &raquo;</a>
-                {% endif %}
-            </div>
-        {% endif %}
+        {% include '_partials/pagination.html.twig' %}
     {% elseif searchText or currentTag %}
-        <p>Ничего не найдено.</p>
+        <p>По вашему запросу ничего не найдено.</p>
     {% endif %}
 {% endblock %}

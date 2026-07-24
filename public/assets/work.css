@@ -1,27 +1,10 @@
 :root {
-    --bg: #ffffff;
-    --fg: #444444;
-    --accent: #1982d1;
-    --border: #dddddd;
-    --muted: #666666;
     --card: #ffffff;
     --danger: #c0392b;
 }
 
 [x-cloak] {
     display: none !important;
-}
-
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    font-family: 'Roboto', sans-serif;
-    background: var(--bg);
-    color: var(--fg);
-    font-size: 1rem;
 }
 
 header {

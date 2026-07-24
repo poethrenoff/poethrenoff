@@ -1,18 +1,12 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
-    <title>{% block title %}Не дождетесь!{% endblock %}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/normalize.css@8.0.1/normalize.min.css">
+{% extends 'base.html.twig' %}
+
+{% block title %}Не дождетесь!{% endblock %}
+
+{% block stylesheets %}
     <link rel="stylesheet" href="{{ asset('assets/blog.css') }}">
-    {% block stylesheets %}{% endblock %}
-</head>
-<body>
+{% endblock %}
+
+{% block body %}
     <header class="site-header">
         <div class="container site-header-bar">
             <a href="{{ path('blog_homepage') }}" class="site-title">Не дождетесь!</a>
@@ -20,9 +14,6 @@
     </header>
 
     <main class="container main-content">
-        {% block body %}{% endblock %}
+        {% block content %}{% endblock %}
     </main>
-
-    {% block javascripts %}{% endblock %}
-</body>
-</html>
+{% endblock %}

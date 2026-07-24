@@ -2,7 +2,7 @@
 
 {% block title %}Поэт Хренов :: Поиск{% endblock %}
 
-{% block body %}
+{% block content %}
     <div class="search-form">
         <form action="{{ path('site_search') }}" method="get">
             <input type="text" name="q" value="{{ query|default('') }}" placeholder="Поиск по сайту..." class="search-input">
@@ -26,30 +26,7 @@
                 </div>
             {% endfor %}
 
-            {% if pagination is defined and pagination.total_pages > 1 %}
-                <div class="pagination">
-                    {% if pagination.prev_page %}
-                        <a href="{{ path('site_search', {'q': query, 'page': pagination.prev_page}) }}" class="pagination-link">&laquo; Назад</a>
-                    {% endif %}
-
-                    {% for page in range(1, pagination.total_pages) %}
-                        {% if page == pagination.current_page %}
-                            <span class="pagination-current">{{ page }}</span>
-                        {% elseif page in [pagination.current_page - 2, pagination.current_page - 1, pagination.current_page + 1, pagination.current_page + 2] %}
-                            <a href="{{ path('site_search', {'q': query, 'page': page}) }}" class="pagination-link">{{ page }}</a>
-                        {% elseif page == 1 or page == pagination.total_pages %}
-                             <a href="{{ path('site_search', {'q': query, 'page': page}) }}" class="pagination-link">{{ page }}</a>
-                        {% elseif page == pagination.current_page - 3 or page == pagination.current_page + 3 %}
-                            <span class="pagination-ellipsis">...</span>
-                        {% endif %}
-                    {% endfor %}
-
-                    {% if pagination.next_page %}
-                        <a href="{{ path('site_search', {'q': query, 'page': pagination.next_page}) }}" class="pagination-link">Вперед &raquo;</a>
-                    {% endif %}
-                </div>
-            {% endif %}
-
+            {% include '_partials/pagination.html.twig' %}
         {% else %}
             <p>По вашему запросу ничего не найдено.</p>
         {% endif %}

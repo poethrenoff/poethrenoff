@@ -4,7 +4,7 @@
     </div>
     {% if item.children is not empty %}
         <div class="group-tree-indent">
-            {% include 'site/_tree.html.twig' with {'tree': item.children} %}
+            {% include 'site/_group_tree.html.twig' with {'tree': item.children} %}
         </div>
     {% endif %}
 {% endfor %}
