@@ -1,7 +1,19 @@
+:root {
+    --bg: #ffffff;
+    --fg: #444444;
+    --accent: #1982d1;
+    --border: #dddddd;
+    --muted: #666666;
+    --white: #ffffff;
+    --hover-bg: #f0f0f0;
+    --tag-bg: #eeeeee;
+    --tag-hover: #d6d6d6;
+}
+
 body {
     font-family: 'Roboto', sans-serif;
-    background-color: #ffffff;
-    color: #444444;
+    background-color: var(--bg);
+    color: var(--fg);
     font-size: 1rem;
 }
 
@@ -15,7 +27,7 @@ body {
 }
 
 a {
-    color: #1982d1;
+    color: var(--accent);
     text-decoration: none;
 }
 
@@ -26,7 +38,7 @@ a:hover {
 a.site-title {
     font-size: 2rem;
     font-weight: bold;
-    color: #444444;
+    color: var(--fg);
     text-decoration: none;
 }
 
@@ -47,33 +59,17 @@ a.site-title:hover {
     margin-top: 1rem;
 }
 
-.tag {
-    background: #e5e7eb;
-    padding: 0.2rem 0.5rem;
-    border-radius: 5px;
-    margin-right: 0.5rem;
-    color: #666666;
-    display: inline-block;
-    margin-bottom: 0.25rem;
-    font-size: 0.875rem;
-}
-
-.tag:hover {
-    background: #d1d5db;
-    text-decoration: none;
-}
-
 /* Comment Tree */
 .comments-section {
     margin-top: 1rem;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--border);
     padding-top: 1rem;
 }
 
 .comment {
     margin-top: 1rem;
     padding-left: 2rem;
-    border-left: 2px solid #e5e7eb;
+    border-left: 2px solid var(--border);
 }
 
 .comment-author {
@@ -82,7 +78,7 @@ a.site-title:hover {
 
 .comment-date {
     font-size: 0.875rem;
-    color: #999999;
+    color: var(--muted);
 }
 
 .comment-content {
@@ -100,21 +96,21 @@ a.site-title:hover {
 .pagination-link {
     padding: 0.5rem 1rem;
     border-radius: 0.25rem;
-    background-color: #ffffff;
-    color: #1982d1;
+    background-color: var(--bg);
+    color: var(--accent);
     text-decoration: none;
 }
 
 .pagination-link:hover {
-    background-color: #f0f0f0;
+    background-color: var(--hover-bg);
     text-decoration: none;
 }
 
 .pagination-current {
     padding: 0.5rem 1rem;
     border-radius: 0.25rem;
-    background-color: #1982d1;
-    color: #ffffff;
+    background-color: var(--accent);
+    color: var(--white);
 }
 
 .pagination-ellipsis {
@@ -134,18 +130,35 @@ a.site-title:hover {
     font-size: 1rem;
     flex: 1 1 auto;
     padding: 0.5rem;
-    border: 1px solid #dddddd;
+    border: 1px solid var(--border);
     border-radius: 3px;
 }
 
 .search-button {
     font-size: 1rem;
     padding: 0.5rem 1rem;
-    background: #1982d1;
-    color: #ffffff;
+    background: var(--accent);
+    color: var(--white);
     border: none;
     border-radius: 3px;
     cursor: pointer;
+}
+
+.tag {
+    background: var(--tag-bg);
+    padding: 0.2rem 0.5rem;
+    border-radius: 5px;
+    margin-right: 0.5rem;
+    color: var(--muted);
+    display: inline-block;
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.tag_active,
+.tag:hover {
+    background: var(--tag-hover);
+    text-decoration: none;
 }
 
 .tag-cloud {
@@ -162,12 +175,12 @@ a.site-title:hover {
     right: 0;
     z-index: 50;
     height: 64px;
-    background-color: #ffffff;
+    background-color: var(--bg);
 }
 
 .site-header {
     top: 0;
-    border-bottom: 1px solid #dddddd;
+    border-bottom: 1px solid var(--border);
 }
 
 .site-header-bar {
