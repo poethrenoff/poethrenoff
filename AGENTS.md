@@ -1,5 +1,14 @@
 # AGENTS.md — инструкции агента для проекта "PoetHrenoff"
 
+## Текущее состояние (2026-07-24)
+
+- Выполнена оптимизация стилей в файлах `site.css` и `blog.css`: все цвета вынесены в начало файлов в качестве CSS-переменных в блоке `:root`. Это обеспечивает единообразие с `work.css` и упрощает управление цветовой схемой.
+- Выполнена оптимизация стилей в шаблонах `group.html.twig`, `search.html.twig` и `work.html.twig`. Атомарные классы объединены в семантические: `.group-works-list`, `.meta-text`, `.work-stats`, `.stat-item`.
+- Из `site.css` удалены неиспользуемые более атомарные классы: `.mt-6`, `.pt-6`, `.pt-4`, `.border-t`, `.text-sm`, `.text-gray-500`, `.mr-4`, `.rounded`, `.p-4`.
+- Выполнена оптимизация стилей в шаблоне `picture.html.twig`: атомарные классы объединены в `.gallery-grid` и `.gallery-img`.
+- Из `site.css` удалены неиспользуемые более атомарные классы: `grid`, `grid-cols-2`, `md:grid-cols-4`, `lg:grid-cols-6`, `mt-8`, `w-full`, `h-full`, `object-cover`, `transition-transform`, `hover:scale-105`.
+- Выполнена очистка CSS-файлов `site.css` и `blog.css` от неиспользуемых классов. В `site.css` удалены: `grid-cols-1`, `md:grid-cols-2`, `md:grid-cols-6`, `justify-between`, `mb-8`, `overflow-hidden`, `text-blue-500`. Файл `blog.css` проверен, все стили в нем используются.
+
 ## Текущее состояние (2026-07-22)
 
 - Исправлена ошибка `Unknown "stimulus_controller" function` в шаблонах Sonata Admin. Пакет `symfony/stimulus-bundle` присутствовал в `vendor`, но не был зарегистрирован. Вместо добавления в `config/bundles.php` (который загрузил бы сервисы, зависящие от `asset_mapper`), создан `config/packages/stimulus.yaml` с ручным определением `stimulus.helper` и Twig-расширения `StimulusTwigExtension`. Пакет добавлен в `composer.json` как явная зависимость.
