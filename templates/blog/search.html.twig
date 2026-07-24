@@ -10,7 +10,7 @@
 
     <div class="tag-cloud">
         {% for tag in tags %}
-            <a href="{{ path('blog_search', {tag: tag[0].title}) }}" class="tag {% if tag[0].title == currentTag %}active{% endif %}">
+            <a href="{{ path('blog_search', {tag: tag[0].title}) }}" class="tag{% if tag[0].title == currentTag %} tag_active{% endif %}">
                 {{ tag[0].title }}
             </a>
         {% endfor %}

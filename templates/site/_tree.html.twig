@@ -1,9 +1,9 @@
 {% for item in tree %}
-    <div class="py-1">
+    <div class="padding-group">
         <a href="{{ path('site_group', {'id': item.group.id}) }}">{{ item.group.title }}</a>
     </div>
     {% if item.children is not empty %}
-        <div class="ml-8">
+        <div class="group-tree-indent">
             {% include 'site/_tree.html.twig' with {'tree': item.children} %}
         </div>
     {% endif %}

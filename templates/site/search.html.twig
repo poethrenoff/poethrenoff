@@ -15,15 +15,15 @@
 
         {% if searchResults is not empty %}
             {% for result in searchResults %}
-                <h3>
-                    <a href="{{ path('site_work', {'id': result.id}) }}">{{ result.title }}</a>
-                </h3>
-                <p>
-                    {{ result.snippet|raw }} {# The snippet should contain highlighted matches #}
-                </p>
-                <p class="text-sm text-gray-500">
+                <div class="search-result">
+                    <h3>
+                        <a href="{{ path('site_work', {'id': result.id}) }}">{{ result.title }}</a>
+                    </h3>
+                    <p>
+                        {{ result.snippet|raw }}
+                    </p>
                     {% if result.group %}<a href="{{ path('site_group', {'id': result.group.id}) }}" class="hover:underline">{{ result.group.title }}</a>{% endif %}
-                </p>
+                </div>
             {% endfor %}
 
             {% if pagination is defined and pagination.total_pages > 1 %}

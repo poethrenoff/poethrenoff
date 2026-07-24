@@ -5,7 +5,7 @@
 {% block body %}
     <div class="columns-2">
         {% for group in favoriteGroups %}
-            <div class="py-2">
+            <div class="padding-main">
                 <a href="{{ path('site_group', {'id': group.id}) }}">{{ group.title }}</a> ({{ group.comment }})
             </div>
         {% endfor %}

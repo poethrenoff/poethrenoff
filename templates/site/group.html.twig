@@ -10,9 +10,9 @@
     {% endif %}
 
     {% if works is not empty %}
-        <div class="columns-2{% if tree is not empty %} mt-6 pt-6 border-t{% endif %}">
+        <div class="columns-2{% if tree is not empty %} group-works-list{% endif %}">
             {% for work in works %}
-                <div class="py-1">
+                <div class="padding-group">
                     {{ loop.index }}. <a href="{{ path('site_work', {'id': work.id}) }}">{{ work.title }}</a>
                 </div>
             {% endfor %}

@@ -7,14 +7,14 @@
 {% endblock %}
 
 {% block body %}
-    <div class="grid grid-cols-2 mt-8 md:grid-cols-4 lg:grid-cols-6">
+    <div class="gallery-grid">
         {% for picture in pictures %}
             <div class="border">
                 <a href="{{ picture.imagePath }}" class="glightbox" data-gallery="gallery" data-title="{{ picture.title|default('') }}">
                     <img
                         src="{{ picture.imagePath }}"
                         alt="{{ picture.title|default('Gallery image') }}"
-                        class="w-full h-full object-cover hover:scale-105 transition-transform"
+                        class="gallery-img"
                         loading="lazy"
                     />
                 </a>

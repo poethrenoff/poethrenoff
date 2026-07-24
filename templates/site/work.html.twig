@@ -9,13 +9,13 @@
     <div class="content">
         <pre>{{ work.text|raw }}</pre>
     </div>
-    <p class="text-sm text-gray-500">
+    <p class="meta-text">
         {{ work.comment }}
     </p>
     {% if work.likesCount is not null or work.dislikesCount is not null %}
-        <div class="mt-6 pt-4 border-t">
-            <span class="mr-4">👍 {{ work.likesCount|default(0) }}</span>
-            <span class="mr-4">👎 {{ work.dislikesCount|default(0) }}</span>
+        <div class="work-stats">
+            <span class="stat-item">👍 {{ work.likesCount|default(0) }}</span>
+            <span class="stat-item">👎 {{ work.dislikesCount|default(0) }}</span>
         </div>
     {% endif %}
 
