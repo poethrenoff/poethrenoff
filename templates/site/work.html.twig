@@ -23,19 +23,21 @@
         {% endif %}
     </div>
 
-    {# Navigation to previous/next work in the same group #}
-    {% if prev_work or next_work %}
-    <div class="justify-between mt-8">
-        {% if prev_work %}
-            <a href="{{ path('site_work', {'id': prev_work.id}) }}" class="text-blue-500 hover:underline">&larr; Предыдущее: {{ prev_work.title }}</a>
-        {% else %}
-            <span></span> {# Placeholder to push next link to the right #}
-        {% endif %}
-        {% if next_work %}
-            <a href="{{ path('site_work', {'id': next_work.id}) }}" class="text-blue-500 hover:underline">Следующее: {{ next_work.title }} &rarr;</a>
-        {% endif %}
-    </div>
-    {% endif %}
-
 </div>
+
+{# Navigation arrows outside content area #}
+{% if prev_work or next_work %}
+<div class="work-nav">
+    {% if prev_work %}
+        <a href="{{ path('site_work', {'id': prev_work.id}) }}" class="nav-arrow nav-prev" title="Предыдущее произведение">
+            <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </a>
+    {% endif %}
+    {% if next_work %}
+        <a href="{{ path('site_work', {'id': next_work.id}) }}" class="nav-arrow nav-next" title="Следующее произведение">
+            <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </a>
+    {% endif %}
+</div>
+{% endif %}
 {% endblock %}
