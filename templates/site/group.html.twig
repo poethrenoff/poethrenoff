@@ -4,16 +4,21 @@
 
 {% block body %}
 <div class="container p-4">
-    <div class="columns-2">
     {% if tree is not empty %}
-        {% include 'site/_tree.html.twig' with {'tree': tree} %}
-    {% elseif works is not empty %}
-        {% for work in works %}
-            <div class="py-1">
-                {{ loop.index }}. <a href="{{ path('site_work', {'id': work.id}) }}">{{ work.title }}</a>
-            </div>
-        {% endfor %}
+        <div class="columns-2">
+            {% include 'site/_tree.html.twig' with {'tree': tree} %}
+        </div>
     {% endif %}
-    </div>
+
+    {% if works is not empty %}
+        <div class="columns-2{% if tree is not empty %} mt-6 pt-6 border-t{% endif %}">
+            {% for work in works %}
+                <div class="py-1">
+                    {{ loop.index }}. <a href="{{ path('site_work', {'id': work.id}) }}">{{ work.title }}</a>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 </div>
 {% endblock %}
+
