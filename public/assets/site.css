@@ -113,6 +113,10 @@ a.site-title:hover {
     padding-top: 1rem;
 }
 
+.pt-6 {
+    padding-top: 1.5rem;
+}
+
 .main-content {
     padding: 4rem 1rem;
 }
@@ -229,6 +233,13 @@ a.site-title:hover {
 .prose pre {
     border-radius: 0.25rem;
     overflow-x: auto;
+}
+
+.content pre {
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    text-align: justify;
 }
 
 .site-header,
