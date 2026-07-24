@@ -84,10 +84,7 @@ class SiteController extends AbstractController
         $tree = $this->buildTree($groups, $id);
         $breadcrumbs = $this->buildBreadcrumbs($group);
 
-        $works = [];
-        if (!$hasChildren) {
-            $works = $this->workRepository->findActiveByGroup($group);
-        }
+        $works = $this->workRepository->findActiveByGroup($group);
 
         return $this->render('site/group.html.twig', [
             'group' => $group,
@@ -160,7 +157,7 @@ class SiteController extends AbstractController
                 $snippet = mb_substr($text, 0, 300);
 
                 foreach ($words as $word) {
-                    $snippet = preg_replace('/(' . preg_quote($word, '/') . ')/ui', '<mark>$1</mark>', $snippet);
+                    $snippet = preg_replace('/(' . preg_quote($word, '/') . ')/ui', '<b>$1</b>', $snippet);
                 }
 
                 $searchResults[] = [
