@@ -19,7 +19,8 @@ class BlogController extends AbstractController
         private BlogPostRepository $postRepository,
         private BlogCommentRepository $commentRepository,
         private TagRepository $tagRepository,
-    ) {}
+    ) {
+    }
 
     #[Route('/', name: 'blog_homepage')]
     public function index(Request $request): Response

@@ -19,8 +19,9 @@ class WorkController extends AbstractController
 {
     public function __construct(
         private PoemRepository $poemRepository,
-        private EntityManagerInterface $em,
-    ) {}
+        private EntityManagerInterface $entityManager,
+    ) {
+    }
 
     #[Route('/', name: 'work_homepage')]
     public function index(Request $request): Response
@@ -76,8 +77,8 @@ class WorkController extends AbstractController
             }
         }
 
-        $this->em->persist($poem);
-        $this->em->flush();
+        $this->entityManager->persist($poem);
+        $this->entityManager->flush();
 
         return $this->json($poem, Response::HTTP_CREATED, context: ['groups' => 'poem:detail']);
     }
@@ -126,7 +127,7 @@ class WorkController extends AbstractController
             $poem->setTitle(trim($data['title']));
         }
 
-        $this->em->flush();
+        $this->entityManager->flush();
 
         return $this->json($poem, context: ['groups' => 'poem:detail']);
     }
@@ -139,7 +140,7 @@ class WorkController extends AbstractController
         }
 
         $poem->trash();
-        $this->em->flush();
+        $this->entityManager->flush();
 
         return $this->json(['status' => 'ok']);
     }
@@ -152,7 +153,7 @@ class WorkController extends AbstractController
         }
 
         $poem->restore();
-        $this->em->flush();
+        $this->entityManager->flush();
 
         return $this->json(['status' => 'ok']);
     }
@@ -182,7 +183,7 @@ class WorkController extends AbstractController
             $poem->setPosition($this->poemRepository->findNextPosition($this->poemRepository->findFirstPosition()));
         }
 
-        $this->em->flush();
+        $this->entityManager->flush();
 
         return $this->json($poem, context: ['groups' => 'poem:detail']);
     }
@@ -194,8 +195,8 @@ class WorkController extends AbstractController
             return $this->json(['error' => ['message' => 'Можно удалить навсегда только стих из корзины']], Response::HTTP_BAD_REQUEST);
         }
 
-        $this->em->remove($poem);
-        $this->em->flush();
+        $this->entityManager->remove($poem);
+        $this->entityManager->flush();
 
         return $this->json(['status' => 'ok']);
     }

@@ -5,31 +5,31 @@ namespace App\Controller;
 use App\Repository\StaticTextRepository;
 use App\Repository\WorkGroupRepository;
 use App\Repository\WorkRepository;
+use App\Repository\WorkVoteRepository;
 use App\Repository\PictureRepository;
 use App\Entity\WorkGroup;
+use App\Entity\WorkVote;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 #[Route(condition: "request.server.get('APP_SITE_CONTEXT') == 'www'")]
 class SiteController extends AbstractController
 {
-    private StaticTextRepository $staticTextRepository;
-    private WorkGroupRepository $workGroupRepository;
-    private WorkRepository $workRepository;
-    private PictureRepository $pictureRepository;
-
     public function __construct(
-        StaticTextRepository $staticTextRepository,
-        WorkGroupRepository $workGroupRepository,
-        WorkRepository $workRepository,
-        PictureRepository $pictureRepository
+        private StaticTextRepository $staticTextRepository,
+        private WorkGroupRepository $workGroupRepository,
+        private WorkRepository $workRepository,
+        private PictureRepository $pictureRepository,
+        private WorkVoteRepository $workVoteRepository,
+        private EntityManagerInterface $entityManager,
+        private CsrfTokenManagerInterface $csrfTokenManager,
     ) {
-        $this->staticTextRepository = $staticTextRepository;
-        $this->workGroupRepository = $workGroupRepository;
-        $this->workRepository = $workRepository;
-        $this->pictureRepository = $pictureRepository;
     }
 
     #[Route('/', name: 'site_homepage')]
@@ -207,6 +207,67 @@ class SiteController extends AbstractController
             'prev_work' => $prevNext['prev'],
             'next_work' => $prevNext['next'],
             'breadcrumbs' => $breadcrumbs,
+        ]);
+    }
+
+    #[Route('/work/vote/{id}', name: 'work_vote', methods: ['POST'])]
+    public function vote(int $id, Request $request): JsonResponse
+    {
+        $token = $request->request->get('_token');
+        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken('work_vote', $token))) {
+            return new JsonResponse(['error' => 'Invalid CSRF token'], Response::HTTP_FORBIDDEN);
+        }
+
+        $work = $this->workRepository->find($id);
+        if (!$work) {
+            return new JsonResponse(['error' => 'Work not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $type = $request->request->get('type');
+        if (!in_array($type, ['like', 'dislike'])) {
+            return new JsonResponse(['error' => 'Invalid vote type'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $ip = $request->getClientIp() ?? '127.0.0.1';
+        $sessionId = $request->getSession()->getId();
+
+        $secret = $this->getParameter('kernel.secret');
+        $ipHash = hash('sha256', $ip . $secret);
+        $sessionHash = hash('sha256', $sessionId . $secret);
+
+        $existingVote = $this->workVoteRepository->findOneBy([
+            'work' => $work,
+            'ipHash' => $ipHash,
+            'sessionHash' => $sessionHash,
+        ]);
+
+        if ($existingVote) {
+            return new JsonResponse(['error' => 'Already voted'], Response::HTTP_CONFLICT);
+        }
+
+        $vote = new WorkVote();
+        $vote->setWork($work);
+        $vote->setIpHash($ipHash);
+        $vote->setSessionHash($sessionHash);
+        $vote->setVoteType($type);
+
+        $this->entityManager->persist($vote);
+
+        if ($type === 'like') {
+            $work->setLikesCount($work->getLikesCount() + 1);
+        } else {
+            $work->setDislikesCount($work->getDislikesCount() + 1);
+        }
+
+        try {
+            $this->entityManager->flush();
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => 'Already voted'], Response::HTTP_CONFLICT);
+        }
+
+        return new JsonResponse([
+            'likes' => $work->getLikesCount(),
+            'dislikes' => $work->getDislikesCount(),
         ]);
     }
 
