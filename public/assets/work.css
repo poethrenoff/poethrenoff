@@ -156,37 +156,32 @@ main {
 }
 
 .poem .title-input {
-    width: 100%;
+    width: 98%;
+    padding: 0.5rem;
     border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px;
-    font: inherit;
-    font-weight: 600;
-    background: var(--card);
+    border-radius: 3px;
     color: var(--fg);
+    background: var(--white);
 }
 
 .poem-textarea {
-    width: 100%;
+    width: 98%;
+    padding: 0.5rem;
     border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 10px;
+    border-radius: 3px;
     margin-top: 8px;
-    font: inherit;
-    background: var(--card);
     color: var(--fg);
-    resize: vertical;
+    background: var(--white);
 }
 
 .poem .comment-input {
-    width: 100%;
+    width: 98%;
+    padding: 0.5rem;
     border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px;
+    border-radius: 3px;
     margin-top: 8px;
-    font: inherit;
-    color: var(--muted);
-    background: var(--card);
+    color: var(--fg);
+    background: var(--white);
 }
 
 .poem-body {
