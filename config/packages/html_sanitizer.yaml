@@ -1,0 +1,14 @@
+framework:
+    html_sanitizer:
+        sanitizers:
+            default:
+                allow_elements:
+                    p: []
+                    b: []
+                    i: []
+                    u: []
+                    s: []
+                    br: []
+                    em: []
+                    strong: []
+                    a: ["href"]
