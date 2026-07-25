@@ -68,9 +68,8 @@ a.site-title:hover {
 }
 
 .work-stats {
-    margin-top: 1.5rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border);
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
 }
 
 .meta-text {
@@ -152,9 +151,6 @@ a.site-title:hover {
 
 .content pre {
     white-space: pre-wrap;
-    overflow-wrap: break-word;
-    word-break: break-word;
-    text-align: justify;
 }
 
 .site-header,
