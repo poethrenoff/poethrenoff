@@ -113,7 +113,8 @@ class AudioAdmin extends AbstractAdmin
     {
         $filter
             ->add('title')
-            ->add('createdAt',
+            ->add(
+                'createdAt',
                 DateTimeRangeFilter::class,
                 [
                     'field_type' => DateTimeRangePickerType::class,

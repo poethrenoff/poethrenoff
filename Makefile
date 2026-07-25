@@ -30,3 +30,4 @@ backup:
 
 restore:
 	@bin/restore .data
+

@@ -47,7 +47,7 @@ class WorkVoteAdmin extends AbstractAdmin
     {
         $filter
             ->add('work')
-            ->add('voteType', ChoiceFilter::class,                 [
+            ->add('voteType', ChoiceFilter::class, [
                 'field_type' => ChoiceType::class,
                 'field_options' => [
                     'choices' => [
@@ -56,7 +56,8 @@ class WorkVoteAdmin extends AbstractAdmin
                     ]
                 ]
             ])
-            ->add('createdAt',
+            ->add(
+                'createdAt',
                 DateTimeRangeFilter::class,
                 [
                     'field_type' => DateTimeRangePickerType::class,

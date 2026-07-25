@@ -44,7 +44,7 @@ class WorkAdmin extends AbstractAdmin
         $filter
             ->add('id')
             ->add('title')
-            ->add('group',  ModelFilter::class, [
+            ->add('group', ModelFilter::class, [
                 'field_type' => ModelAutocompleteType::class,
                 'field_options' => [
                     'class' => WorkGroup::class,

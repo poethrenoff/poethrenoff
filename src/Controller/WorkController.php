@@ -95,7 +95,9 @@ class WorkController extends AbstractController
     public function update(Request $request, Poem $poem): JsonResponse
     {
         if ($poem->getStatus() === PoemStatus::Trash) {
-            return $this->json(['error' => ['message' => 'Нельзя редактировать удалённый стих']], Response::HTTP_BAD_REQUEST);
+            return $this->json(['error' => [
+                'message' => 'Нельзя редактировать удалённый стих',
+            ]], Response::HTTP_BAD_REQUEST);
         }
 
         $data = json_decode($request->getContent(), true);
@@ -185,7 +187,9 @@ class WorkController extends AbstractController
     public function delete(Poem $poem): JsonResponse
     {
         if ($poem->getStatus() !== PoemStatus::Trash || $poem->getDeletedAt() === null) {
-            return $this->json(['error' => ['message' => 'Можно удалить навсегда только стих из корзины']], Response::HTTP_BAD_REQUEST);
+            return $this->json(['error' => [
+                'message' => 'Можно удалить навсегда только стих из корзины',
+            ]], Response::HTTP_BAD_REQUEST);
         }
 
         $this->entityManager->remove($poem);

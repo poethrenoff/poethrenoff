@@ -52,7 +52,8 @@ class BlogCommentAdmin extends AbstractAdmin
         $filter
             ->add('id')
             ->add('author')
-            ->add('createdAt',
+            ->add(
+                'createdAt',
                 DateTimeRangeFilter::class,
                 [
                     'field_type' => DateTimeRangePickerType::class,

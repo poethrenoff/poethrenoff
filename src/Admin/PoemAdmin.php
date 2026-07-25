@@ -37,7 +37,8 @@ class PoemAdmin extends AbstractAdmin
         $filter
             ->add('id')
             ->add('title')
-            ->add('createdAt',
+            ->add(
+                'createdAt',
                 DateTimeRangeFilter::class,
                 [
                     'field_type' => DateTimeRangePickerType::class,

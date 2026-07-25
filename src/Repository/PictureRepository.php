@@ -5,7 +5,8 @@ namespace App\Repository;
 use App\Entity\Picture;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Knp\Component\Pager\PaginatorInterface; // Assuming Knp Paginator is used
+use Knp\Component\Pager\Pagination\PaginationInterface;
+use Knp\Component\Pager\PaginatorInterface;
 
 /**
  * @extends ServiceEntityRepository<Picture>
@@ -30,9 +31,9 @@ class PictureRepository extends ServiceEntityRepository
      *
      * @param int $page Current page number.
      * @param int $limit Items per page.
-     * @return \Knp\Component\Pager\Pagination\PaginationInterface
+     * @return PaginationInterface
      */
-    public function findActivePaginated(int $page = 1, int $limit = 24): \Knp\Component\Pager\Pagination\PaginationInterface
+    public function findActivePaginated(int $page = 1, int $limit = 24): PaginationInterface
     {
         $qb = $this->createQueryBuilder('p')
             ->andWhere('p.isActive = :active')

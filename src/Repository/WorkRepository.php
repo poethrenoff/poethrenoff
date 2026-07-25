@@ -6,7 +6,8 @@ use App\Entity\Work;
 use App\Entity\WorkGroup;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Knp\Component\Pager\PaginatorInterface; // Assuming Knp Paginator is used
+use Knp\Component\Pager\Pagination\PaginationInterface;
+use Knp\Component\Pager\PaginatorInterface;
 
 /**
  * @extends ServiceEntityRepository<Work>
@@ -32,7 +33,7 @@ class WorkRepository extends ServiceEntityRepository
      * @param WorkGroup $group The parent WorkGroup.
      * @param int $page Current page number for pagination.
      * @param int $limit Items per page.
-     * @return \Knp\Component\Pager\Pagination\PaginationInterface
+     * @return array
      */
     public function findActiveByGroup(WorkGroup $group): array
     {
@@ -101,9 +102,9 @@ class WorkRepository extends ServiceEntityRepository
      * @param string $query The search query.
      * @param int $page Current page number.
      * @param int $limit Items per page.
-     * @return \Knp\Component\Pager\Pagination\PaginationInterface
+     * @return PaginationInterface
      */
-    public function search(string $query, int $page = 1, int $limit = 10): \Knp\Component\Pager\Pagination\PaginationInterface
+    public function search(string $query, int $page = 1, int $limit = 10): PaginationInterface
     {
         // Basic keyword splitting for AND logic.
         // A more robust solution would handle phrases, stemming, etc.

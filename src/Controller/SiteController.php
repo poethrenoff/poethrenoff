@@ -353,7 +353,10 @@ class SiteController extends AbstractController
         $breadcrumbs[] = ['label' => 'Все', 'path' => $this->generateUrl('site_work_index')];
 
         foreach (array_reverse($path) as $ancestor) {
-            $breadcrumbs[] = ['label' => $ancestor->getTitle(), 'path' => $this->generateUrl('site_group', ['id' => $ancestor->getId()])];
+            $breadcrumbs[] = [
+                'label' => $ancestor->getTitle(),
+                'path' => $this->generateUrl('site_group', ['id' => $ancestor->getId()]),
+            ];
         }
 
         return $breadcrumbs;

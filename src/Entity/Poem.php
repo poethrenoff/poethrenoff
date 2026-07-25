@@ -55,7 +55,12 @@ class Poem
     private \DateTimeImmutable $updatedAt;
 
     /** @var Collection<int, PoemVersion> */
-    #[ORM\OneToMany(targetEntity: PoemVersion::class, mappedBy: 'poem', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OneToMany(
+        targetEntity: PoemVersion::class,
+        mappedBy: 'poem',
+        cascade: ['persist', 'remove'],
+        orphanRemoval: true,
+    )]
     #[ORM\OrderBy(['createdAt' => 'DESC'])]
     private Collection $versions;
 

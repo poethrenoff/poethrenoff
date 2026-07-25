@@ -11,7 +11,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
-
 use App\Entity\BlogComment;
 use App\Traits\CommentUtilsTrait;
 
@@ -19,6 +18,7 @@ use App\Traits\CommentUtilsTrait;
 class BlogController extends AbstractController
 {
     use CommentUtilsTrait;
+
     public function __construct(
         private BlogPostRepository $postRepository,
         private BlogCommentRepository $commentRepository,

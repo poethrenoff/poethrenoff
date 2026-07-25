@@ -43,7 +43,8 @@ class BlogPostAdmin extends AbstractAdmin
         $filter
             ->add('id')
             ->add('content')
-            ->add('publishedAt',
+            ->add(
+                'publishedAt',
                 DateTimeRangeFilter::class,
                 [
                     'field_type' => DateTimeRangePickerType::class,
@@ -55,7 +56,7 @@ class BlogPostAdmin extends AbstractAdmin
                 ]
             )
             ->add('isActive')
-            ->add('tags',  ModelFilter::class, [
+            ->add('tags', ModelFilter::class, [
                 'field_type' => ModelAutocompleteType::class,
                 'field_options' => [
                     'class' => Tag::class,

@@ -126,7 +126,6 @@ class MigrateLegacyCommand extends Command
 
             $io->success('Миграция всех данных успешно завершена!');
             return Command::SUCCESS;
-
         } catch (\Exception $e) {
             $io->error('Ошибка миграции: ' . $e->getMessage());
             return Command::FAILURE;
@@ -507,7 +506,8 @@ class MigrateLegacyCommand extends Command
             $shortName = (new \ReflectionClass($entityClass))->getShortName();
             $io->writeln("Очищена таблица: $shortName");
         } catch (\Exception $e) {
-            $io->warning("Не удалось очистить таблицу " . (new \ReflectionClass($entityClass))->getShortName() . ': ' . $e->getMessage());
+            $io->warning("Не удалось очистить таблицу " .
+                (new \ReflectionClass($entityClass))->getShortName() . ': ' . $e->getMessage());
         }
     }
 
@@ -515,7 +515,8 @@ class MigrateLegacyCommand extends Command
     {
         $columns = array_keys($data);
         $placeholders = array_map(fn($c) => ':' . $c, $columns);
-        $sql = 'INSERT INTO ' . $table . ' (' . implode(', ', $columns) . ') VALUES (' . implode(', ', $placeholders) . ')';
+        $sql = 'INSERT INTO ' . $table .
+            ' (' . implode(', ', $columns) . ') VALUES (' . implode(', ', $placeholders) . ')';
         $entityManager->getConnection()->executeStatement($sql, $data);
     }
 

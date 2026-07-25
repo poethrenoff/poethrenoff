@@ -22,7 +22,10 @@ class CacheClearListener implements EventSubscriberInterface
 
     public function onConsoleTerminate(ConsoleTerminateEvent $event): void
     {
-        if ($event->getExitCode() === ConsoleCommandEvent::RETURN_CODE_DISABLED && $event->getCommand()?->getName() === 'cache:clear') {
+        if (
+            $event->getExitCode() === ConsoleCommandEvent::RETURN_CODE_DISABLED &&
+            $event->getCommand()?->getName() === 'cache:clear'
+        ) {
             $event->setExitCode(0);
         }
     }
@@ -47,10 +50,10 @@ class CacheClearListener implements EventSubscriberInterface
 
         foreach ($this->contexts as $context) {
             $output->writeln("  -> Context: <comment>$context</comment>");
-            
+
             // Собираем команду для запуска в подпроцессе
             $commandLine = [PHP_BINARY, 'bin/console', 'cache:clear', '--env=' . $env];
-            
+
             // Пробрасываем важные опции
             if ($input->getOption('no-warmup')) {
                 $commandLine[] = '--no-warmup';
