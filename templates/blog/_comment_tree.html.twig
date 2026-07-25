@@ -1,10 +1,17 @@
 {% for comment in comments %}
     <div class="comment" id="comment-{{ comment.id }}">
-        <div class="comment-author">{{ comment.author }}</div>
-        <div class="comment-date">{{ comment.createdAt|date('d.m.Y H:i') }}</div>
+        <div class="comment-header">
+            <span class="comment-author">{{ comment.author }}</span>
+            <span class="comment-date">{{ comment.createdAt|date('d.m.Y H:i') }}</span>
+        </div>
         <div class="comment-content">
             {{ comment.content|raw }}
         </div>
+        <div class="comment-actions">
+            <a href="#" class="comment-toggle-link" data-target="{{ comment.id }}">Ответить</a>
+        </div>
+
+
         {% if comment.children|length > 0 %}
             <div class="comment-children">
                 {% set activeChildren = [] %}
@@ -15,7 +22,7 @@
                 {% endfor %}
 
                 {% if activeChildren|length > 0 %}
-                    {{ include('blog/_comment_tree.html.twig', {comments: activeChildren}) }}
+                    {{ include('blog/_comment_tree.html.twig', {comments: activeChildren, postId: postId}) }}
                 {% endif %}
             </div>
         {% endif %}

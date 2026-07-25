@@ -10,6 +10,9 @@ stop:
 down:
 	@docker compose -f docker-compose.yml down
 
+update:
+	@docker compose -f docker-compose.yml exec php composer update -W
+
 cache-clear:
 	@docker compose -f docker-compose.yml exec php bin/console cache:clear
 

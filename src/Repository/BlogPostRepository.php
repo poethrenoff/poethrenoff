@@ -83,4 +83,42 @@ class BlogPostRepository extends ServiceEntityRepository
 
         return $this->paginator->paginate($qb, $page, $limit);
     }
+
+    /**
+     * Finds the previous and next active blog posts.
+     *
+     * @param BlogPost $post The current post.
+     * @return array An array containing 'prev' and 'next' BlogPost objects, or null.
+     */
+    public function findPrevNext(BlogPost $post): array
+    {
+        $publishedAt = $post->getPublishedAt();
+
+        $qb = $this->createQueryBuilder('p');
+
+        // Find Previous (older) Post
+        $prevQb = clone $qb;
+        $prevQb
+            ->andWhere('p.isActive = :active')
+            ->andWhere('p.publishedAt < :publishedAt')
+            ->setParameter('active', true)
+            ->setParameter('publishedAt', $publishedAt)
+            ->orderBy('p.publishedAt', 'DESC')
+            ->setMaxResults(1);
+
+        // Find Next (newer) Post
+        $nextQb = clone $qb;
+        $nextQb
+            ->andWhere('p.isActive = :active')
+            ->andWhere('p.publishedAt > :publishedAt')
+            ->setParameter('active', true)
+            ->setParameter('publishedAt', $publishedAt)
+            ->orderBy('p.publishedAt', 'ASC')
+            ->setMaxResults(1);
+
+        return [
+            'prev' => $prevQb->getQuery()->getOneOrNullResult(),
+            'next' => $nextQb->getQuery()->getOneOrNullResult(),
+        ];
+    }
 }

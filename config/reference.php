@@ -655,7 +655,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         uuid47_secret?: scalar|Param|null, // A high-entropy secret used by the "uuid47_transformer" service. Defaults to "kernel.secret". // Default: null
  *     },
  *     html_sanitizer?: bool|array{ // HtmlSanitizer configuration
- *         enabled?: bool|Param, // Default: false
+ *         enabled?: bool|Param, // Default: true
  *         sanitizers?: array<string, array{ // Default: []
  *             default_action?: "drop"|"block"|"allow"|Param, // Defines how the sanitizer must behave by default.
  *             allow_safe_elements?: bool|Param, // Allows "safe" elements and attributes. // Default: false
@@ -1558,6 +1558,10 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     enable_profiler?: bool|Param, // Whether or not to enable the profiler collector to calculate and visualize migration status. This adds some queries overhead. // Default: false
  *     transactional?: bool|Param, // Whether or not to wrap migrations in a single transaction. // Default: true
  * }
+ * @psalm-type StimulusConfig = array{
+ *     controller_paths?: list<scalar|Param|null>,
+ *     controllers_json?: scalar|Param|null, // Default: "%kernel.project_dir%/assets/controllers.json"
+ * }
  * @psalm-type ConfigType = array{
  *     imports?: ImportsConfig,
  *     parameters?: ParametersConfig,
@@ -1575,6 +1579,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *     knp_menu?: KnpMenuConfig,
  *     sonata_doctrine_orm_admin?: SonataDoctrineOrmAdminConfig,
  *     doctrine_migrations?: DoctrineMigrationsConfig,
+ *     stimulus?: StimulusConfig,
  *     "when@dev"?: array{
  *         imports?: ImportsConfig,
  *         parameters?: ParametersConfig,
@@ -1593,6 +1598,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         knp_menu?: KnpMenuConfig,
  *         sonata_doctrine_orm_admin?: SonataDoctrineOrmAdminConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
+ *         stimulus?: StimulusConfig,
  *     },
  *     "when@prod"?: array{
  *         imports?: ImportsConfig,
@@ -1611,6 +1617,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         knp_menu?: KnpMenuConfig,
  *         sonata_doctrine_orm_admin?: SonataDoctrineOrmAdminConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
+ *         stimulus?: StimulusConfig,
  *     },
  *     "when@test"?: array{
  *         imports?: ImportsConfig,
@@ -1629,6 +1636,7 @@ use Symfony\Component\Config\Loader\ParamConfigurator as Param;
  *         knp_menu?: KnpMenuConfig,
  *         sonata_doctrine_orm_admin?: SonataDoctrineOrmAdminConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
+ *         stimulus?: StimulusConfig,
  *     },
  *     ...<string, ExtensionType|array{ // extra keys must follow the when@%env% pattern or match an extension alias
  *         imports?: ImportsConfig,

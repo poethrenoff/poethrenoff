@@ -1,8 +1,3 @@
-:root {
-    --card: #ffffff;
-    --danger: #c0392b;
-}
-
 [x-cloak] {
     display: none !important;
 }
@@ -12,7 +7,7 @@ header {
     align-items: center;
     justify-content: space-between;
     padding: 16px 24px;
-    background: var(--card);
+    background: var(--white);
     border-bottom: 1px solid var(--border);
 }
 
@@ -224,7 +219,7 @@ main {
 }
 
 .general-error {
-    color: var(--danger);
+    color: var(--error);
 }
 
 .dashboard-panel {

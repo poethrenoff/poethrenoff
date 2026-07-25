@@ -3,11 +3,12 @@
     "license": "proprietary",
     "minimum-stability": "stable",
     "prefer-stable": true,
-    "require": {
+"require": {
         "php": ">=8.4",
         "ext-ctype": "*",
+        "ext-json": "*",
         "ext-iconv": "*",
-        "doctrine/doctrine-bundle": "^3.2",
+        "doctrine/doctrine-bundle": "^3.3.1",
         "doctrine/doctrine-migrations-bundle": "^4.0",
         "doctrine/orm": "^3.6",
         "knplabs/knp-paginator-bundle": "*",
@@ -18,8 +19,9 @@
         "symfony/dotenv": "8.1.*",
         "symfony/flex": "^2",
         "symfony/framework-bundle": "8.1.*",
+        "symfony/html-sanitizer": "8.1.*",
+        "symfony/http-foundation": "8.1.*",
         "symfony/runtime": "8.1.*",
-        "symfony/stimulus-bundle": "8.1.*",
         "symfony/security-bundle": "8.1.*",
         "symfony/twig-bundle": "8.1.*",
         "symfony/yaml": "8.1.*"

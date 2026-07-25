@@ -22,7 +22,7 @@
     </div>
 
     {% if prev_work or next_work %}
-        <div class="work-nav">
+        <div class="side-nav">
             {% if prev_work %}
                 <a href="{{ path('site_work', {'id': prev_work.id}) }}" class="nav-arrow nav-prev" title="Предыдущее произведение">
                     <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -45,7 +45,7 @@
                 return;
             }
 
-            const nav = document.querySelector('.work-nav');
+            const nav = document.querySelector('.side-nav');
             if (!nav) return;
 
             if (e.key === 'ArrowLeft') {

@@ -2,15 +2,15 @@
 
 namespace App\Controller;
 
-use App\Entity\Tag;
 use App\Repository\BlogPostRepository;
 use App\Repository\BlogCommentRepository;
 use App\Repository\TagRepository;
-use Knp\Component\Pager\Pagination\PaginationInterface;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 
 #[Route(condition: "request.server.get('APP_SITE_CONTEXT') == 'blog'")]
 class BlogController extends AbstractController
@@ -19,6 +19,8 @@ class BlogController extends AbstractController
         private BlogPostRepository $postRepository,
         private BlogCommentRepository $commentRepository,
         private TagRepository $tagRepository,
+        private EntityManagerInterface $entityManager,
+        private HtmlSanitizerInterface $htmlSanitizer,
     ) {
     }
 
@@ -55,12 +57,65 @@ class BlogController extends AbstractController
         $allComments = $this->commentRepository->findActiveByPost($post);
         $rootComments = array_filter($allComments, fn($c) => $c->getParent() === null);
 
+        $prevNext = $this->postRepository->findPrevNext($post);
+
         $response = $this->render('blog/post.html.twig', [
             'post' => $post,
             'rootComments' => $rootComments,
+            'prev_post' => $prevNext['prev'],
+            'next_post' => $prevNext['next'],
         ]);
 
         return $this->addNoindexHeader($response);
+    }
+
+    #[Route('/post/{id}/comment', name: 'blog_comment_save', methods: ['POST'])]
+    public function saveComment(Request $request, int $id): Response
+    {
+        $post = $this->postRepository->findOneActiveById($id);
+        if (!$post) {
+            return $this->json(['error' => 'Post not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $author = trim($data['author'] ?? '');
+        $content = $data['content'] ?? '';
+        $parentId = $data['parentId'] ?? null;
+
+        if (empty($author)) {
+            return $this->json(['error' => 'Имя обязательно'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $sanitizedContent = $this->htmlSanitizer->sanitize($this->autolink($content));
+        if (empty(strip_tags($sanitizedContent))) {
+            return $this->json(['error' => 'Комментарий не может быть пустым'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $comment = new \App\Entity\BlogComment();
+        $comment->setPost($post);
+        $comment->setAuthor($author);
+        $comment->setContent($sanitizedContent);
+        $comment->setCreatedAt(new \DateTimeImmutable());
+        $comment->setIsActive(true);
+        $comment->setInfo(sprintf('%s, %s', $request->getClientIp(), $request->headers->get('User-Agent')));
+
+        if ($parentId) {
+            $parent = $this->commentRepository->find($parentId);
+            if ($parent && $parent->getPost()->getId() === $post->getId()) {
+                $comment->setParent($parent);
+            }
+        }
+
+        $this->entityManager->persist($comment);
+        $this->entityManager->flush();
+
+        return $this->json([
+            'id' => $comment->getId(),
+            'author' => $comment->getAuthor(),
+            'content' => $comment->getContent(),
+            'createdAt' => $comment->getCreatedAt()->format('d.m.Y H:i'),
+            'parentId' => $comment->getParent() ? $comment->getParent()->getId() : null,
+        ]);
     }
 
     #[Route('/search', name: 'blog_search')]
@@ -137,5 +192,26 @@ class BlogController extends AbstractController
     {
         $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
         return $response;
+    }
+
+    private function autolink(string $html): string
+    {
+        return preg_replace_callback(
+            '/(<a[^>]*>.*?<\/a>)|(<[^>]+>)|(https?:\/\/[^\s<]+)/is',
+            function ($matches) {
+                if (!empty($matches[1])) {
+                    return $matches[1];
+                }
+                if (!empty($matches[2])) {
+                    return $matches[2];
+                }
+                if (!empty($matches[3])) {
+                    $url = $matches[3];
+                    return '<a href="' . $url . '">' . $url . '</a>';
+                }
+                return $matches[0];
+            },
+            $html
+        );
     }
 }

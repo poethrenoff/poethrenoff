@@ -20,11 +20,52 @@
     </article>
 
     <section class="comments-section">
-        <h3>Комментарии</h3>
+        <div class="comment-actions-top">
+            <a href="#" class="comment-toggle-link" data-target="root">Оставить комментарий</a>
+        </div>
+
+        {{ include('blog/_comment_form.html.twig', {postId: post.id}) }}
+
         {% if rootComments is not empty %}
-            {{ include('blog/_comment_tree.html.twig', {comments: rootComments}) }}
-        {% else %}
-            <p>Комментариев пока нет.</p>
+            {{ include('blog/_comment_tree.html.twig', {comments: rootComments, postId: post.id}) }}
         {% endif %}
     </section>
+
+    {% if prev_post or next_post %}
+        <div class="side-nav">
+            {% if prev_post %}
+                <a href="{{ path('blog_post', {'id': prev_post.id}) }}" class="nav-arrow nav-prev" title="Предыдущий пост">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </a>
+            {% endif %}
+            {% if next_post %}
+                <a href="{{ path('blog_post', {'id': next_post.id}) }}" class="nav-arrow nav-next" title="Следующий пост">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('keydown', function(e) {
+            const tag = document.activeElement?.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || (document.activeElement?.getAttribute('contenteditable') === 'true')) {
+                return;
+            }
+
+            const nav = document.querySelector('.side-nav');
+            if (!nav) return;
+
+            if (e.key === 'ArrowLeft') {
+                const link = nav.querySelector('.nav-prev');
+                if (link) { e.preventDefault(); link.click(); }
+            } else if (e.key === 'ArrowRight') {
+                const link = nav.querySelector('.nav-next');
+                if (link) { e.preventDefault(); link.click(); }
+            }
+        });
+    </script>
 {% endblock %}
