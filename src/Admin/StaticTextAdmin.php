@@ -5,6 +5,7 @@ namespace App\Admin;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
+use Sonata\AdminBundle\FieldDescription\FieldDescriptionInterface;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Show\ShowMapper;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -31,20 +32,31 @@ class StaticTextAdmin extends AbstractAdmin
         $filter
             ->add('slug')
             ->add('title')
+            ->add('content')
         ;
     }
 
     protected function configureListFields(ListMapper $list): void
     {
         $list
-            ->addIdentifier('slug')
+            ->addIdentifier('id', null, [
+                'route' => ['name' => 'edit'],
+            ])
+            ->add('slug')
             ->add('title')
+            ->add('content', FieldDescriptionInterface::TYPE_HTML, [
+                'truncate' => [
+                    'length' => 150,
+                ],
+                'header_style' => 'width: 60%'
+            ])
             ->add(ListMapper::NAME_ACTIONS, null, [
                 'actions' => [
                     'show' => [],
                     'edit' => [],
                     'delete' => [],
                 ],
+                'header_style' => 'width: 210px',
             ])
         ;
     }
@@ -57,5 +69,11 @@ class StaticTextAdmin extends AbstractAdmin
             ->add('title')
             ->add('content')
         ;
+    }
+
+    protected function configureDefaultSortValues(array &$sortValues): void
+    {
+        $sortValues['_sort_by'] = 'id';
+        $sortValues['_sort_order'] = 'ASC';
     }
 }

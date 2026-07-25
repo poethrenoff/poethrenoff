@@ -2,50 +2,151 @@
 
 namespace App\Admin;
 
+use App\Entity\Audio;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Show\ShowMapper;
+use Sonata\DoctrineORMAdminBundle\Filter\DateTimeRangeFilter;
+use Sonata\Form\Type\DateTimeRangePickerType;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\String\Slugger\AsciiSlugger;
+use Symfony\Contracts\Service\Attribute\Required;
 
 class AudioAdmin extends AbstractAdmin
 {
+    private string $projectDir;
+
+    #[Required]
+    public function setProjectDir(#[Autowire('%kernel.project_dir%')] string $projectDir): void
+    {
+        $this->projectDir = $projectDir;
+    }
+
     protected function configureFormFields(FormMapper $form): void
     {
+        $isNew = $this->isNew();
+
         $form
             ->add('title', TextType::class)
-            ->add('filePath', TextType::class)
-            ->add('duration', IntegerType::class, ['required' => false])
-            ->add('createdAt', DateTimeType::class, [
-                'widget' => 'single_text',
-                'input' => 'datetime_immutable',
+            ->add('filePath', FileType::class, [
+                'required' => $isNew,
+                'help' => $this->getSubject() ? $this->getSubject()->getFilePath() : '',
+                'mapped' => false,
             ])
+            ->add('duration', IntegerType::class, ['required' => false])
+            ->add('createdAt', DateTimeType::class)
         ;
+    }
+
+    public function prePersist(object $object): void
+    {
+        $this->manageFileUpload($object);
+    }
+
+    public function preUpdate(object $object): void
+    {
+        $this->manageFileUpload($object);
+    }
+
+    private function isNew(): bool
+    {
+        $subject = $this->getSubject();
+        return $subject->getId() === null;
+    }
+
+    private function manageFileUpload(object $object): void
+    {
+        if (!$object instanceof Audio) {
+            return;
+        }
+
+        $this->processFileUpload($object);
+    }
+
+    private function processFileUpload(Audio $audio): void
+    {
+        $file = $this->getForm()->get('filePath')->getData();
+
+        if (!$file instanceof UploadedFile || !$file->isValid()) {
+            return;
+        }
+
+        $slugger = new AsciiSlugger();
+        $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $safeFilename = $slugger->slug($originalFilename)->lower();
+        $extension = $file->getClientOriginalExtension();
+
+        $newFilename = sprintf('%s.%s', $safeFilename, $extension);
+
+        $relativePath = $this->generatePath($newFilename);
+        $absolutePath = $this->getUploadRootDir() . $relativePath;
+
+        $file->move(dirname($absolutePath), $newFilename);
+
+        $audio->setFilePath($relativePath);
+    }
+
+    private function generatePath(string $filename): string
+    {
+        $path = '/upload/audio';
+        $fullPath = $this->getUploadRootDir() . $path;
+        if (!is_dir($fullPath) && !mkdir($fullPath, 0755, true) && !is_dir($fullPath)) {
+            throw new \RuntimeException(sprintf('Не удалось создать директорию "%s"', $fullPath));
+        }
+
+        return $path . '/' . $filename;
+    }
+
+    private function getUploadRootDir(): string
+    {
+        return $this->projectDir . '/htdocs/' . $this->getRequest()->server->get('APP_SITE_CONTEXT');
     }
 
     protected function configureDatagridFilters(DatagridMapper $filter): void
     {
         $filter
             ->add('title')
+            ->add('createdAt',
+                DateTimeRangeFilter::class,
+                [
+                    'field_type' => DateTimeRangePickerType::class,
+                    'field_options' => [
+                        'field_options' => [
+                            'format' => 'yyyy-MM-dd HH:mm',
+                        ]
+                    ]
+                ]
+            )
         ;
     }
 
     protected function configureListFields(ListMapper $list): void
     {
         $list
-            ->addIdentifier('title')
-            ->add('filePath')
+            ->addIdentifier('id', null, [
+                'route' => ['name' => 'edit'],
+            ])
+            ->add('title', null, [
+                'header_style' => 'width: 50%',
+            ])
             ->add('duration')
-            ->add('createdAt')
+            ->add('createdAt', null, [
+                'format' => 'Y-m-d H:i',
+            ])
             ->add(ListMapper::NAME_ACTIONS, null, [
                 'actions' => [
                     'show' => [],
                     'edit' => [],
                     'delete' => [],
                 ],
+                'header_style' => 'width: 210px',
             ])
         ;
     }
@@ -59,5 +160,11 @@ class AudioAdmin extends AbstractAdmin
             ->add('duration')
             ->add('createdAt')
         ;
+    }
+
+    protected function configureDefaultSortValues(array &$sortValues): void
+    {
+        $sortValues['_sort_by'] = 'createdAt';
+        $sortValues['_sort_order'] = 'DESC';
     }
 }

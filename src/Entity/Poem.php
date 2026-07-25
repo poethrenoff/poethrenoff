@@ -66,10 +66,29 @@ class Poem
         $this->versions = new ArrayCollection();
     }
 
+    #[ORM\PrePersist]
+    public function onPrePersist(): void
+    {
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
+        $this->ensureDefaults();
+    }
+
     #[ORM\PreUpdate]
     public function onPreUpdate(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+        $this->ensureDefaults();
+    }
+
+    private function ensureDefaults(): void
+    {
+        if (empty($this->title)) {
+            $this->title = $this->getDefaultTitle();
+        }
+        if (empty($this->comment)) {
+            $this->comment = $this->getDefaultComment();
+        }
     }
 
     public function getId(): ?int
@@ -86,6 +105,18 @@ class Poem
     {
         $this->title = $title;
         return $this;
+    }
+
+    public function getDefaultTitle(): string
+    {
+        $lines = explode("\n", trim($this->content));
+        $firstLine = trim(rtrim($lines[0] ?? '', '.,!:?;…—-'));
+        return '"' . $firstLine . '..."';
+    }
+
+    public function getDisplayTitle(): string
+    {
+        return preg_match('/\".*\.\.\.\"$/', $this->title) ? '* * *' : $this->title;
     }
 
     public function getContent(): string
@@ -108,6 +139,12 @@ class Poem
     {
         $this->comment = $comment;
         return $this;
+    }
+
+    public function getDefaultComment(): string
+    {
+        $now = new \DateTimeImmutable();
+        return $now->format("d.m.Y");
     }
 
     public function getStatus(): PoemStatus
@@ -165,7 +202,6 @@ class Poem
         return $this;
     }
 
-    /** @return Collection<int, PoemVersion> */
     public function getVersions(): Collection
     {
         return $this->versions;
@@ -229,15 +265,5 @@ class Poem
     public function __toString(): string
     {
         return (string) $this->title;
-    }
-
-    public function getFirstLine(): string
-    {
-        $lines = explode("\n", trim($this->content));
-        $firstLine = trim($lines[0] ?? '');
-
-        return mb_strlen($firstLine) > 60
-            ? mb_substr($firstLine, 0, 57) . '…'
-            : $firstLine;
     }
 }

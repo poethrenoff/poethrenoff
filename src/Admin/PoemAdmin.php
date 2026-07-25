@@ -8,6 +8,8 @@ use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Show\ShowMapper;
+use Sonata\DoctrineORMAdminBundle\Filter\DateTimeRangeFilter;
+use Sonata\Form\Type\DateTimeRangePickerType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -35,6 +37,17 @@ class PoemAdmin extends AbstractAdmin
         $filter
             ->add('id')
             ->add('title')
+            ->add('createdAt',
+                DateTimeRangeFilter::class,
+                [
+                    'field_type' => DateTimeRangePickerType::class,
+                    'field_options' => [
+                        'field_options' => [
+                            'format' => 'yyyy-MM-dd HH:mm',
+                        ]
+                    ]
+                ]
+            )
             ->add('status')
         ;
     }

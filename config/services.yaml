@@ -18,25 +18,27 @@ services:
     # Sonata Admin Service Configurations using FQCN
     # Each admin now includes the required "model_class" attribute.
 
+    # StaticTextAdmin
+    App\Admin\StaticTextAdmin:
+        public: true
+        calls:
+            - [setTemplate, [layout, admin/layout.html.twig]]
+        tags:
+            - { name: sonata.admin, manager_type: orm, group: Сайт, label: Тексты, model_class: App\Entity\StaticText, priority: 20 }
+
     # UserAdmin
     App\Admin\UserAdmin:
         public: true
         tags:
-            - { name: sonata.admin, manager_type: orm, group: admin, label: User, model_class: App\Entity\User }
+            - { name: sonata.admin, manager_type: orm, group: Сайт, label: Пользователи, model_class: App\Entity\User, priority: 10 }
 
-    # TagAdmin
-    App\Admin\TagAdmin:
-        public: true
-        tags:
-            - { name: sonata.admin, manager_type: orm, group: blog, label: Tags, model_class: App\Entity\Tag }
-
-    # PostAdmin (BlogPost)
+    # PostAdmin
     App\Admin\BlogPostAdmin:
         public: true
         calls:
             - [setTemplate, [layout, admin/layout.html.twig]]
         tags:
-            - { name: sonata.admin, manager_type: orm, group: blog, label: Posts, model_class: App\Entity\BlogPost }
+            - { name: sonata.admin, manager_type: orm, group: Блог, label: Новости, model_class: App\Entity\BlogPost, priority: 30 }
 
     # BlogCommentAdmin
     App\Admin\BlogCommentAdmin:
@@ -44,25 +46,37 @@ services:
         calls:
             - [setTemplate, [layout, admin/layout.html.twig]]
         tags:
-            - { name: sonata.admin, manager_type: orm, group: blog, label: Comments, model_class: App\Entity\BlogComment }
+            - { name: sonata.admin, manager_type: orm, group: Блог, label: Комментарии, model_class: App\Entity\BlogComment, priority: 20 }
+
+    # TagAdmin
+    App\Admin\TagAdmin:
+        public: true
+        tags:
+            - { name: sonata.admin, manager_type: orm, group: Блог, label: Теги, model_class: App\Entity\Tag, priority: 10 }
 
     # PoemAdmin
     App\Admin\PoemAdmin:
         public: true
         tags:
-            - { name: sonata.admin, manager_type: orm, group: poems, label: Poems, model_class: App\Entity\Poem }
+            - { name: sonata.admin, manager_type: orm, group: Мастерская, label: Черновики, model_class: App\Entity\Poem, priority: 20 }
+
+    # AudioAdmin
+    App\Admin\AudioAdmin:
+        public: true
+        tags:
+            - { name: sonata.admin, manager_type: orm, group: Мастерская, label: Записи, model_class: App\Entity\Audio, priority: 10 }
 
     # WorkGroupAdmin
     App\Admin\WorkGroupAdmin:
         public: true
         tags:
-            - { name: sonata.admin, manager_type: orm, group: work, label: Groups, model_class: App\Entity\WorkGroup }
+            - { name: sonata.admin, manager_type: orm, group: Произведения, label: Разделы, model_class: App\Entity\WorkGroup, priority: 50 }
 
     # WorkAdmin
     App\Admin\WorkAdmin:
         public: true
         tags:
-            - { name: sonata.admin, manager_type: orm, group: work, label: Works, model_class: App\Entity\Work }
+            - { name: sonata.admin, manager_type: orm, group: Произведения, label: Произведения, model_class: App\Entity\Work, priority: 40 }
 
     # WorkCommentAdmin
     App\Admin\WorkCommentAdmin:
@@ -70,30 +84,16 @@ services:
         calls:
             - [setTemplate, [layout, admin/layout.html.twig]]
         tags:
-            - { name: sonata.admin, manager_type: orm, group: work, label: Comments, model_class: App\Entity\WorkComment }
-
-    # WorkVoteAdmin
-    App\Admin\WorkVoteAdmin:
-        public: true
-        tags:
-            - { name: sonata.admin, manager_type: orm, group: work, label: Votes, model_class: App\Entity\WorkVote }
-
-    # AudioAdmin
-    App\Admin\AudioAdmin:
-        public: true
-        tags:
-            - { name: sonata.admin, manager_type: orm, group: media, label: Audio, model_class: App\Entity\Audio }
+            - { name: sonata.admin, manager_type: orm, group: Произведения, label: Комментарии, model_class: App\Entity\WorkComment, priority: 30 }
 
     # PictureAdmin
     App\Admin\PictureAdmin:
         public: true
         tags:
-            - { name: sonata.admin, manager_type: orm, group: media, label: Pictures, model_class: App\Entity\Picture }
+            - { name: sonata.admin, manager_type: orm, group: Произведения, label: Картинки, model_class: App\Entity\Picture, priority: 20 }
 
-    # StaticTextAdmin
-    App\Admin\StaticTextAdmin:
+    # WorkVoteAdmin
+    App\Admin\WorkVoteAdmin:
         public: true
-        calls:
-            - [setTemplate, [layout, admin/layout.html.twig]]
         tags:
-            - { name: sonata.admin, manager_type: orm, group: site, label: Static Texts, model_class: App\Entity\StaticText }
+            - { name: sonata.admin, manager_type: orm, group: Произведения, label: Голоса, model_class: App\Entity\WorkVote, priority: 10 }

@@ -5,3 +5,16 @@ sonata_admin:
     dashboard:
         blocks:
             - { position: left, type: sonata.admin.block.admin_list, settings: { groups: [admin] } }
+        groups:
+            Сайт:
+                label: Сайт
+                keep_open: true
+            Блог:
+                label: Блог
+                keep_open: true
+            Мастерская:
+                label: Мастерская
+                keep_open: true
+            Произведения:
+                label: Произведения
+                keep_open: true

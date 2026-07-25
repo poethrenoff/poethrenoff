@@ -3,11 +3,11 @@
     "license": "proprietary",
     "minimum-stability": "stable",
     "prefer-stable": true,
-"require": {
+    "require": {
         "php": ">=8.4",
         "ext-ctype": "*",
-        "ext-json": "*",
         "ext-iconv": "*",
+        "ext-json": "*",
         "doctrine/doctrine-bundle": "^3.3.1",
         "doctrine/doctrine-migrations-bundle": "^4.0",
         "doctrine/orm": "^3.6",

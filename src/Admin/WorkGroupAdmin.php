@@ -21,7 +21,8 @@ class WorkGroupAdmin extends AbstractAdmin
             ->add('parent', ModelAutocompleteType::class, [
                 'class' => WorkGroup::class,
                 'property' => 'title',
-                'required' => false,
+                'minimum_input_length' => 1,
+                'btn_add' => false,
             ])
             ->add('title', TextType::class)
             ->add('comment', TextType::class, ['required' => false])
@@ -44,7 +45,12 @@ class WorkGroupAdmin extends AbstractAdmin
     protected function configureListFields(ListMapper $list): void
     {
         $list
-            ->addIdentifier('title')
+            ->addIdentifier('id', null, [
+                'route' => ['name' => 'edit'],
+            ])
+            ->add('title', null, [
+                'header_style' => 'width: 40%',
+            ])
             ->add('parent')
             ->add('position', null, ['editable' => true])
             ->add('isFavorite', null, ['editable' => true])
@@ -55,6 +61,7 @@ class WorkGroupAdmin extends AbstractAdmin
                     'edit' => [],
                     'delete' => [],
                 ],
+                'header_style' => 'width: 210px',
             ])
         ;
     }
@@ -70,5 +77,11 @@ class WorkGroupAdmin extends AbstractAdmin
             ->add('isActive')
             ->add('isFavorite')
         ;
+    }
+
+    protected function configureDefaultSortValues(array &$sortValues): void
+    {
+        $sortValues['_sort_by'] = 'id';
+        $sortValues['_sort_order'] = 'ASC';
     }
 }

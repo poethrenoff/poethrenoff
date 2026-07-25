@@ -55,6 +55,28 @@ class Work
         $this->votes = new ArrayCollection();
     }
 
+    #[ORM\PrePersist]
+    public function onPrePersist(): void
+    {
+        $this->ensureDefaults();
+    }
+
+    #[ORM\PreUpdate]
+    public function onPreUpdate(): void
+    {
+        $this->ensureDefaults();
+    }
+
+    private function ensureDefaults(): void
+    {
+        if (empty($this->title)) {
+            $this->title = $this->getDefaultTitle();
+        }
+        if (empty($this->comment)) {
+            $this->comment = $this->getDefaultComment();
+        }
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -93,14 +115,21 @@ class Work
         return $this;
     }
 
-    public function getText(): string
+    public function getDefaultTitle(): string
     {
-        return rtrim($this->text);
+        $lines = explode("\n", trim($this->text));
+        $firstLine = trim(rtrim($lines[0] ?? '', '.,!:?;…—-'));
+        return '"' . $firstLine . '..."';
     }
 
     public function getDisplayTitle(): string
     {
         return preg_match('/\".*\.\.\.\"$/', $this->title) ? '* * *' : $this->title;
+    }
+
+    public function getText(): string
+    {
+        return rtrim($this->text);
     }
 
     public function setText(string $text): static
@@ -118,6 +147,12 @@ class Work
     {
         $this->comment = $comment;
         return $this;
+    }
+
+    public function getDefaultComment(): string
+    {
+        $now = new \DateTimeImmutable();
+        return $now->format("d.m.Y");
     }
 
     public function getPosition(): float

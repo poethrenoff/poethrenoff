@@ -9,6 +9,7 @@ use Sonata\AdminBundle\Datagrid\ListMapper;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Form\Type\ModelAutocompleteType;
 use Sonata\AdminBundle\Show\ShowMapper;
+use Sonata\DoctrineORMAdminBundle\Filter\ModelFilter;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
@@ -23,16 +24,18 @@ class WorkAdmin extends AbstractAdmin
             ->add('group', ModelAutocompleteType::class, [
                 'class' => WorkGroup::class,
                 'property' => 'title',
+                'minimum_input_length' => 1,
+                'btn_add' => false,
             ])
             ->add('title', TextType::class)
             ->add('text', TextareaType::class, [
                 'attr' => ['rows' => 15]
             ])
             ->add('comment', TextType::class, ['required' => false])
-            ->add('position', NumberType::class)
-            ->add('isActive', CheckboxType::class, ['required' => false])
             ->add('likesCount', IntegerType::class)
             ->add('dislikesCount', IntegerType::class)
+            ->add('position', NumberType::class)
+            ->add('isActive', CheckboxType::class, ['required' => false])
         ;
     }
 
@@ -41,7 +44,14 @@ class WorkAdmin extends AbstractAdmin
         $filter
             ->add('id')
             ->add('title')
-            ->add('group')
+            ->add('group',  ModelFilter::class, [
+                'field_type' => ModelAutocompleteType::class,
+                'field_options' => [
+                    'class' => WorkGroup::class,
+                    'property' => 'title',
+                    'minimum_input_length' => 1,
+                ]
+            ])
             ->add('isActive')
         ;
     }
@@ -49,18 +59,24 @@ class WorkAdmin extends AbstractAdmin
     protected function configureListFields(ListMapper $list): void
     {
         $list
-            ->addIdentifier('title')
+            ->addIdentifier('id', null, [
+                'route' => ['name' => 'edit'],
+            ])
+            ->add('title', null, [
+                'header_style' => 'width: 40%',
+            ])
             ->add('group')
+            ->add('likesCount', null, ['editable' => true])
+            ->add('dislikesCount', null, ['editable' => true])
             ->add('position', null, ['editable' => true])
             ->add('isActive', null, ['editable' => true])
-            ->add('likesCount')
-            ->add('dislikesCount')
             ->add(ListMapper::NAME_ACTIONS, null, [
                 'actions' => [
                     'show' => [],
                     'edit' => [],
                     'delete' => [],
                 ],
+                'header_style' => 'width: 210px',
             ])
         ;
     }
@@ -78,5 +94,11 @@ class WorkAdmin extends AbstractAdmin
             ->add('likesCount')
             ->add('dislikesCount')
         ;
+    }
+
+    protected function configureDefaultSortValues(array &$sortValues): void
+    {
+        $sortValues['_sort_by'] = 'id';
+        $sortValues['_sort_order'] = 'ASC';
     }
 }

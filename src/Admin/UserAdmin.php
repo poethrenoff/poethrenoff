@@ -5,6 +5,7 @@ namespace App\Admin;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
+use Sonata\AdminBundle\FieldDescription\FieldDescriptionInterface;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Show\ShowMapper;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -52,14 +53,22 @@ class UserAdmin extends AbstractAdmin
     protected function configureListFields(ListMapper $list): void
     {
         $list
-            ->addIdentifier('email')
-            ->add('roles')
+            ->addIdentifier('id', null, [
+                'route' => ['name' => 'edit'],
+            ])
+            ->add('email', null, [
+                'header_style' => 'width: 50%',
+            ])
+            ->add('roles', FieldDescriptionInterface::TYPE_CHOICE, [
+                'multiple' => true,
+            ])
             ->add(ListMapper::NAME_ACTIONS, null, [
                 'actions' => [
                     'show' => [],
                     'edit' => [],
                     'delete' => [],
                 ],
+                'header_style' => 'width: 210px',
             ])
         ;
     }
@@ -93,5 +102,11 @@ class UserAdmin extends AbstractAdmin
         if ($plainPassword) {
             $user->setPassword($this->passwordHasher->hashPassword($user, $plainPassword));
         }
+    }
+
+    protected function configureDefaultSortValues(array &$sortValues): void
+    {
+        $sortValues['_sort_by'] = 'id';
+        $sortValues['_sort_order'] = 'ASC';
     }
 }

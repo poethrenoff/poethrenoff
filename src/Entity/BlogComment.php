@@ -110,9 +110,12 @@ class BlogComment
 
     public function __toString(): string
     {
-        return mb_strlen($this->content) > 100
-            ? mb_substr($this->content, 0, 97) . '…'
-            : $this->content;
+        $content = strip_tags($this->content);
+        return strip_tags(
+            mb_strlen($content) > 150
+                ? mb_substr($content, 0, 147) . '…'
+                : $content
+        );
     }
 
     public function getAuthor(): string

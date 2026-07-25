@@ -51,7 +51,8 @@ class WorkController extends AbstractController
             return $this->json(['error' => ['message' => 'Некорректные данные']], Response::HTTP_BAD_REQUEST);
         }
 
-        $content = trim($data['content']);
+        $title = trim($data['title']);
+        $content = rtrim($data['content']);
         $comment = isset($data['comment']) ? trim($data['comment']) : null;
 
         if ($comment === '') {
@@ -63,19 +64,11 @@ class WorkController extends AbstractController
         );
 
         $poem = new Poem();
+        $poem->setTitle($title);
         $poem->setContent($content);
         $poem->setComment($comment);
         $poem->setStatus(PoemStatus::Draft);
         $poem->setPosition($position);
-
-        $providedTitle = isset($data['title']) ? trim($data['title']) : null;
-        $poem->setTitle($providedTitle !== '' ? $providedTitle : null);
-        if ($poem->getTitle() === null) {
-            $firstLine = $poem->getFirstLine();
-            if ($firstLine !== '') {
-                $poem->setTitle($firstLine);
-            }
-        }
 
         $this->entityManager->persist($poem);
         $this->entityManager->flush();

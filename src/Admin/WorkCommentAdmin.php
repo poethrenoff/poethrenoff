@@ -7,12 +7,13 @@ use App\Entity\WorkComment;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
+use Sonata\AdminBundle\FieldDescription\FieldDescriptionInterface;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Form\Type\ModelAutocompleteType;
 use Sonata\AdminBundle\Show\ShowMapper;
+use Sonata\DoctrineORMAdminBundle\Filter\DateTimeRangeFilter;
+use Sonata\Form\Type\DateTimeRangePickerType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
-use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 class WorkCommentAdmin extends AbstractAdmin
@@ -22,12 +23,16 @@ class WorkCommentAdmin extends AbstractAdmin
         $form
             ->add('work', ModelAutocompleteType::class, [
                 'class' => Work::class,
-                'property' => 'title',
+                'property' => 'id',
+                'minimum_input_length' => 1,
+                'btn_add' => false,
             ])
             ->add('parent', ModelAutocompleteType::class, [
                 'class' => WorkComment::class,
                 'property' => 'id',
+                'minimum_input_length' => 1,
                 'required' => false,
+                'btn_add' => false,
             ])
             ->add('author', TextType::class)
             ->add('content', null, [
@@ -35,10 +40,6 @@ class WorkCommentAdmin extends AbstractAdmin
             ])
             ->add('info', TextType::class, [
                 'required' => false,
-            ])
-            ->add('createdAt', DateTimeType::class, [
-                'widget' => 'single_text',
-                'input' => 'datetime_immutable',
             ])
             ->add('isActive', CheckboxType::class, [
                 'required' => false,
@@ -50,8 +51,18 @@ class WorkCommentAdmin extends AbstractAdmin
     {
         $filter
             ->add('id')
-            ->add('work')
             ->add('author')
+            ->add('createdAt',
+                DateTimeRangeFilter::class,
+                [
+                    'field_type' => DateTimeRangePickerType::class,
+                    'field_options' => [
+                        'field_options' => [
+                            'format' => 'yyyy-MM-dd HH:mm',
+                        ]
+                    ]
+                ]
+            )
             ->add('isActive')
         ;
     }
@@ -59,10 +70,19 @@ class WorkCommentAdmin extends AbstractAdmin
     protected function configureListFields(ListMapper $list): void
     {
         $list
-            ->addIdentifier('id')
-            ->add('work')
+            ->addIdentifier('id', null, [
+                'route' => ['name' => 'edit'],
+            ])
+            ->add('content', FieldDescriptionInterface::TYPE_HTML, [
+                'truncate' => [
+                    'length' => 150,
+                ],
+                'header_style' => 'width: 50%',
+            ])
             ->add('author')
-            ->add('createdAt')
+            ->add('createdAt', null, [
+                'format' => 'Y-m-d H:i',
+            ])
             ->add('isActive', null, ['editable' => true])
             ->add(ListMapper::NAME_ACTIONS, null, [
                 'actions' => [
@@ -70,6 +90,7 @@ class WorkCommentAdmin extends AbstractAdmin
                     'edit' => [],
                     'delete' => [],
                 ],
+                'header_style' => 'width: 210px',
             ])
         ;
     }
@@ -78,7 +99,6 @@ class WorkCommentAdmin extends AbstractAdmin
     {
         $show
             ->add('id')
-            ->add('work')
             ->add('parent')
             ->add('author')
             ->add('content')
@@ -86,5 +106,11 @@ class WorkCommentAdmin extends AbstractAdmin
             ->add('createdAt')
             ->add('isActive')
         ;
+    }
+
+    protected function configureDefaultSortValues(array &$sortValues): void
+    {
+        $sortValues['_sort_by'] = 'createdAt';
+        $sortValues['_sort_order'] = 'DESC';
     }
 }
