@@ -1,12 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const authorNameKey = 'blog_comment_author_name';
-    const savedName = localStorage.getItem(authorNameKey);
+    const container = document.getElementById('comment-form');
+    if (!container) return;
 
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
+    const authorNameKey = container.dataset.storageKey || 'comment_author_name';
+    const savedName = localStorage.getItem(authorNameKey);
+    const commentUrl = container.dataset.commentUrl;
 
     function bindToggle(link) {
         link.addEventListener('click', function(e) {
@@ -28,11 +26,18 @@ document.addEventListener('DOMContentLoaded', function() {
             // Move form
             if (isRoot) {
                 const topActions = document.querySelector('.comment-actions-top');
-                topActions.after(form);
+                if (topActions) {
+                    topActions.after(form);
+                } else {
+                    const section = document.querySelector('.comments-section');
+                    if (section) section.prepend(form);
+                }
             } else {
                 const commentContainer = document.getElementById('comment-' + targetId);
-                const actions = commentContainer.querySelector('.comment-actions');
-                actions.after(form);
+                if (commentContainer) {
+                    const actions = commentContainer.querySelector('.comment-actions');
+                    if (actions) actions.after(form);
+                }
             }
 
             form.dataset.parentId = parentId;
@@ -47,9 +52,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function initForm() {
-        const container = document.getElementById('comment-form');
-        if (!container) return;
-
         const editor = container.querySelector('.comment-form-editor');
         const btnSubmit = container.querySelector('.btn-submit');
         const btnCancel = container.querySelector('.btn-cancel');
@@ -71,10 +73,15 @@ document.addEventListener('DOMContentLoaded', function() {
         btnCancel.addEventListener('click', function() {
             container.style.display = 'none';
         });
+
+        // Load saved name
+        if (savedName) {
+            const authorInput = container.querySelector('.comment-form-name');
+            if (authorInput) authorInput.value = savedName;
+        }
     }
 
     function submitComment(container) {
-        const postId = container.dataset.postId;
         const parentId = container.dataset.parentId;
         const authorInput = container.querySelector('.comment-form-name');
         const editor = container.querySelector('.comment-form-editor');
@@ -98,16 +105,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Save and sync name
         localStorage.setItem(authorNameKey, author);
-        document.querySelectorAll('.comment-form-name').forEach(input => {
-            input.value = author;
-        });
 
         errorDiv.style.display = 'none';
         submitBtn.disabled = true;
         const originalText = submitBtn.innerText;
         submitBtn.innerText = 'Отправка...';
 
-        fetch(`/post/${postId}/comment`, {
+        fetch(commentUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -138,11 +142,6 @@ document.addEventListener('DOMContentLoaded', function() {
         div.innerText = msg;
         div.style.display = 'block';
     }
-
-    // Initialize
-    document.querySelectorAll('.comment-form-name').forEach(input => {
-        if (savedName) input.value = savedName;
-    });
 
     document.querySelectorAll('.comment-toggle-link').forEach(bindToggle);
     initForm();

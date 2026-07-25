@@ -24,10 +24,13 @@
             <a href="#" class="comment-toggle-link" data-target="root">Оставить комментарий</a>
         </div>
 
-        {{ include('blog/_comment_form.html.twig', {postId: post.id}) }}
+        {{ include('common/comments/form.html.twig', {
+            commentUrl: path('blog_comment_save', {id: post.id}),
+            storageKey: 'blog_comment_author_name'
+        }) }}
 
         {% if rootComments is not empty %}
-            {{ include('blog/_comment_tree.html.twig', {comments: rootComments, postId: post.id}) }}
+            {{ include('common/comments/tree.html.twig', {comments: rootComments}) }}
         {% endif %}
     </section>
 

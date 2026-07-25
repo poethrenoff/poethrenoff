@@ -22,7 +22,7 @@
                 {% endfor %}
 
                 {% if activeChildren|length > 0 %}
-                    {{ include('blog/_comment_tree.html.twig', {comments: activeChildren, postId: postId}) }}
+                    {{ include('common/comments/tree.html.twig', {comments: activeChildren}) }}
                 {% endif %}
             </div>
         {% endif %}

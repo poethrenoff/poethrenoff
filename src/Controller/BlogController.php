@@ -12,9 +12,13 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 
+use App\Entity\BlogComment;
+use App\Traits\CommentUtilsTrait;
+
 #[Route(condition: "request.server.get('APP_SITE_CONTEXT') == 'blog'")]
 class BlogController extends AbstractController
 {
+    use CommentUtilsTrait;
     public function __construct(
         private BlogPostRepository $postRepository,
         private BlogCommentRepository $commentRepository,
@@ -91,7 +95,7 @@ class BlogController extends AbstractController
             return $this->json(['error' => 'Комментарий не может быть пустым'], Response::HTTP_BAD_REQUEST);
         }
 
-        $comment = new \App\Entity\BlogComment();
+        $comment = new BlogComment();
         $comment->setPost($post);
         $comment->setAuthor($author);
         $comment->setContent($sanitizedContent);
@@ -192,26 +196,5 @@ class BlogController extends AbstractController
     {
         $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
         return $response;
-    }
-
-    private function autolink(string $html): string
-    {
-        return preg_replace_callback(
-            '/(<a[^>]*>.*?<\/a>)|(<[^>]+>)|(https?:\/\/[^\s<]+)/is',
-            function ($matches) {
-                if (!empty($matches[1])) {
-                    return $matches[1];
-                }
-                if (!empty($matches[2])) {
-                    return $matches[2];
-                }
-                if (!empty($matches[3])) {
-                    $url = $matches[3];
-                    return '<a href="' . $url . '">' . $url . '</a>';
-                }
-                return $matches[0];
-            },
-            $html
-        );
     }
 }

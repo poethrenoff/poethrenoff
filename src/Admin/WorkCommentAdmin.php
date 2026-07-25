@@ -30,7 +30,9 @@ class WorkCommentAdmin extends AbstractAdmin
                 'required' => false,
             ])
             ->add('author', TextType::class)
-            ->add('content', TextareaType::class)
+            ->add('content', null, [
+                'attr' => ['class' => 'trumbowyg-editor'],
+            ])
             ->add('info', TextType::class, [
                 'required' => false,
             ])

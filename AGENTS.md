@@ -152,6 +152,28 @@ BREAKING CHANGE: old payment API endpoints are removed
 
 ## Текущее состояние (2026-07-25)
 
+- Выполнено переименование шаблонов:
+    - `templates/common/comments/_form.html.twig` -> `form.html.twig`
+    - `templates/common/comments/_tree.html.twig` -> `tree.html.twig`
+    - `templates/site/_group_tree.html.twig` -> `group_tree.html.twig`
+- Обновлены все ссылки на данные шаблоны в файлах `blog/post.html.twig`, `site/work.html.twig`, `site/group.html.twig` и в самих шаблонах (для рекурсии).
+
+## Текущее состояние (2026-07-25)
+
+- Выполнен перенос общих шаблонов: файлы `metrika.html.twig` и `pagination.html.twig` перемещены из `templates/_partials/` в `templates/common/`. Обновлены все ссылки в шаблонах блога и основного сайта. Директория `templates/_partials/` удалена.
+
+## Текущее состояние (2026-07-25)
+
+- Реализована система комментариев для произведений (сущности `Work`, `WorkComment`):
+    - Стили комментариев вынесены в `public/assets/common.css` для переиспользования между блогом и основным сайтом.
+    - JavaScript логика комментариев перенесена в `public/assets/js/comments.js` и сделана универсальной.
+    - Созданы общие шаблоны в `templates/common/comments/` (`_form.html.twig`, `_tree.html.twig`).
+    - Логика авторазметки ссылок вынесена в `App\Traits\CommentUtilsTrait`.
+    - В `SiteController` добавлен эндпоинт `work_comment_save` и реализован вывод комментариев на странице произведения.
+    - Обновлены шаблоны `templates/site/work.html.twig` и `templates/blog/post.html.twig` для использования общих компонентов.
+
+## Текущее состояние (2026-07-25)
+
 - Реализовано сохранение метаданных комментария: в поле `info` сущности `BlogComment` теперь записываются IP-адрес и User-Agent отправителя в формате `IP | User-Agent`. Изменения внесены в метод `saveComment` контроллера `BlogController`.
 
 ## Текущее состояние (2026-07-25)

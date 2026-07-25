@@ -67,6 +67,8 @@ services:
     # WorkCommentAdmin
     App\Admin\WorkCommentAdmin:
         public: true
+        calls:
+            - [setTemplate, [layout, admin/layout.html.twig]]
         tags:
             - { name: sonata.admin, manager_type: orm, group: work, label: Comments, model_class: App\Entity\WorkComment }
 

@@ -21,6 +21,21 @@
         </button>
     </div>
 
+    <section class="comments-section">
+        <div class="comment-actions-top">
+            <a href="#" class="comment-toggle-link" data-target="root">Оставить комментарий</a>
+        </div>
+
+        {{ include('common/comments/form.html.twig', {
+            commentUrl: path('work_comment_save', {id: work.id}),
+            storageKey: 'work_comment_author_name'
+        }) }}
+
+        {% if rootComments is not empty %}
+            {{ include('common/comments/tree.html.twig', {comments: rootComments}) }}
+        {% endif %}
+    </section>
+
     {% if prev_work or next_work %}
         <div class="side-nav">
             {% if prev_work %}
@@ -38,6 +53,7 @@
 {% endblock %}
 
 {% block javascripts %}
+    {{ parent() }}
     <script>
         document.addEventListener('keydown', function(e) {
             const tag = document.activeElement?.tagName;

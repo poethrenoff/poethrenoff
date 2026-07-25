@@ -2,13 +2,11 @@ framework:
     html_sanitizer:
         sanitizers:
             default:
-                allow_elements:
-                    p: []
-                    b: []
-                    i: []
-                    u: []
-                    s: []
-                    br: []
-                    em: []
-                    strong: []
-                    a: ["href"]
+                allow_elements: {
+                    p: [], b: [], i: [], u: [], s: [], br: [], em: [], strong: [],
+                    div: [], pre: [], code: [], span: [], center: [], blockquote: [],
+                    h1: [], h2: [], h3: [], h4: [], a: ['href'], img: ['src', 'height', 'width']
+                }
+                allowed_link_schemes: ['https']
+                allowed_media_schemes: ['https']
+

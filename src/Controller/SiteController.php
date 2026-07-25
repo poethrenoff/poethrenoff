@@ -9,6 +9,7 @@ use App\Repository\WorkVoteRepository;
 use App\Repository\PictureRepository;
 use App\Entity\WorkGroup;
 use App\Entity\WorkVote;
+use App\Entity\WorkComment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,18 +18,25 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use App\Repository\WorkCommentRepository;
+use App\Traits\CommentUtilsTrait;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 
 #[Route(condition: "request.server.get('APP_SITE_CONTEXT') == 'www'")]
 class SiteController extends AbstractController
 {
+    use CommentUtilsTrait;
+
     public function __construct(
         private StaticTextRepository $staticTextRepository,
         private WorkGroupRepository $workGroupRepository,
         private WorkRepository $workRepository,
         private PictureRepository $pictureRepository,
         private WorkVoteRepository $workVoteRepository,
+        private WorkCommentRepository $workCommentRepository,
         private EntityManagerInterface $entityManager,
         private CsrfTokenManagerInterface $csrfTokenManager,
+        private HtmlSanitizerInterface $htmlSanitizer,
     ) {
     }
 
@@ -110,8 +118,12 @@ class SiteController extends AbstractController
 
         $prevNext = $this->workRepository->findPrevNext($work);
 
+        $allComments = $this->workCommentRepository->findActiveByWork($work);
+        $rootComments = array_filter($allComments, fn($c) => $c->getParent() === null);
+
         return $this->render('site/work.html.twig', [
             'work' => $work,
+            'rootComments' => $rootComments,
             'prev_work' => $prevNext['prev'],
             'next_work' => $prevNext['next'],
             'breadcrumbs' => $breadcrumbs,
@@ -202,8 +214,12 @@ class SiteController extends AbstractController
 
         $prevNext = $this->workRepository->findPrevNext($randomWork);
 
+        $allComments = $this->workCommentRepository->findActiveByWork($randomWork);
+        $rootComments = array_filter($allComments, fn($c) => $c->getParent() === null);
+
         return $this->render('site/work.html.twig', [
             'work' => $randomWork,
+            'rootComments' => $rootComments,
             'prev_work' => $prevNext['prev'],
             'next_work' => $prevNext['next'],
             'breadcrumbs' => $breadcrumbs,
@@ -268,6 +284,55 @@ class SiteController extends AbstractController
         return new JsonResponse([
             'likes' => $work->getLikesCount(),
             'dislikes' => $work->getDislikesCount(),
+        ]);
+    }
+
+    #[Route('/work/comment/{id}', name: 'work_comment_save', methods: ['POST'])]
+    public function saveComment(Request $request, int $id): Response
+    {
+        $work = $this->workRepository->findOneActiveById($id);
+        if (!$work) {
+            return $this->json(['error' => 'Work not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $author = trim($data['author'] ?? '');
+        $content = $data['content'] ?? '';
+        $parentId = $data['parentId'] ?? null;
+
+        if (empty($author)) {
+            return $this->json(['error' => 'Имя обязательно'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $sanitizedContent = $this->htmlSanitizer->sanitize($this->autolink($content));
+        if (empty(strip_tags($sanitizedContent))) {
+            return $this->json(['error' => 'Комментарий не может быть пустым'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $comment = new WorkComment();
+        $comment->setWork($work);
+        $comment->setAuthor($author);
+        $comment->setContent($sanitizedContent);
+        $comment->setCreatedAt(new \DateTimeImmutable());
+        $comment->setIsActive(true);
+        $comment->setInfo(sprintf('%s, %s', $request->getClientIp(), $request->headers->get('User-Agent')));
+
+        if ($parentId) {
+            $parent = $this->workCommentRepository->find($parentId);
+            if ($parent && $parent->getWork()->getId() === $work->getId()) {
+                $comment->setParent($parent);
+            }
+        }
+
+        $this->entityManager->persist($comment);
+        $this->entityManager->flush();
+
+        return $this->json([
+            'id' => $comment->getId(),
+            'author' => $comment->getAuthor(),
+            'content' => $comment->getContent(),
+            'createdAt' => $comment->getCreatedAt()->format('d.m.Y H:i'),
+            'parentId' => $comment->getParent() ? $comment->getParent()->getId() : null,
         ]);
     }
 

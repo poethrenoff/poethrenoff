@@ -42,5 +42,9 @@
         </div>
     </footer>
 
-    {% include '_partials/metrika.html.twig' %}
+    {% include 'common/metrika.html.twig' %}
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('assets/js/comments.js') }}"></script>
 {% endblock %}

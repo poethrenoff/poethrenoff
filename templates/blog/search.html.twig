@@ -39,7 +39,7 @@
             </article>
         {% endfor %}
 
-        {% include '_partials/pagination.html.twig' %}
+        {% include 'common/pagination.html.twig' %}
     {% elseif searchText or currentTag %}
         <p>По вашему запросу ничего не найдено.</p>
     {% endif %}
