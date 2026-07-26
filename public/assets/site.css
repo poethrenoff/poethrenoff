@@ -1,17 +1,10 @@
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+}
 
 .main-content {
     padding: 4rem 1rem 5rem 1rem;
-}
-
-a.site-title {
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--fg);
-    text-decoration: none;
-}
-
-a.site-title:hover {
-    text-decoration: none;
 }
 
 .breadcrumb {
@@ -151,51 +144,5 @@ a.site-title:hover {
 
 .content pre {
     white-space: pre-wrap;
-}
-
-.site-header,
-.site-footer {
-    position: fixed;
-    left: 0;
-    right: 0;
-    z-index: 50;
-    height: 64px;
-    background-color: var(--bg);
-}
-
-.site-header {
-    top: 0;
-    border-bottom: 1px solid var(--border);
-}
-
-.site-footer {
-    bottom: 0;
-    border-top: 1px solid var(--border);
-}
-
-.site-header-bar {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    height: 100%;
-}
-
-.site-footer-bar {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    gap: 0.5rem;
-}
-
-.site-footer-links {
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
 }
 

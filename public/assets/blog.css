@@ -1,16 +1,10 @@
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+}
+
 .main-content {
     padding: 4rem 1rem 2rem 1rem;
-}
-
-a.site-title {
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--fg);
-    text-decoration: none;
-}
-
-a.site-title:hover {
-    text-decoration: none;
 }
 
 .post {
@@ -76,26 +70,4 @@ a.site-title:hover {
     flex-wrap: wrap;
     margin-bottom: 2rem;
     gap: 0.5rem;
-}
-
-.site-header {
-    position: fixed;
-    left: 0;
-    right: 0;
-    z-index: 50;
-    height: 64px;
-    background-color: var(--bg);
-}
-
-.site-header {
-    top: 0;
-    border-bottom: 1px solid var(--border);
-}
-
-.site-header-bar {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    height: 100%;
 }

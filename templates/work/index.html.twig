@@ -2,13 +2,15 @@
 
 {% block content %}
     <div x-data="app" x-cloak>
-        <header>
-            <h1>Блокнот</h1>
-            <p x-show="generalError" class="general-error" x-text="generalError"></p>
-            <nav>
-                <a href="#" @click.prevent="go('feed')" :class="view==='feed' ? 'active' : ''">Лента</a>
-                <a href="#" @click.prevent="go('trash')" :class="view==='trash' ? 'active' : ''">Корзина</a>
-            </nav>
+        <header class="site-header">
+            <div class="container site-header-bar">
+                <a href="/" class="site-title">Мастерская</a>
+                <p x-show="generalError" class="general-error" x-text="generalError"></p>
+                <nav>
+                    <a href="#" @click.prevent="go('feed')" :class="view==='feed' ? 'active' : ''">Лента</a>
+                    <a href="#" @click.prevent="go('trash')" :class="view==='trash' ? 'active' : ''">Корзина</a>
+                </nav>
+            </div>
         </header>
 
         <div class="dashboard-panel" x-show="stats.total !== undefined">
@@ -414,6 +416,8 @@
                         }),
                     });
                     if (res && res.ok) {
+                        const updated = await res.json();
+                        Object.assign(poem, updated);
                         this.editingId = null;
                         this.originalPoem = null;
                     } else if (res) {

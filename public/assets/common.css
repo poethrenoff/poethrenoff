@@ -29,11 +29,6 @@ a:hover {
     text-decoration: underline;
 }
 
-.container {
-    max-width: 960px;
-    margin: 0 auto;
-}
-
 /* Pagination */
 .pagination {
     display: flex;
@@ -229,4 +224,82 @@ a:hover {
 .btn-cancel {
     background: var(--tag-bg);
     color: var(--muted);
+}
+
+/* Site Header & Footer */
+.site-header,
+.site-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    height: 64px;
+    background-color: var(--bg);
+}
+
+.site-header {
+    top: 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.site-footer {
+    bottom: 0;
+    border-top: 1px solid var(--border);
+}
+
+.site-header-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+}
+
+.site-footer-bar {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    gap: 0.5rem;
+}
+
+.site-footer-links {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+}
+
+a.site-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--fg);
+    text-decoration: none;
+}
+
+a.site-title:hover {
+    text-decoration: none;
+}
+
+/* Header nav */
+.site-header-bar nav {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.site-header-bar nav a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+.site-header-bar nav a:hover {
+    text-decoration: underline;
+}
+
+.site-header-bar nav a.active {
+    font-weight: bold;
 }
