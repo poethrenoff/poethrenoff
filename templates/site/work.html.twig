@@ -53,49 +53,7 @@
 {% endblock %}
 
 {% block javascripts %}
-    {{ parent() }}
-    <script>
-        document.addEventListener('keydown', function(e) {
-            const tag = document.activeElement?.tagName;
-            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (document.activeElement?.getAttribute('contenteditable') === 'true')) {
-                return;
-            }
-
-            const nav = document.querySelector('.side-nav');
-            if (!nav) return;
-
-            if (e.key === 'ArrowLeft') {
-                const link = nav.querySelector('.nav-prev');
-                if (link) { e.preventDefault(); link.click(); }
-            } else if (e.key === 'ArrowRight') {
-                const link = nav.querySelector('.nav-next');
-                if (link) { e.preventDefault(); link.click(); }
-            }
-        });
-
-        document.querySelectorAll('.vote-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                const container = this.closest('.work-stats');
-                const workId = container.dataset.workId;
-                const token = container.dataset.token;
-                const type = this.dataset.type;
-
-                const formData = new FormData();
-                formData.append('_token', token);
-                formData.append('type', type);
-
-                fetch(`/work/vote/${workId}`, {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.error) {
-                        container.querySelector('.vote-btn[data-type="like"] .count').textContent = data.likes;
-                        container.querySelector('.vote-btn[data-type="dislike"] .count').textContent = data.dislikes;
-                    }
-                });
-            });
-        });
-    </script>
+    <script src="{{ asset('assets/js/comments.js') }}"></script>
+    <script src="{{ asset('assets/js/navigation.js') }}"></script>
+    <script src="{{ asset('assets/js/vote.js') }}"></script>
 {% endblock %}

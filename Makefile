@@ -13,6 +13,12 @@ down:
 update:
 	@docker compose -f docker-compose.yml exec php composer update -W
 
+phpcs:
+	@docker compose -f docker-compose.yml exec php bin/phpcs
+
+phpcbf:
+	@docker compose -f docker-compose.yml exec php bin/phpcbf
+
 cache-clear:
 	@docker compose -f docker-compose.yml exec php bin/console cache:clear
 

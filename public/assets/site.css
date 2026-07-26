@@ -27,6 +27,12 @@
     content: '';
 }
 
+@media (max-width: 640px) {
+    .breadcrumb {
+        display: none;
+    }
+}
+
 .gallery-grid {
     display: grid;
     gap: 1rem;
@@ -38,6 +44,12 @@
     column-count: 2;
     column-gap: 1.5rem;
     padding: 1rem 0 0 0;
+}
+
+@media (max-width: 640px) {
+    .columns-2 {
+        column-count: 1;
+    }
 }
 
 .padding-main {
@@ -145,4 +157,3 @@
 .content pre {
     white-space: pre-wrap;
 }
-

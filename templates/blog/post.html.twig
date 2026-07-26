@@ -51,24 +51,6 @@
 {% endblock %}
 
 {% block javascripts %}
-    {{ parent() }}
-    <script>
-        document.addEventListener('keydown', function(e) {
-            const tag = document.activeElement?.tagName;
-            if (tag === 'INPUT' || tag === 'TEXTAREA' || (document.activeElement?.getAttribute('contenteditable') === 'true')) {
-                return;
-            }
-
-            const nav = document.querySelector('.side-nav');
-            if (!nav) return;
-
-            if (e.key === 'ArrowLeft') {
-                const link = nav.querySelector('.nav-prev');
-                if (link) { e.preventDefault(); link.click(); }
-            } else if (e.key === 'ArrowRight') {
-                const link = nav.querySelector('.nav-next');
-                if (link) { e.preventDefault(); link.click(); }
-            }
-        });
-    </script>
+    <script src="{{ asset('assets/js/comments.js') }}"></script>
+    <script src="{{ asset('assets/js/navigation.js') }}"></script>
 {% endblock %}

@@ -3,22 +3,16 @@
 {% block title %}Log in{% endblock %}
 
 {% block body %}
-<div class="container" style="margin-top: 50px; max-width: 400px; margin-left: auto; margin-right: auto; font-family: sans-serif;">
+<div class="container" style="margin-top: 50px; max-width: 400px; margin-left: auto; margin-right: auto; padding: 1rem;">
     <form method="post">
         {% if error %}
-            <divstyle="color: #cc3333; margin-bottom: 15px; border: 1px solid #cc3333; padding: 10px;">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
-        {% endif %}
-
-        {% if app.user %}
-            <div">
-                You are logged in as {{ app.user.userIdentifier }}, <a href="{{ path('admin_logout') }}">Logout</a>
-            </div>
+            <div style="color: #cc3333; margin-bottom: 15px; border: 1px solid #cc3333; padding: 10px;">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
         {% endif %}
 
         <h1>Admin Login</h1>
         <div style="margin-bottom: 10px;">
             <label for="inputEmail" style="display: block; margin-bottom: 5px;">Email</label>
-            <input type="email" value="{{ last_username }}" name="_username" id="inputEmail"autocomplete="email" required autofocus style="width: 100%; padding: 8px; box-sizing: border-box;">
+            <input type="email" value="{{ last_username }}" name="_username" id="inputEmail" autocomplete="email" required autofocus style="width: 100%; padding: 8px; box-sizing: border-box;">
         </div>
         <div style="margin-bottom: 10px;">
             <label for="inputPassword" style="display: block; margin-bottom: 5px;">Password</label>

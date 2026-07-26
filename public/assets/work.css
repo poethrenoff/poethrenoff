@@ -3,12 +3,12 @@
 }
 
 .container {
-    margin: 0 1rem;
+    max-width: 960px;
+    margin: 0 auto;
 }
 
-main {
-    max-width: 960px;
-    margin: 82px auto 0 ;
+.main-content {
+    padding: 5rem 1rem 0 1rem;
 }
 
 .toolbar {
@@ -112,8 +112,9 @@ main {
 }
 
 .poem .title-input {
-    width: 98%;
+    width: 100%;
     padding: 0.5rem;
+    box-sizing: border-box;
     border: 1px solid var(--border);
     border-radius: 3px;
     color: var(--fg);
@@ -121,18 +122,20 @@ main {
 }
 
 .poem-textarea {
-    width: 98%;
+    width: 100%;
     padding: 0.5rem;
+    box-sizing: border-box;
     border: 1px solid var(--border);
     border-radius: 3px;
-    margin-top: 8px;
+    margin: 8px auto 0;
     color: var(--fg);
     background: var(--white);
 }
 
 .poem .comment-input {
-    width: 98%;
+    width: 100%;
     padding: 0.5rem;
+    box-sizing: border-box;
     border: 1px solid var(--border);
     border-radius: 3px;
     margin-top: 8px;
@@ -204,4 +207,10 @@ main {
 .dash-label {
     font-size: 0.875rem;
     color: var(--muted);
+}
+
+@media (max-width: 1600px) {
+    .dashboard-panel {
+        display: none;
+    }
 }

@@ -3,7 +3,7 @@
 {% block content %}
     <div x-data="app" x-cloak>
         <header class="site-header">
-            <div class="container site-header-bar">
+            <div class="site-header-bar">
                 <a href="/" class="site-title">Мастерская</a>
                 <p x-show="generalError" class="general-error" x-text="generalError"></p>
                 <nav>
@@ -24,7 +24,7 @@
             </div>
         </div>
 
-        <main x-show="view==='feed'">
+        <main x-show="view==='feed'" class="container main-content">
             <div class="toolbar">
                 <button class="btn" @click="openNew()">+ Новый стих</button>
                 <span x-show="loading" class="loading">Загрузка…</span>
