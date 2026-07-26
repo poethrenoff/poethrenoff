@@ -1,4 +1,5 @@
 parameters:
+    app.vote_salt: '%env(resolve:APP_VOTE_SALT)%'
 
 # Parameters for the current project Kilo
 # See https://kilo.ai/docs/default-agent/t/config/parameter-overrides for more info.

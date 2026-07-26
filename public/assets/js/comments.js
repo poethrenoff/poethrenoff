@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const authorNameKey = container.dataset.storageKey || 'comment_author_name';
     const savedName = localStorage.getItem(authorNameKey);
     const commentUrl = container.dataset.commentUrl;
+    const csrfToken = container.dataset.csrfToken;
 
     function bindToggle(link) {
         link.addEventListener('click', function(e) {
@@ -119,7 +120,8 @@ document.addEventListener('DOMContentLoaded', function() {
             body: JSON.stringify({
                 author: author,
                 content: content,
-                parentId: parentId || null
+                parentId: parentId || null,
+                _token: csrfToken
             })
         })
         .then(response => {

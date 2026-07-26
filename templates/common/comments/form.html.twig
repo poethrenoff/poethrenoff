@@ -1,6 +1,7 @@
 <div class="comment-form-container" id="comment-form" 
      data-comment-url="{{ commentUrl }}" 
      data-storage-key="{{ storageKey|default('comment_author_name') }}"
+     data-csrf-token="{{ csrf_token('comment') }}"
      data-parent-id="" style="display: none;">
     <div class="comment-form-error"></div>
     <div class="comment-form">

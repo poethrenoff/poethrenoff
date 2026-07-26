@@ -11,6 +11,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
+use Symfony\Component\Security\Csrf\CsrfToken;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use App\Entity\BlogComment;
 use App\Traits\CommentUtilsTrait;
 
@@ -25,6 +27,7 @@ class BlogController extends AbstractController
         private TagRepository $tagRepository,
         private EntityManagerInterface $entityManager,
         private HtmlSanitizerInterface $htmlSanitizer,
+        private CsrfTokenManagerInterface $csrfTokenManager,
     ) {
     }
 
@@ -82,6 +85,12 @@ class BlogController extends AbstractController
         }
 
         $data = json_decode($request->getContent(), true);
+
+        $token = $data['_token'] ?? '';
+        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken('comment', $token))) {
+            return $this->json(['error' => 'Invalid CSRF token'], Response::HTTP_FORBIDDEN);
+        }
+
         $author = trim($data['author'] ?? '');
         $content = $data['content'] ?? '';
         $parentId = $data['parentId'] ?? null;

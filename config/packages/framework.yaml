@@ -9,7 +9,13 @@ framework:
     session:
         cookie_domain: '.%env(BASE_DOMAIN)%'
         cookie_samesite: lax
+        cookie_httponly: true
         storage_factory_id: session.storage.factory.native
+
+when@prod:
+    framework:
+        session:
+            cookie_secure: true
 
 when@dev:
     framework:

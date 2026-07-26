@@ -246,15 +246,17 @@ class SiteController extends AbstractController
 
         $ip = $request->getClientIp() ?? '127.0.0.1';
         $sessionId = $request->getSession()->getId();
+        $userAgent = $request->headers->get('User-Agent', '');
 
-        $secret = $this->getParameter('kernel.secret');
-        $ipHash = hash('sha256', $ip . $secret);
-        $sessionHash = hash('sha256', $sessionId . $secret);
+        $salt = $this->getParameter('app.vote_salt');
+        $ipHash = hash('sha256', $ip . $salt);
+        $sessionHash = hash('sha256', $sessionId . $salt);
+        $userAgentHash = hash('sha256', $userAgent . $salt);
 
         $existingVote = $this->workVoteRepository->findOneBy([
             'work' => $work,
             'ipHash' => $ipHash,
-            'sessionHash' => $sessionHash,
+            'userAgentHash' => $userAgentHash,
         ]);
 
         if ($existingVote) {
@@ -265,6 +267,7 @@ class SiteController extends AbstractController
         $vote->setWork($work);
         $vote->setIpHash($ipHash);
         $vote->setSessionHash($sessionHash);
+        $vote->setUserAgentHash($userAgentHash);
         $vote->setVoteType($type);
 
         $this->entityManager->persist($vote);
@@ -296,6 +299,12 @@ class SiteController extends AbstractController
         }
 
         $data = json_decode($request->getContent(), true);
+
+        $token = $data['_token'] ?? '';
+        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken('comment', $token))) {
+            return $this->json(['error' => 'Invalid CSRF token'], Response::HTTP_FORBIDDEN);
+        }
+
         $author = trim($data['author'] ?? '');
         $content = $data['content'] ?? '';
         $parentId = $data['parentId'] ?? null;

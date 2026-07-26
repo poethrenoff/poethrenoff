@@ -7,7 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: WorkVoteRepository::class)]
-#[ORM\UniqueConstraint(name: 'uniq_work_vote', columns: ['work_id', 'ip_hash', 'session_hash'])]
+#[ORM\UniqueConstraint(name: 'uniq_work_vote', columns: ['work_id', 'ip_hash', 'user_agent_hash'])]
 class WorkVote
 {
     #[ORM\Id]
@@ -24,6 +24,9 @@ class WorkVote
 
     #[ORM\Column(type: Types::STRING, length: 64, nullable: true)]
     private ?string $sessionHash = null;
+
+    #[ORM\Column(type: Types::STRING, length: 64)]
+    private string $userAgentHash = '';
 
     #[ORM\Column(type: Types::STRING, length: 10)]
     private string $voteType = ''; // 'like' или 'dislike'
@@ -71,6 +74,17 @@ class WorkVote
     public function setSessionHash(?string $sessionHash): static
     {
         $this->sessionHash = $sessionHash;
+        return $this;
+    }
+
+    public function getUserAgentHash(): string
+    {
+        return $this->userAgentHash;
+    }
+
+    public function setUserAgentHash(string $userAgentHash): static
+    {
+        $this->userAgentHash = $userAgentHash;
         return $this;
     }
 
