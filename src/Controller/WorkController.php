@@ -82,6 +82,7 @@ class WorkController extends AbstractController
         return $this->json([
             'total' => $this->poemRepository->countActive(),
             'trash' => $this->poemRepository->countByStatus(PoemStatus::Trash->value),
+            'streak' => $this->poemRepository->findStreak(),
         ]);
     }
 

@@ -98,4 +98,43 @@ class PoemRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function findStreak(): int
+    {
+        $comments = $this->createQueryBuilder('p')
+            ->select('p.comment')
+            ->where('p.comment IS NOT NULL')
+            ->getQuery()
+            ->getScalarResult();
+
+        $dates = [];
+        foreach ($comments as $row) {
+            $c = $row['comment'];
+            if (!preg_match('/^\d{2}\.\d{2}\.\d{4}$/', $c)) {
+                continue;
+            }
+            $d = \DateTimeImmutable::createFromFormat('d.m.Y', $c);
+            if ($d && $d->format('d.m.Y') === $c) {
+                $dates[] = $d->format('Y-m-d');
+            }
+        }
+
+        $dates = array_unique($dates);
+        if (!$dates) {
+            return 0;
+        }
+
+        $today = new \DateTimeImmutable('today');
+        $todayStr = $today->format('Y-m-d');
+        $datesSet = array_flip($dates);
+
+        $streak = 0;
+        $day = $today;
+        while (isset($datesSet[$day->format('Y-m-d')])) {
+            $streak++;
+            $day = $day->modify('-1 day');
+        }
+
+        return $streak;
+    }
 }
