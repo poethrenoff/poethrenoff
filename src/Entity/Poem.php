@@ -119,7 +119,7 @@ class Poem
 
     public function getDisplayTitle(): string
     {
-        return preg_match('/\".*\.\.\.\"$/', $this->title) ? '* * *' : $this->title;
+        return preg_match('/\".*\.\.\.\"$/', $this->title) ? '* * *' : mb_strtoupper($this->title);
     }
 
     public function getContent(): string
@@ -267,5 +267,18 @@ class Poem
     public function __toString(): string
     {
         return (string) $this->title;
+    }
+
+    public function toExport(): string
+    {
+        $lines = [];
+
+        $lines[] = $this->getDisplayTitle();
+        $lines[] = $this->getContent();
+        if ($comment = $this->getComment()) {
+            $lines[] = $comment->format('d.m.Y');
+        }
+
+        return join("\n\n", $lines);
     }
 }

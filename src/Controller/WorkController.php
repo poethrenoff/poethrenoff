@@ -212,6 +212,19 @@ class WorkController extends AbstractController
         return $this->json($poem, context: ['groups' => 'poem:detail', 'datetime_format' => 'd.m.Y']);
     }
 
+    #[Route('/poems/export/', name: 'work_api_poems_export', methods: ['GET'])]
+    public function export(): Response
+    {
+        $poems = $this->poemRepository->findByStatus(PoemStatus::Draft);
+
+        $result = join("\n\n\n", array_map(fn (Poem $poem) => $poem->toExport(), $poems));
+
+        return new Response($result, 200, [
+            'Content-Type' => 'text/plain; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="Новые стихи.txt"',
+        ]);
+    }
+
     #[Route('/poems/{id}/', name: 'work_api_poems_delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]
     public function delete(Poem $poem): JsonResponse
     {
