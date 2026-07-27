@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const container = document.getElementById('comment-form');
     if (!container) return;
 
@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const csrfToken = container.dataset.csrfToken;
 
     function bindToggle(link) {
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', function (e) {
             e.preventDefault();
             const targetId = this.dataset.target;
             const form = document.getElementById('comment-form');
@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const btnCancel = container.querySelector('.btn-cancel');
 
         // Hotkeys
-        editor.addEventListener('keydown', function(e) {
+        editor.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey) {
                 e.preventDefault();
                 submitComment(container);
@@ -66,12 +66,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Submit
-        btnSubmit.addEventListener('click', function() {
+        btnSubmit.addEventListener('click', function () {
             submitComment(container);
         });
 
         // Cancel
-        btnCancel.addEventListener('click', function() {
+        btnCancel.addEventListener('click', function () {
             container.style.display = 'none';
         });
 
@@ -124,20 +124,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 _token: csrfToken
             })
         })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => { throw err; });
-            }
-            return response.json();
-        })
-        .then(data => {
-            location.reload();
-        })
-        .catch(error => {
-            showError(errorDiv, error.error || 'Произошла ошибка при отправке');
-            submitBtn.disabled = false;
-            submitBtn.innerText = originalText;
-        });
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw err;
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                location.reload();
+            })
+            .catch(error => {
+                showError(errorDiv, error.error || 'Произошла ошибка при отправке');
+                submitBtn.disabled = false;
+                submitBtn.innerText = originalText;
+            });
     }
 
     function showError(div, msg) {

@@ -1,5 +1,5 @@
 document.querySelectorAll('.vote-btn').forEach(button => {
-    button.addEventListener('click', function() {
+    button.addEventListener('click', function () {
         const container = this.closest('.work-stats');
         const workId = container.dataset.workId;
         const token = container.dataset.token;

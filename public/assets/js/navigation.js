@@ -1,4 +1,4 @@
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function (e) {
     const tag = document.activeElement?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (document.activeElement?.getAttribute('contenteditable') === 'true')) {
         return;
@@ -9,15 +9,21 @@ document.addEventListener('keydown', function(e) {
 
     if (e.key === 'ArrowLeft') {
         const link = nav.querySelector('.nav-prev');
-        if (link) { e.preventDefault(); link.click(); }
+        if (link) {
+            e.preventDefault();
+            link.click();
+        }
     } else if (e.key === 'ArrowRight') {
         const link = nav.querySelector('.nav-next');
-        if (link) { e.preventDefault(); link.click(); }
+        if (link) {
+            e.preventDefault();
+            link.click();
+        }
     }
 });
 
 /* Swipe Navigation for prev/next content */
-(function() {
+(function () {
     let startX = 0;
     let startY = 0;
     const threshold = 50;

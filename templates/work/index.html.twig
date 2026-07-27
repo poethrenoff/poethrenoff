@@ -24,6 +24,14 @@
             </div>
         </div>
 
+        <div class="toc-panel" x-show="toc.length > 0">
+            <div class="toc-list">
+                <template x-for="item in toc" :key="item.id">
+                    <a class="toc-link" @click.prevent="scrollToPoem(item.id)" x-text="item.title"></a>
+                </template>
+            </div>
+        </div>
+
         <main x-show="view==='feed'" class="container main-content">
             <div class="toolbar">
                 <button class="btn" @click="openNew()">+ Новый стих</button>
@@ -49,8 +57,8 @@
             </div>
 
             <div x-ref="list">
-                <template x-for="poem in poems" :key="poem.id">
-                    <div class="poem" :class="{ editing: editingId === poem.id }">
+                <template x-for="poem in (view === 'feed' ? poems : [])" :key="poem.id">
+                    <div class="poem" :class="{ editing: editingId === poem.id }" :id="'poem-' + poem.id">
                         <button class="icon-btn drag-handle" title="Перетащить" @click.prevent>
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"></circle><circle cx="9" cy="12" r="1"></circle><circle cx="9" cy="19" r="1"></circle><circle cx="15" cy="5" r="1"></circle><circle cx="15" cy="12" r="1"></circle><circle cx="15" cy="19" r="1"></circle></svg>
                         </button>
@@ -81,8 +89,8 @@
                                 </button>
                             </div>
                         </div>
-                        <textarea class="poem-textarea" tabindex="2" x-model="poem.content" x-show="editingId === poem.id" placeholder="Текст стиха" rows="10" tabindex="2" @keydown.escape="cancelEdit()"></textarea>
-                        <input class="comment-input" tabindex="3" x-model="poem.comment" x-show="editingId === poem.id" placeholder="Комментарий" tabindex="3" @keydown.enter="saveEdit(poem)" @keydown.escape="cancelEdit()">
+                        <textarea class="poem-textarea" tabindex="2" x-model="poem.content" x-show="editingId === poem.id" placeholder="Текст стиха" rows="10" @keydown.escape="cancelEdit()"></textarea>
+                        <input class="comment-input" tabindex="3" x-model="poem.comment" x-show="editingId === poem.id" placeholder="Комментарий" @keydown.enter="saveEdit(poem)" @keydown.escape="cancelEdit()">
                     </div>
                 </template>
             </div>
@@ -91,14 +99,15 @@
                 Пока пусто. Нажмите «Новый стих», чтобы начать.
             </div>
         </main>
-        <main x-show="view==='trash'">
+
+        <main x-show="view==='trash'" class="container main-content">
             <div class="toolbar">
                 <button class="btn secondary" @click="go('feed')">← В ленту</button>
                 <span x-show="loading" class="loading">Загрузка…</span>
             </div>
 
-            <template x-for="poem in poems" :key="poem.id">
-                <div class="poem">
+            <template x-for="poem in (view === 'trash' ? poems : [])" :key="poem.id">
+                <div class="poem" :id="'poem-' + poem.id">
                     <div class="poem-header">
                         <div class="poem-body">
                             <div class="poem-title" x-text="poem.title || '* * *'"></div>
@@ -144,6 +153,7 @@
                 originalPoem: null,
                 draftKey: 'newPoemDraft',
                 stats: { total: 0, trash: 0 },
+                toc: [],
 
                 async api(url, options = {}) {
                     options.headers = options.headers || {};
@@ -167,17 +177,17 @@
                     }
                 },
 
-                init() {
+                async init() {
                     this.view = 'feed';
-                    this.load();
-                    this.loadStats();
+                    await this.load();
+                    await this.loadStats();
 
                     this.$watch('newTitle', () => this.saveDraft());
                     this.$watch('newContent', () => this.saveDraft());
                     this.$watch('newComment', () => this.saveDraft());
                 },
 
-                openNew() {
+                async openNew() {
                     this.showNew = true;
                     try {
                         const raw = localStorage.getItem(this.draftKey);
@@ -190,28 +200,28 @@
                     } catch (e) {
                         this.clearDraft();
                     }
-                    this.$nextTick(() => {
+                    await this.$nextTick(() => {
                         const el = this.$refs.newForm.querySelector('.poem-textarea');
                         if (el) el.focus();
                     });
                 },
 
-                cancelNew() {
+                async cancelNew() {
                     this.showNew = false;
                     this.newTitle = '';
                     this.newContent = '';
                     this.newComment = '';
-                    this.clearDraft();
+                    await this.clearDraft();
                 },
 
-                clearDraft() {
+                async clearDraft() {
                     localStorage.removeItem(this.draftKey);
                 },
 
-                saveDraft() {
+                async saveDraft() {
                     if (!this.showNew) return;
                     if (!this.newTitle && !this.newContent && !this.newComment) {
-                        this.clearDraft();
+                        await this.clearDraft();
                         return;
                     }
                     localStorage.setItem(this.draftKey, JSON.stringify({
@@ -221,10 +231,10 @@
                     }));
                 },
 
-                go(target) {
+                async go(target) {
                     this.view = target;
                     this.poems = [];
-                    this.load();
+                    await this.load();
                 },
 
                 async extractError(res) {
@@ -249,32 +259,35 @@
                 },
 
                 async load() {
-                     this.loading = true;
-                     this.generalError = '';
-                     const status = this.view === 'trash' ? 'trash' : 'draft';
-                     const res = await this.api(`/poems/?status=${status}`, {
-                         headers: {
-                             'Accept': 'application/json'
-                         }
-                     });
-                     if (!res) {
-                         this.loading = false;
-                         return;
-                     }
-                     if (!res.ok) {
-                         this.poems = [];
-                         this.generalError = await this.extractError(res);
-                         this.loading = false;
-                         return;
-                     }
-                     const data = await res.json();
-                     this.poems = data.results || data;
-                     if (this.view === 'feed' && data.total !== undefined) {
-                         this.stats.total = data.total;
-                     }
-                     if (this.view === 'feed') this.initSortable();
-                     this.loading = false;
-                 },
+                    this.loading = true;
+                    this.generalError = '';
+                    const status = this.view === 'trash' ? 'trash' : 'draft';
+                    const res = await this.api(`/poems/?status=${status}`, {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    if (!res) {
+                        this.loading = false;
+                        return;
+                    }
+                    if (!res.ok) {
+                        this.poems = [];
+                        this.generalError = await this.extractError(res);
+                        this.loading = false;
+                        return;
+                    }
+                    const data = await res.json();
+                    this.poems = data.results || data;
+                    if (this.view === 'feed' && data.total !== undefined) {
+                        this.stats.total = data.total;
+                    }
+                    if (this.view === 'feed') {
+                        this.$nextTick(() => this.initSortable());
+                    }
+                    await this.updateToc();
+                    this.loading = false;
+                },
 
                 async loadStats() {
                     const res = await this.api('/poems/stats/');
@@ -285,10 +298,31 @@
                     }
                 },
 
+                async updateToc() {
+                    this.toc = this.poems.map(p => ({ id: p.id, title: p.title }));
+                },
+
+                async scrollToPoem(id) {
+                    let el = document.getElementById('poem-' + id);
+                    if (!el) {
+                        this.view = 'feed';
+                        await this.load();
+                        await new Promise(r => this.$nextTick(r));
+                        el = document.getElementById('poem-' + id);
+                    }
+
+                    if (el) {
+                        const header = document.querySelector('.site-header');
+                        const offset = header ? header.offsetHeight : 0;
+                        const top = el.getBoundingClientRect().top + window.scrollY - offset - 14;
+                        window.scrollTo({ top, behavior: 'smooth' });
+                    }
+                },
+
                 _sortableMovedEl: null,
                 _sortableMovedNext: null,
 
-                initSortable() {
+                async initSortable() {
                     if (this.sortable) this.sortable.destroy();
                     if (!this.$refs.list) return;
                     this.sortable = Sortable.create(this.$refs.list, {
@@ -339,68 +373,71 @@
                         if (res) {
                             this.generalError = await this.extractError(res);
                         }
+                    } else {
+                        await this.updateToc();
                     }
                 },
 
                 async create() {
-                     if (!this.newContent.trim() && !this.newTitle.trim()) return;
+                    if (!this.newContent.trim() && !this.newTitle.trim()) return;
 
-                     this.generalError = '';
-                     const res = await this.api('/poems/', {
-                         method: 'POST',
-                         body: JSON.stringify({
-                             title: this.newTitle || null,
-                             content: this.newContent,
-                             comment: this.newComment || null,
-                         })
-                     });
-                     if (res && res.ok) {
-                         this.newTitle = '';
-                         this.newContent = '';
-                         this.newComment = '';
-                         this.showNew = false;
-                         this.clearDraft();
-                         await this.load();
-                         this.loadStats();
-                     } else if (res) {
-                         this.generalError = await this.extractError(res);
-                     }
+                    this.generalError = '';
+                    const res = await this.api('/poems/', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            title: this.newTitle || null,
+                            content: this.newContent,
+                            comment: this.newComment || null,
+                        })
+                    });
+                    if (res && res.ok) {
+                        this.newTitle = '';
+                        this.newContent = '';
+                        this.newComment = '';
+                        this.showNew = false;
+                        await this.clearDraft();
+                        await this.load();
+                        await this.updateToc();
+                        await this.loadStats();
+                    } else if (res) {
+                        this.generalError = await this.extractError(res);
+                    }
                 },
 
-                edit(poem) {
+                async edit(poem) {
                     this.originalPoem = { ...poem };
                     this.editingId = poem.id;
-                    this.$nextTick(() => {
+                    await this.$nextTick(() => {
                         const el = document.querySelector(`.editing .poem-textarea`);
                         if (el) el.focus();
                     });
                 },
 
-                copyPoem(poem) {
-                     const title = poem.title || '* * *';
-                     const content = poem.content || '';
-                     const comment = poem.comment || '';
-                     const parts = [title, content];
-                     if (comment) parts.push(comment);
-                     const text = parts.join('\n\n');
-                     const ta = document.createElement('textarea');
-                     ta.value = text;
-                     ta.style.position = 'fixed';
-                     ta.style.left = '-9999px';
-                     document.body.appendChild(ta);
-                     ta.select();
-                     const successful = document.execCommand('copy');
-                     document.body.removeChild(ta);
-                     if (successful) {
-                         const btn = document.querySelector(`[data-copy-id="${poem.id}"]`);
-                         if (btn) {
-                             btn.classList.add('copied');
-                             setTimeout(() => btn.classList.remove('copied'), 1500);
-                         }
-                     }
-                 },
+                async copyPoem(poem) {
+                    const title = poem.title || '* * *';
+                    const content = poem.content || '';
+                    const comment = poem.comment || '';
+                    const parts = [title, content];
+                    if (comment) parts.push(comment);
+                    const text = parts.join('\n\n');
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.position = 'fixed';
+                    ta.style.left = '-9999px';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    const successful = document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    if (successful) {
+                        const btn = document.querySelector(`[data-copy-id="${poem.id}"]`);
+                        if (btn) {
+                            btn.classList.add('copied');
+                            setTimeout(() => btn.classList.remove('copied'), 1500);
+                        }
+                    }
+                },
 
-                cancelEdit() {
+                async cancelEdit() {
                     this.editingId = null;
                     this.originalPoem = null;
                 },
@@ -418,6 +455,7 @@
                     if (res && res.ok) {
                         const updated = await res.json();
                         Object.assign(poem, updated);
+                        await this.updateToc();
                         this.editingId = null;
                         this.originalPoem = null;
                     } else if (res) {
@@ -430,7 +468,8 @@
                     const res = await this.api(`/poems/${poem.id}/trash/`, { method: 'POST' });
                     if (res && res.ok) {
                         await this.load();
-                        this.loadStats();
+                        await this.updateToc();
+                        await this.loadStats();
                     } else if (res) {
                         this.generalError = await this.extractError(res);
                     }
@@ -441,7 +480,8 @@
                     const res = await this.api(`/poems/${poem.id}/restore/`, { method: 'POST' });
                     if (res && res.ok) {
                         await this.load();
-                        this.loadStats();
+                        await this.updateToc();
+                        await this.loadStats();
                     } else if (res) {
                         this.generalError = await this.extractError(res);
                     }
@@ -453,7 +493,8 @@
                     const res = await this.api(`/poems/${poem.id}/`, { method: 'DELETE' });
                     if (res && res.ok) {
                         await this.load();
-                        this.loadStats();
+                        await this.updateToc();
+                        await this.loadStats();
                     } else if (res) {
                         this.generalError = await this.extractError(res);
                     }
