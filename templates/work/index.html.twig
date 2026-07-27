@@ -14,21 +14,25 @@
         </header>
 
         <div class="dashboard-panel" x-show="stats.total !== undefined">
-            <div class="dash-stat">
-                <span class="dash-value" x-text="stats.total"></span>
-                <span class="dash-label">Стихов</span>
+            <div class="dash-row">
+                <div class="dash-stat">
+                    <span class="dash-value" x-text="stats.total"></span>
+                    <span class="dash-label">Стихов</span>
+                </div>
+                <div class="dash-stat" x-show="stats.trash > 0">
+                    <span class="dash-value" x-text="stats.trash"></span>
+                    <span class="dash-label">В корзине</span>
+                </div>
             </div>
-            <div class="dash-stat" x-show="stats.trash > 0">
-                <span class="dash-value" x-text="stats.trash"></span>
-                <span class="dash-label">В корзине</span>
-            </div>
-            <div class="dash-stat">
-                <span class="dash-value" x-text="stats.streak"></span>
-                <span class="dash-label">Дней подряд</span>
-            </div>
-            <div class="dash-stat">
-                <span class="dash-value" x-text="stats.max_streak"></span>
-                <span class="dash-label">Макс. дней подряд</span>
+            <div class="dash-row">
+                <div class="dash-stat">
+                    <span class="dash-value" x-text="stats.streak"></span>
+                    <span class="dash-label">Дней подряд</span>
+                </div>
+                <div class="dash-stat">
+                    <span class="dash-value" x-text="stats.max_streak"></span>
+                    <span class="dash-label">Макс. дней подряд</span>
+                </div>
             </div>
         </div>
 

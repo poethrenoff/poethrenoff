@@ -181,12 +181,19 @@
     top: 82px;
     right: 16px;
     z-index: 100;
-    width: 380px;
+    width: 260px;
     background-color: var(--card);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 18px;
     display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.dash-row {
+    display: flex;
+    justify-content: space-between;
     gap: 16px;
 }
 
