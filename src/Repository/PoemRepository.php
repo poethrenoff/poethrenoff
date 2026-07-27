@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Entity\Poem;
 use App\Enum\PoemStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -104,6 +103,8 @@ class PoemRepository extends ServiceEntityRepository
         $comments = $this->createQueryBuilder('p')
             ->select('p.comment')
             ->where('p.comment IS NOT NULL')
+            ->andWhere('p.status = :status')
+            ->setParameter('status', PoemStatus::Draft)
             ->getQuery()
             ->getScalarResult();
 
@@ -125,7 +126,6 @@ class PoemRepository extends ServiceEntityRepository
         }
 
         $today = new \DateTimeImmutable('today');
-        $todayStr = $today->format('Y-m-d');
         $datesSet = array_flip($dates);
 
         $streak = 0;
@@ -136,5 +136,51 @@ class PoemRepository extends ServiceEntityRepository
         }
 
         return $streak;
+    }
+
+    public function findMaxStreak(): int
+    {
+        $comments = $this->createQueryBuilder('p')
+            ->select('p.comment')
+            ->where('p.comment IS NOT NULL')
+            ->andWhere('p.status = :status')
+            ->setParameter('status', PoemStatus::Draft)
+            ->getQuery()
+            ->getScalarResult();
+
+        $dates = [];
+        foreach ($comments as $row) {
+            $c = $row['comment'];
+            if (!preg_match('/^\d{2}\.\d{2}\.\d{4}$/', $c)) {
+                continue;
+            }
+            $d = \DateTimeImmutable::createFromFormat('d.m.Y', $c);
+            if ($d && $d->format('d.m.Y') === $c) {
+                $dates[] = $d->format('Y-m-d');
+            }
+        }
+
+        $dates = array_unique($dates);
+        if (!$dates) {
+            return 0;
+        }
+
+        sort($dates);
+
+        $maxStreak = 1;
+        $currentStreak = 1;
+
+        for ($i = 1; $i < count($dates); $i++) {
+            $prev = new \DateTimeImmutable($dates[$i - 1]);
+            $curr = new \DateTimeImmutable($dates[$i]);
+            if ($curr->diff($prev)->days === 1) {
+                $currentStreak++;
+                $maxStreak = max($maxStreak, $currentStreak);
+            } else {
+                $currentStreak = 1;
+            }
+        }
+
+        return $maxStreak;
     }
 }

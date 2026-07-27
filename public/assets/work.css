@@ -187,7 +187,12 @@
     border-radius: 12px;
     padding: 18px;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.dash-row {
+    display: flex;
     gap: 16px;
 }
 

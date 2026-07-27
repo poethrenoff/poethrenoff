@@ -83,6 +83,7 @@ class WorkController extends AbstractController
             'total' => $this->poemRepository->countActive(),
             'trash' => $this->poemRepository->countByStatus(PoemStatus::Trash->value),
             'streak' => $this->poemRepository->findStreak(),
+            'max_streak' => $this->poemRepository->findMaxStreak(),
         ]);
     }
 

@@ -14,17 +14,23 @@
         </header>
 
         <div class="dashboard-panel" x-show="stats.total !== undefined">
-            <div class="dash-stat">
-                <span class="dash-value" x-text="stats.total"></span>
-                <span class="dash-label">Стихов</span>
-            </div>
-            <div class="dash-stat" x-show="stats.trash > 0">
-                <span class="dash-value" x-text="stats.trash"></span>
-                <span class="dash-label">В корзине</span>
+            <div class="dash-row">
+                <div class="dash-stat">
+                    <span class="dash-value" x-text="stats.total"></span>
+                    <span class="dash-label">Стихов</span>
+                </div>
+                <div class="dash-stat" x-show="stats.trash > 0">
+                    <span class="dash-value" x-text="stats.trash"></span>
+                    <span class="dash-label">В корзине</span>
+                </div>
             </div>
             <div class="dash-stat">
                 <span class="dash-value" x-text="stats.streak"></span>
                 <span class="dash-label">Дней подряд</span>
+            </div>
+            <div class="dash-stat">
+                <span class="dash-value" x-text="stats.max_streak"></span>
+                <span class="dash-label">Макс. дней подряд</span>
             </div>
         </div>
 
@@ -156,7 +162,7 @@
                 editingId: null,
                 originalPoem: null,
                 draftKey: 'newPoemDraft',
-                stats: { total: 0, trash: 0, streak: 0 },
+                stats: { total: 0, trash: 0, streak: 0, max_streak: 0 },
                 toc: [],
 
                 async api(url, options = {}) {
@@ -300,6 +306,7 @@
                         this.stats.total = data.total;
                         this.stats.trash = data.trash;
                         this.stats.streak = data.streak;
+                        this.stats.max_streak = data.max_streak;
                     }
                 },
 
