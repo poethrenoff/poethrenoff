@@ -13,7 +13,7 @@
             </div>
         </header>
 
-        <div class="dashboard-panel" x-show="stats.total !== undefined">
+        <div class="dashboard-panel" x-show="stats.total !== undefined && view !== 'trash'">
             <div class="dash-row">
                 <div class="dash-stat">
                     <span class="dash-value" x-text="stats.total"></span>
@@ -302,6 +302,7 @@
                 },
 
                 async loadStats() {
+                    if (this.view === 'trash') return;
                     const res = await this.api('/poems/stats/');
                     if (res && res.ok) {
                         const data = await res.json();

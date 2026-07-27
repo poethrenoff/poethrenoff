@@ -100,39 +100,26 @@ class PoemRepository extends ServiceEntityRepository
 
     public function findStreak(): int
     {
-        $comments = $this->createQueryBuilder('p')
-            ->select('p.comment')
-            ->where('p.comment IS NOT NULL')
-            ->andWhere('p.status = :status')
-            ->setParameter('status', PoemStatus::Draft)
-            ->getQuery()
-            ->getScalarResult();
-
-        $dates = [];
-        foreach ($comments as $row) {
-            $c = $row['comment'];
-            if (!preg_match('/^\d{2}\.\d{2}\.\d{4}$/', $c)) {
-                continue;
-            }
-            $d = \DateTimeImmutable::createFromFormat('d.m.Y', $c);
-            if ($d && $d->format('d.m.Y') === $c) {
-                $dates[] = $d->format('Y-m-d');
-            }
-        }
-
-        $dates = array_unique($dates);
-        if (!$dates) {
+        $days = $this->getSortedDraftDays();
+        if (!$days) {
             return 0;
         }
 
-        $today = new \DateTimeImmutable('today');
-        $datesSet = array_flip($dates);
+        // Текущий день в формате индекса (дней с начала эпохи)
+        $today = (int)(strtotime((new \DateTimeImmutable('today'))->format('Y-m-d') . ' UTC') / 86400);
 
         $streak = 0;
-        $day = $today;
-        while (isset($datesSet[$day->format('Y-m-d')])) {
-            $streak++;
-            $day = $day->modify('-1 day');
+        $expected = $today;
+
+        // Идем с конца отсортированного списка дней
+        for ($i = count($days) - 1; $i >= 0; $i--) {
+            if ($days[$i] === $expected) {
+                $streak++;
+                $expected--;
+            } elseif ($days[$i] < $expected) {
+                // Если текущий день меньше ожидаемого — серия прервалась
+                break;
+            }
         }
 
         return $streak;
@@ -140,40 +127,16 @@ class PoemRepository extends ServiceEntityRepository
 
     public function findMaxStreak(): int
     {
-        $comments = $this->createQueryBuilder('p')
-            ->select('p.comment')
-            ->where('p.comment IS NOT NULL')
-            ->andWhere('p.status = :status')
-            ->setParameter('status', PoemStatus::Draft)
-            ->getQuery()
-            ->getScalarResult();
-
-        $dates = [];
-        foreach ($comments as $row) {
-            $c = $row['comment'];
-            if (!preg_match('/^\d{2}\.\d{2}\.\d{4}$/', $c)) {
-                continue;
-            }
-            $d = \DateTimeImmutable::createFromFormat('d.m.Y', $c);
-            if ($d && $d->format('d.m.Y') === $c) {
-                $dates[] = $d->format('Y-m-d');
-            }
-        }
-
-        $dates = array_unique($dates);
-        if (!$dates) {
+        $days = $this->getSortedDraftDays();
+        if (!$days) {
             return 0;
         }
-
-        sort($dates);
 
         $maxStreak = 1;
         $currentStreak = 1;
 
-        for ($i = 1; $i < count($dates); $i++) {
-            $prev = new \DateTimeImmutable($dates[$i - 1]);
-            $curr = new \DateTimeImmutable($dates[$i]);
-            if ($curr->diff($prev)->days === 1) {
+        for ($i = 1; $i < count($days); $i++) {
+            if ($days[$i] === $days[$i - 1] + 1) {
                 $currentStreak++;
                 $maxStreak = max($maxStreak, $currentStreak);
             } else {
@@ -182,5 +145,42 @@ class PoemRepository extends ServiceEntityRepository
         }
 
         return $maxStreak;
+    }
+
+    /**
+     * @return int[] Unique sorted days (as days since epoch)
+     */
+    private function getSortedDraftDays(): array
+    {
+        $comments = $this->createQueryBuilder('p')
+            ->select('DISTINCT p.comment')
+            ->where('p.comment IS NOT NULL')
+            ->andWhere('p.status = :status')
+            ->setParameter('status', PoemStatus::Draft->value)
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        $days = [];
+        foreach ($comments as $c) {
+            // Ожидаемый формат DD.MM.YYYY
+            if (strlen($c) === 10 && preg_match('/^\d{2}\.\d{2}\.\d{4}$/', $c)) {
+                $d = (int)substr($c, 0, 2);
+                $m = (int)substr($c, 3, 2);
+                $y = (int)substr($c, 6, 4);
+                if (checkdate($m, $d, $y)) {
+                    // Используем UTC для получения консистентного номера дня
+                    $days[] = (int)(gmmktime(0, 0, 0, $m, $d, $y) / 86400);
+                }
+            }
+        }
+
+        if (!$days) {
+            return [];
+        }
+
+        $days = array_unique($days);
+        sort($days);
+
+        return $days;
     }
 }
