@@ -17,14 +17,24 @@ class PoemRepository extends ServiceEntityRepository
         parent::__construct($registry, Poem::class);
     }
 
+    public function findNextPosition(): float
+    {
+        return (float) $this->createQueryBuilder('p')
+            ->select('MAX(p.position)')
+            ->where('p.status != :trash')
+            ->setParameter('trash', PoemStatus::Trash)
+            ->getQuery()
+            ->getSingleScalarResult() + 1.0;
+    }
+
     /**
      * @return list<Poem>
      */
-    public function findActiveOrderedByPosition(): array
+    public function findByStatus(PoemStatus|string $status): array
     {
         return $this->createQueryBuilder('p')
-            ->where('p.status != :trash')
-            ->setParameter('trash', PoemStatus::Trash)
+            ->where('p.status = :status')
+            ->setParameter('status', $status)
             ->orderBy('p.position', 'ASC')
             ->getQuery()
             ->getResult();
@@ -40,55 +50,7 @@ class PoemRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
-    /**
-     * @return list<Poem>
-     */
-    public function findForSidebar(): array
-    {
-        return $this->createQueryBuilder('p')
-            ->where('p.status != :trash')
-            ->setParameter('trash', PoemStatus::Trash)
-            ->orderBy('p.position', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function findNextPosition(float $afterPosition): float
-    {
-        return (float) $this->createQueryBuilder('p')
-            ->select('MAX(p.position)')
-            ->where('p.position > :after')
-            ->setParameter('after', $afterPosition)
-            ->getQuery()
-            ->getSingleScalarResult() + 1.0;
-    }
-
-    public function findFirstPosition(): float
-    {
-        $result = $this->createQueryBuilder('p')
-            ->select('MIN(p.position)')
-            ->where('p.status != :trash')
-            ->setParameter('trash', PoemStatus::Trash)
-            ->getQuery()
-            ->getSingleScalarResult();
-
-        return $result !== null ? (float) $result : 0.0;
-    }
-
-    /**
-     * @return list<Poem>
-     */
-    public function findByStatus(string $status): array
-    {
-        return $this->createQueryBuilder('p')
-            ->where('p.status = :status')
-            ->setParameter('status', $status)
-            ->orderBy('p.position', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function countByStatus(string $status): int
+    public function countByStatus(PoemStatus|string $status): int
     {
         return (int) $this->createQueryBuilder('p')
             ->select('COUNT(p.id)')
@@ -105,8 +67,7 @@ class PoemRepository extends ServiceEntityRepository
             return 0;
         }
 
-        // Текущий день в формате индекса (дней с начала эпохи)
-        $today = (int)(strtotime((new \DateTimeImmutable('today'))->format('Y-m-d') . ' UTC') / 86400);
+        $today = (int)(strtotime('today UTC') / 86400);
 
         $streak = 0;
         $expected = $today;
@@ -152,30 +113,19 @@ class PoemRepository extends ServiceEntityRepository
      */
     private function getSortedDraftDays(): array
     {
-        $comments = $this->createQueryBuilder('p')
-            ->select('DISTINCT p.comment')
+        $poems = $this->createQueryBuilder('p')
             ->where('p.comment IS NOT NULL')
             ->andWhere('p.status = :status')
-            ->setParameter('status', PoemStatus::Draft->value)
+            ->setParameter('status', PoemStatus::Draft)
             ->getQuery()
-            ->getSingleColumnResult();
+            ->toIterable();
 
         $days = [];
-        foreach ($comments as $c) {
-            // Ожидаемый формат DD.MM.YYYY
-            if (strlen($c) === 10 && preg_match('/^\d{2}\.\d{2}\.\d{4}$/', $c)) {
-                $d = (int)substr($c, 0, 2);
-                $m = (int)substr($c, 3, 2);
-                $y = (int)substr($c, 6, 4);
-                if (checkdate($m, $d, $y)) {
-                    // Используем UTC для получения консистентного номера дня
-                    $days[] = (int)(gmmktime(0, 0, 0, $m, $d, $y) / 86400);
-                }
+        foreach ($poems as $poem) {
+            $comment = $poem->getComment();
+            if ($comment instanceof \DateTimeImmutable) {
+                $days[] = (int)(strtotime($comment->format('Y-m-d') . ' UTC') / 86400);
             }
-        }
-
-        if (!$days) {
-            return [];
         }
 
         $days = array_unique($days);

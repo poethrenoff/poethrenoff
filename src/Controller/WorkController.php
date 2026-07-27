@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Poem;
 use App\Enum\PoemStatus;
 use App\Repository\PoemRepository;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,6 +24,22 @@ class WorkController extends AbstractController
     ) {
     }
 
+    private function parseCommentDate(?string $value): ?DateTimeImmutable
+    {
+        if (!$value) {
+            return null;
+        }
+
+        $date = DateTimeImmutable::createFromFormat('!d.m.Y', $value);
+        $errors = DateTimeImmutable::getLastErrors();
+
+        if ($date && (!$errors || ($errors['warning_count'] === 0 && $errors['error_count'] === 0))) {
+            return $date;
+        }
+
+        return null;
+    }
+
     #[Route('/', name: 'work_homepage')]
     public function index(Request $request): Response
     {
@@ -39,7 +56,7 @@ class WorkController extends AbstractController
         return $this->json([
             'results' => $poems,
             'total' => $total
-        ], context: ['groups' => 'poem:list']);
+        ], context: ['groups' => 'poem:list', 'datetime_format' => 'd.m.Y']);
     }
 
     #[Route('/poems/', name: 'work_api_poems_create', methods: ['POST'])]
@@ -53,15 +70,15 @@ class WorkController extends AbstractController
 
         $title = trim($data['title']);
         $content = rtrim($data['content']);
-        $comment = isset($data['comment']) ? trim($data['comment']) : null;
+        $comment = $this->parseCommentDate($data['comment'] ?? null);
 
-        if ($comment === '') {
-            $comment = null;
+        if (($data['comment'] ?? '') !== '' && $comment === null) {
+            return $this->json([
+                'error' => ['message' => 'Некорректный формат даты. Используйте дд.мм.гггг']
+            ], Response::HTTP_BAD_REQUEST);
         }
 
-        $position = $this->poemRepository->findNextPosition(
-            (float) ($data['position'] ?? $this->poemRepository->findFirstPosition())
-        );
+        $position = $this->poemRepository->findNextPosition();
 
         $poem = new Poem();
         $poem->setTitle($title);
@@ -73,7 +90,11 @@ class WorkController extends AbstractController
         $this->entityManager->persist($poem);
         $this->entityManager->flush();
 
-        return $this->json($poem, Response::HTTP_CREATED, context: ['groups' => 'poem:detail']);
+        return $this->json(
+            $poem,
+            Response::HTTP_CREATED,
+            context: ['groups' => 'poem:detail', 'datetime_format' => 'd.m.Y']
+        );
     }
 
     #[Route('/poems/stats/', name: 'work_api_poems_stats', methods: ['GET'])]
@@ -81,7 +102,7 @@ class WorkController extends AbstractController
     {
         return $this->json([
             'total' => $this->poemRepository->countActive(),
-            'trash' => $this->poemRepository->countByStatus(PoemStatus::Trash->value),
+            'trash' => $this->poemRepository->countByStatus(PoemStatus::Trash),
             'streak' => $this->poemRepository->findStreak(),
             'max_streak' => $this->poemRepository->findMaxStreak(),
         ]);
@@ -90,7 +111,7 @@ class WorkController extends AbstractController
     #[Route('/poems/{id}/', name: 'work_api_poems_detail', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function detail(Poem $poem): JsonResponse
     {
-        return $this->json($poem, context: ['groups' => 'poem:detail']);
+        return $this->json($poem, context: ['groups' => 'poem:detail', 'datetime_format' => 'd.m.Y']);
     }
 
     #[Route('/poems/{id}/', name: 'work_api_poems_update', methods: ['PUT'], requirements: ['id' => '\d+'])]
@@ -115,7 +136,13 @@ class WorkController extends AbstractController
             $poem->setContent($data['content'] ?? '');
         }
         if (array_key_exists('comment', $data)) {
-            $poem->setComment($data['comment'] !== '' ? trim($data['comment']) : null);
+            $parsedDate = $this->parseCommentDate($data['comment'] ?? null);
+            if ($parsedDate === null && ($data['comment'] ?? '') !== '') {
+                return $this->json([
+                    'error' => ['message' => 'Некорректный формат даты. Используйте дд.мм.гггг']
+                ], Response::HTTP_BAD_REQUEST);
+            }
+            $poem->setComment($parsedDate);
         }
 
         $poem->createSnapshot();
@@ -126,7 +153,7 @@ class WorkController extends AbstractController
 
         $this->entityManager->flush();
 
-        return $this->json($poem, context: ['groups' => 'poem:detail']);
+        return $this->json($poem, context: ['groups' => 'poem:detail', 'datetime_format' => 'd.m.Y']);
     }
 
     #[Route('/poems/{id}/trash/', name: 'work_api_poems_trash', methods: ['POST'], requirements: ['id' => '\d+'])]
@@ -177,12 +204,12 @@ class WorkController extends AbstractController
         } elseif ($after !== null) {
             $poem->setPosition($after->getPosition() + 1.0);
         } else {
-            $poem->setPosition($this->poemRepository->findNextPosition($this->poemRepository->findFirstPosition()));
+            $poem->setPosition($this->poemRepository->findNextPosition());
         }
 
         $this->entityManager->flush();
 
-        return $this->json($poem, context: ['groups' => 'poem:detail']);
+        return $this->json($poem, context: ['groups' => 'poem:detail', 'datetime_format' => 'd.m.Y']);
     }
 
     #[Route('/poems/{id}/', name: 'work_api_poems_delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]

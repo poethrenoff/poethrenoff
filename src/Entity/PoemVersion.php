@@ -25,8 +25,8 @@ class PoemVersion
     #[ORM\Column(type: Types::TEXT)]
     private string $content = '';
 
-    #[ORM\Column(type: Types::STRING, length: 512, nullable: true)]
-    private ?string $comment = null;
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $comment = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
@@ -74,12 +74,12 @@ class PoemVersion
         return $this;
     }
 
-    public function getComment(): ?string
+    public function getComment(): ?\DateTimeImmutable
     {
         return $this->comment;
     }
 
-    public function setComment(?string $comment): static
+    public function setComment(?\DateTimeImmutable $comment): static
     {
         $this->comment = $comment;
         return $this;
@@ -106,7 +106,7 @@ class PoemVersion
         return [
             'title_changed' => $this->title !== $other->title,
             'content_changed' => $this->content !== $other->content,
-            'comment_changed' => $this->comment !== $other->comment,
+            'comment_changed' => ($this->comment?->format('d.m.Y') ?? '') !== ($other->comment?->format('d.m.Y') ?? ''),
         ];
     }
 }

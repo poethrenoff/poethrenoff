@@ -6,10 +6,12 @@ use App\Enum\PoemStatus;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
+use Sonata\AdminBundle\FieldDescription\FieldDescriptionInterface;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Show\ShowMapper;
 use Sonata\DoctrineORMAdminBundle\Filter\DateTimeRangeFilter;
 use Sonata\Form\Type\DateTimeRangePickerType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -24,7 +26,7 @@ class PoemAdmin extends AbstractAdmin
             ->add('content', TextareaType::class, [
                 'attr' => ['rows' => 15]
             ])
-            ->add('comment', TextType::class, ['required' => false])
+            ->add('comment', DateType::class)
             ->add('status', EnumType::class, [
                 'class' => PoemStatus::class,
             ])
@@ -57,16 +59,25 @@ class PoemAdmin extends AbstractAdmin
     {
         $list
             ->addIdentifier('id')
-            ->add('title')
-            ->add('status')
+            ->add('title', null, [
+                'header_style' => 'width: 50%',
+            ])
+            ->add('comment', null, [
+                'format' => 'Y-m-d',
+            ])
+            ->add('status', FieldDescriptionInterface::TYPE_ENUM, [
+                'choices' => PoemStatus::cases(),
+                'class' => PoemStatus::class,
+                'editable' => true,
+            ])
             ->add('position', null, ['editable' => true])
-            ->add('createdAt')
             ->add(ListMapper::NAME_ACTIONS, null, [
                 'actions' => [
                     'show' => [],
                     'edit' => [],
                     'delete' => [],
                 ],
+                'header_style' => 'width: 210px',
             ])
         ;
     }

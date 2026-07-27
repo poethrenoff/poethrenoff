@@ -19,7 +19,7 @@
                     <span class="dash-value" x-text="stats.total"></span>
                     <span class="dash-label">Стихов</span>
                 </div>
-                <div class="dash-stat" x-show="stats.trash > 0">
+                <div class="dash-stat">
                     <span class="dash-value" x-text="stats.trash"></span>
                     <span class="dash-label">В корзине</span>
                 </div>
@@ -65,7 +65,7 @@
                     </div>
                 </div>
                 <textarea class="poem-textarea" tabindex="2" x-model="newContent" placeholder="Текст стиха" rows="10" @keydown.escape="showNew = false"></textarea>
-                <input class="comment-input" tabindex="3" x-model="newComment" placeholder="Комментарий" @keydown.enter="create()" @keydown.escape="showNew = false">
+                <input class="comment-input" tabindex="3" type="text" x-model="newComment" placeholder="дд.мм.гггг" @keydown.enter="create()" @keydown.escape="showNew = false">
             </div>
 
             <div x-ref="list">
@@ -102,7 +102,7 @@
                             </div>
                         </div>
                         <textarea class="poem-textarea" tabindex="2" x-model="poem.content" x-show="editingId === poem.id" placeholder="Текст стиха" rows="10" @keydown.escape="cancelEdit()"></textarea>
-                        <input class="comment-input" tabindex="3" x-model="poem.comment" x-show="editingId === poem.id" placeholder="Комментарий" @keydown.enter="saveEdit(poem)" @keydown.escape="cancelEdit()">
+                        <input class="comment-input" tabindex="3" type="text" x-model="poem.comment" x-show="editingId === poem.id" placeholder="ДД.ММ.ГГГГ" @keydown.enter="saveEdit(poem)" @keydown.escape="cancelEdit()">
                     </div>
                 </template>
             </div>
@@ -247,6 +247,7 @@
                     this.view = target;
                     this.poems = [];
                     await this.load();
+                    await this.loadStats();
                 },
 
                 async extractError(res) {
@@ -311,6 +312,20 @@
                         this.stats.streak = data.streak;
                         this.stats.max_streak = data.max_streak;
                     }
+                },
+
+                async validateCommentDate(value) {
+                    if (!value) return null;
+                    const match = value.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);
+                    if (!match) {
+                        return 'Некорректный формат даты. Используйте дд.мм.гггг';
+                    }
+                    const [, d, m, y] = match.map(Number);
+                    const date = new Date(Date.UTC(y, m - 1, d));
+                    if (date.getUTCFullYear() !== y || date.getUTCMonth() + 1 !== m || date.getUTCDate() !== d) {
+                        return 'Некорректная дата';
+                    }
+                    return null;
                 },
 
                 async updateToc() {
@@ -396,6 +411,12 @@
                 async create() {
                     if (!this.newContent.trim() && !this.newTitle.trim()) return;
 
+                    const dateError = await this.validateCommentDate(this.newComment);
+                    if (dateError) {
+                        this.generalError = dateError;
+                        return;
+                    }
+
                     this.generalError = '';
                     const res = await this.api('/poems/', {
                         method: 'POST',
@@ -422,6 +443,7 @@
                 async edit(poem) {
                     this.originalPoem = { ...poem };
                     this.editingId = poem.id;
+                    poem.comment = poem.comment || '';
                     await this.$nextTick(() => {
                         const el = document.querySelector(`.editing .poem-textarea`);
                         if (el) el.focus();
@@ -459,6 +481,12 @@
 
                 async saveEdit(poem) {
                     this.generalError = '';
+                    const dateError = await this.validateCommentDate(poem.comment);
+                    if (dateError) {
+                        this.generalError = dateError;
+                        return;
+                    }
+
                     const res = await this.api(`/poems/${poem.id}/`, {
                         method: 'PUT',
                         body: JSON.stringify({
@@ -471,6 +499,7 @@
                         const updated = await res.json();
                         Object.assign(poem, updated);
                         await this.updateToc();
+                        await this.loadStats();
                         this.editingId = null;
                         this.originalPoem = null;
                     } else if (res) {

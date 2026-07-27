@@ -30,9 +30,9 @@ class Poem
     #[Groups(['poem:list', 'poem:detail', 'poem:sidebar'])]
     private string $content = '';
 
-    #[ORM\Column(type: Types::STRING, length: 512, nullable: true)]
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
     #[Groups(['poem:list', 'poem:detail', 'poem:sidebar'])]
-    private ?string $comment = null;
+    private ?\DateTimeImmutable $comment = null;
 
     #[ORM\Column(type: Types::STRING, length: 20, enumType: PoemStatus::class)]
     #[Groups(['poem:list', 'poem:detail', 'poem:sidebar'])]
@@ -47,11 +47,9 @@ class Poem
     private ?\DateTimeImmutable $deletedAt = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    #[Groups(['poem:list', 'poem:detail', 'poem:sidebar'])]
     private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    #[Groups(['poem:list', 'poem:detail', 'poem:sidebar'])]
     private \DateTimeImmutable $updatedAt;
 
     /** @var Collection<int, PoemVersion> */
@@ -91,7 +89,7 @@ class Poem
         if (empty($this->title)) {
             $this->title = $this->getDefaultTitle();
         }
-        if (empty($this->comment)) {
+        if ($this->comment === null) {
             $this->comment = $this->getDefaultComment();
         }
     }
@@ -135,21 +133,20 @@ class Poem
         return $this;
     }
 
-    public function getComment(): ?string
+    public function getComment(): ?\DateTimeImmutable
     {
         return $this->comment;
     }
 
-    public function setComment(?string $comment): static
+    public function setComment(?\DateTimeImmutable $comment): static
     {
         $this->comment = $comment;
         return $this;
     }
 
-    public function getDefaultComment(): string
+    public function getDefaultComment(): ?\DateTimeImmutable
     {
-        $now = new \DateTimeImmutable();
-        return $now->format("d.m.Y");
+        return new \DateTimeImmutable('today');
     }
 
     public function getStatus(): PoemStatus
