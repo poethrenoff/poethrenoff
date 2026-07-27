@@ -1,20 +1,47 @@
 sonata_admin:
-    title: 'PoetHrenoff Admin'
+    title: 'Поэт Хренов'
     options:
         confirm_exit: false
     dashboard:
         blocks:
-            - { position: left, type: sonata.admin.block.admin_list, settings: { groups: [admin] } }
+            - position: left
+              type: sonata.admin.block.admin_list
+              settings:
+                  groups:
+                      - blog
+                      - site
+            - position: right
+              type: sonata.admin.block.admin_list
+              settings:
+                  groups:
+                      - work
+                      - common
         groups:
-            Сайт:
+            common:
                 label: Сайт
                 keep_open: true
-            Блог:
+                items:
+                    - App\Admin\StaticTextAdmin
+                    - App\Admin\UserAdmin
+            blog:
                 label: Блог
                 keep_open: true
-            Мастерская:
+                items:
+                    - App\Admin\BlogPostAdmin
+                    - App\Admin\BlogCommentAdmin
+                    - App\Admin\TagAdmin
+            work:
                 label: Мастерская
                 keep_open: true
-            Произведения:
+                items:
+                    - App\Admin\PoemAdmin
+                    - App\Admin\AudioAdmin
+            site:
                 label: Произведения
                 keep_open: true
+                items:
+                    - App\Admin\WorkGroupAdmin
+                    - App\Admin\WorkAdmin
+                    - App\Admin\WorkCommentAdmin
+                    - App\Admin\PictureAdmin
+                    - App\Admin\WorkVoteAdmin

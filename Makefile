@@ -32,8 +32,8 @@ loaddata:
 	@docker compose -f docker-compose.yml exec php bin/console doctrine:fixtures:load --no-interaction
 
 backup:
-	@bin/backup .data
+	@bin/backup var/backup
 
 restore:
-	@bin/restore .data
+	@bin/restore var/backup
 

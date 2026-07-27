@@ -63,7 +63,7 @@ class PoemAdmin extends AbstractAdmin
                 'header_style' => 'width: 50%',
             ])
             ->add('comment', null, [
-                'format' => 'Y-m-d',
+                'format' => 'd.m.Y',
             ])
             ->add('status', FieldDescriptionInterface::TYPE_ENUM, [
                 'choices' => PoemStatus::cases(),
