@@ -58,7 +58,7 @@
             <div x-show="showNew" class="poem" x-ref="newForm">
                 <div class="poem-header">
                     <div class="title">
-                        <input class="title-input" tabindex="1" x-model="newTitle" placeholder="Название" @keydown.enter="create()" @keydown.escape="showNew = false">
+                        <input class="title-input" tabindex="1" x-model="newTitle" placeholder="Название" @keydown.enter="create()" @keydown.escape="showNew = false" spellcheck="true" lang="ru">
                     </div>
                     <div class="poem-actions edit-actions">
                         <button class="icon-btn" @click="create()" title="Сохранить">

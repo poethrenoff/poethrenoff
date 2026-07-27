@@ -129,29 +129,27 @@ class WorkController extends AbstractController
             return $this->json(['error' => ['message' => 'Некорректные данные']], Response::HTTP_BAD_REQUEST);
         }
 
-        if (array_key_exists('title', $data)) {
-            $poem->setTitle($data['title'] !== '' ? trim($data['title']) : null);
-        }
-        if (array_key_exists('content', $data)) {
-            $poem->setContent($data['content'] ?? '');
-        }
-        if (array_key_exists('comment', $data)) {
-            $parsedDate = $this->parseCommentDate($data['comment'] ?? null);
-            if ($parsedDate === null && ($data['comment'] ?? '') !== '') {
-                return $this->json([
-                    'error' => ['message' => 'Некорректный формат даты. Используйте дд.мм.гггг']
-                ], Response::HTTP_BAD_REQUEST);
-            }
-            $poem->setComment($parsedDate);
+        $originalPoem = clone $poem;
+
+        $title = trim($data['title']);
+        $content = rtrim($data['content']);
+        $comment = $this->parseCommentDate($data['comment'] ?? null);
+
+        if (($data['comment'] ?? '') !== '' && $comment === null) {
+            return $this->json([
+                'error' => ['message' => 'Некорректный формат даты. Используйте дд.мм.гггг']
+            ], Response::HTTP_BAD_REQUEST);
         }
 
-        $poem->createSnapshot();
-
-        if (!empty($data['title']) && $poem->getTitle() === null) {
-            $poem->setTitle(trim($data['title']));
-        }
-
+        $poem->setTitle($title);
+        $poem->setContent($content);
+        $poem->setComment($comment);
         $this->entityManager->flush();
+
+        if (!$poem->isEqual($originalPoem)) {
+            $poem->createSnapshot();
+            $this->entityManager->flush();
+        }
 
         return $this->json($poem, context: ['groups' => 'poem:detail', 'datetime_format' => 'd.m.Y']);
     }

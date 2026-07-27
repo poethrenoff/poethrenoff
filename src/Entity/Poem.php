@@ -89,7 +89,7 @@ class Poem
         if (empty($this->title)) {
             $this->title = $this->getDefaultTitle();
         }
-        if ($this->comment === null) {
+        if (empty($this->comment)) {
             $this->comment = $this->getDefaultComment();
         }
     }
@@ -280,5 +280,12 @@ class Poem
         }
 
         return join("\n\n", $lines);
+    }
+
+    public function isEqual(Poem $poem): bool
+    {
+        return $this->title === $poem->getTitle()
+            && $this->content === $poem->getContent()
+            && $this->comment == $poem->getComment(); // exactly like that
     }
 }
