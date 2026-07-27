@@ -251,9 +251,54 @@
     color: var(--muted);
 }
 
+.scroll-top-btn,
+.scroll-bottom-btn {
+    position: fixed;
+    bottom: 80px;
+    right: 24px;
+    z-index: 100;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s, opacity 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+.scroll-bottom-btn {
+    bottom: 80px;
+}
+
+.scroll-bottom-btn {
+    bottom: 24px;
+}
+
+.scroll-top-btn:hover,
+.scroll-bottom-btn:hover{
+    background: var(--border);
+    color: var(--fg);
+}
+
 @media (max-width: 1430px) {
     .dashboard-panel,
-    .toc-panel {
+    .toc-panel,
+    .scroll-top-btn,
+    .scroll-bottom-btn {
         display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .poem-actions.view-actions {
+        position: static;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
     }
 }
