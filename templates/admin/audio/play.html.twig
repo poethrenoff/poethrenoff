@@ -1,0 +1,62 @@
+{% if object.filePath %}
+    <a href="#" class="btn btn-sm btn-default listen-audio-btn"
+       data-url="{{ object.filePath }}"
+       title="Прослушать"
+       onclick="sonataListenAudio(this); return false;">
+        <i class="fa fa-play"></i>
+        <span>Play</span>
+    </a>
+{% endif %}
+
+{% if sonata_listen_audio_script_loaded is not defined %}
+    <script>
+        (function() {
+            if (window.sonataListenAudio) return;
+
+            var currentAudio = null;
+            var currentBtn = null;
+
+            window.sonataListenAudio = function(btn) {
+                var url = btn.getAttribute('data-url');
+                var icon = btn.querySelector('i');
+                var text = btn.querySelector('span');
+
+                if (currentAudio) {
+                    var isSame = currentAudio.dataset.url === url;
+                    currentAudio.pause();
+                    if (currentBtn) {
+                        currentBtn.querySelector('i').className = 'fa fa-play';
+                        currentBtn.querySelector('span').textContent = 'Play';
+                    }
+
+                    if (isSame) {
+                        currentAudio = null;
+                        currentBtn = null;
+                        return;
+                    }
+                }
+
+                currentAudio = new Audio(url);
+                currentAudio.dataset.url = url;
+                currentBtn = btn;
+                icon.className = 'fa fa-stop';
+                text.textContent = "Stop";
+
+                currentAudio.play().catch(function(e) {
+                    console.error("Playback failed", e);
+                    icon.className = 'fa fa-play';
+                    text.textContent = "Play";
+                    alert("Не удалось воспроизвести файл. Возможно, он недоступен на данном домене.");
+                });
+
+                currentAudio.onended = function() {
+                    icon.className = 'fa fa-play';
+                    text.textContent = "Play";
+                    currentAudio = null;
+                    currentBtn = null;
+                };
+            };
+        })();
+    </script>
+    {% set sonata_listen_audio_script_loaded = true %}
+{% endif %}

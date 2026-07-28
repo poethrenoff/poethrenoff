@@ -317,6 +317,10 @@ a.site-title:hover {
     text-decoration: underline;
 }
 
+.site-header-bar nav a.active {
+    font-weight: bold;
+}
+
 @media (max-width: 640px) {
     .site-header-bar {
         flex-wrap: nowrap;

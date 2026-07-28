@@ -107,7 +107,6 @@ class PictureAdmin extends AbstractAdmin
         }
 
         $file = $this->getForm()->get($property)->getData();
-
         if (!$file instanceof UploadedFile || !$file->isValid()) {
             return;
         }

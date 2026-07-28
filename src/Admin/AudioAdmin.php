@@ -73,7 +73,6 @@ class AudioAdmin extends AbstractAdmin
     private function processFileUpload(Audio $audio): void
     {
         $file = $this->getForm()->get('filePath')->getData();
-
         if (!$file instanceof UploadedFile || !$file->isValid()) {
             return;
         }
@@ -143,11 +142,14 @@ class AudioAdmin extends AbstractAdmin
             ])
             ->add(ListMapper::NAME_ACTIONS, null, [
                 'actions' => [
+                    'listen' => [
+                        'template' => 'admin/audio/play.html.twig',
+                    ],
                     'show' => [],
                     'edit' => [],
                     'delete' => [],
                 ],
-                'header_style' => 'width: 210px',
+                'header_style' => 'width: 265px',
             ])
         ;
     }

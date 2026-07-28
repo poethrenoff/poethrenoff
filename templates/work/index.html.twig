@@ -8,6 +8,7 @@
                 <p x-show="generalError" class="general-error" x-text="generalError"></p>
                 <nav>
                     <a href="#" @click.prevent="go('feed')" :class="view==='feed' ? 'active' : ''">Лента</a>
+                    <a href="#" @click.prevent="go('audio')" :class="view==='audio' ? 'active' : ''">Записи</a>
                     <a href="#" @click.prevent="go('trash')" :class="view==='trash' ? 'active' : ''">Корзина</a>
                 </nav>
             </div>
@@ -116,6 +117,70 @@
                 Пока пусто. Нажмите «Новый стих», чтобы начать.
             </div>
         </main>
+        <main x-show="view==='audio'" class="container main-content">
+            <div class="toolbar">
+                <button class="icon-btn" @click="startRecording()" x-show="!isRecording" title="Записать">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="red" stroke="red"><circle cx="12" cy="12" r="10"/></svg>
+                </button>
+                <div class="recording-controls" x-show="isRecording">
+                    <button class="icon-btn" @click="stopRecording()" title="Сохранить запись">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" @click="cancelRecording()" title="Отменить запись">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                    <span class="recording-timer" x-text="formatDuration(recordingTime)"></span>
+                </div>
+                <span x-show="loading" class="loading">Загрузка…</span>
+            </div>
+
+            <div class="audio-list">
+                <template x-for="item in audio" :key="item.id">
+                    <div class="audio-item" :class="{ 'isPlaying': isPlayingId === item.id }">
+                        <div class="audio-info">
+                            <div class="audio-title">
+                                <span x-show="editingAudioId !== item.id" x-text="item.title" @click="editAudio(item)"></span>
+                                <input x-show="editingAudioId === item.id"
+                                       x-model="item.title"
+                                       @keydown.enter="saveAudioRename(item)"
+                                       @keydown.escape="cancelAudioRename(item)"
+                                       class="inline-edit-input"
+                                       :id="'audio-input-' + item.id">
+                            </div>
+                            <div class="audio-meta">
+                                <span x-text="formatDuration(item.duration)"></span> |
+                                <span x-text="item.createdAt"></span>
+                            </div>
+                        </div>
+                        <div class="audio-actions">
+                            <button class="icon-btn" @click="togglePlay(item)" :title="isPlayingId === item.id ? 'Остановить' : 'Прослушать'">
+                                <template x-if="isPlayingId !== item.id">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                </template>
+                                <template x-if="isPlayingId === item.id">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                                </template>
+                            </button>
+                            <button class="icon-btn" @click="startRewriting(item)" title="Переписать">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+                            </button>
+                            <button class="icon-btn" @click="editAudio(item)" title="Переименовать">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            </button>
+                            <button class="icon-btn" @click="deleteAudio(item)" title="Удалить">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <div x-show="!loading && audio.length === 0" class="empty">
+                Записей пока нет. Нажмите «Записать», чтобы создать первую.
+            </div>
+        </main>
 
         <main x-show="view==='trash'" class="container main-content">
             <div class="toolbar">
@@ -167,21 +232,32 @@
                 generalError: '',
                 view: 'feed',
                 poems: [],
+                audio: [],
                 loading: false,
                 showNew: false,
+                isRecording: false,
+                recordingTime: 0,
+                recordingInterval: null,
+                mediaRecorder: null,
+                audioChunks: [],
+                audioPlayer: new Audio(),
+                isPlayingId: null,
+                rewriteId: null,
                 newTitle: '',
                 newContent: '',
                 newComment: '',
                 sortable: null,
                 editingId: null,
+                editingAudioId: null,
                 originalPoem: null,
+                originalAudioTitle: '',
                 draftKey: 'newPoemDraft',
                 stats: { total: 0, trash: 0, streak: 0, max_streak: 0 },
                 toc: [],
 
                 async api(url, options = {}) {
                     options.headers = options.headers || {};
-                    if (options.body && !options.headers['Content-Type']) {
+                    if (options.body && !(options.body instanceof FormData) && !options.headers['Content-Type']) {
                         options.headers['Content-Type'] = 'application/json';
                     }
                     if (!options.headers['Accept']) {
@@ -201,14 +277,49 @@
                     }
                 },
 
+                formatDuration(seconds) {
+                    if (!seconds) return '0:00';
+                    const m = Math.floor(seconds / 60);
+                    const s = Math.floor(seconds % 60);
+                    return `${m}:${s.toString().padStart(2, '0')}`;
+                },
+
                 async init() {
-                    this.view = 'feed';
+                    const hash = location.hash.slice(1);
+                    if (hash === 'audio' || hash === 'trash') {
+                        this.view = hash;
+                    } else if (hash.startsWith('poem-')) {
+                        this.view = 'feed';
+                    } else {
+                        this.view = 'feed';
+                    }
                     await this.load();
                     await this.loadStats();
 
                     this.$watch('newTitle', () => this.saveDraft());
                     this.$watch('newContent', () => this.saveDraft());
                     this.$watch('newComment', () => this.saveDraft());
+
+                    if (hash.startsWith('poem-')) {
+                        const id = parseInt(hash.replace('poem-', ''), 10);
+                        if (!isNaN(id)) {
+                            await this.scrollToPoem(id);
+                        }
+                    }
+
+                    window.addEventListener('hashchange', () => {
+                        const h = location.hash.slice(1);
+                        if (h === 'feed' || h === 'audio' || h === 'trash') {
+                            if (this.view !== h) {
+                                this.go(h);
+                            }
+                        } else if (h.startsWith('poem-')) {
+                            const id = parseInt(h.replace('poem-', ''), 10);
+                            if (!isNaN(id)) {
+                                this.scrollToPoem(id);
+                            }
+                        }
+                    });
                 },
 
                 async openNew() {
@@ -256,8 +367,10 @@
                 },
 
                 async go(target) {
+                    if (this.view === target && location.hash === '#' + target) return;
                     this.view = target;
                     this.poems = [];
+                    location.hash = '#' + target;
                     await this.load();
                     await this.loadStats();
                 },
@@ -286,6 +399,18 @@
                 async load() {
                     this.loading = true;
                     this.generalError = '';
+
+                    if (this.view === 'audio') {
+                        const res = await this.api('/audio/');
+                        if (res && res.ok) {
+                            this.audio = await res.json();
+                        } else if (res) {
+                            this.generalError = await this.extractError(res);
+                        }
+                        this.loading = false;
+                        return;
+                    }
+
                     const status = this.view === 'trash' ? 'trash' : 'draft';
                     const res = await this.api(`/poems/?status=${status}`, {
                         headers: {
@@ -345,6 +470,7 @@
                 },
 
                 async scrollToPoem(id) {
+                    location.hash = '#poem-' + id;
                     let el = document.getElementById('poem-' + id);
                     if (!el) {
                         this.view = 'feed';
@@ -562,6 +688,170 @@
                     } else if (res) {
                         this.generalError = await this.extractError(res);
                     }
+                },
+
+                async togglePlay(item) {
+                    if (this.isPlayingId === item.id) {
+                        this.audioPlayer.pause();
+                        this.isPlayingId = null;
+                    } else {
+                        if (this.isPlayingId) {
+                            this.audioPlayer.pause();
+                        }
+                        this.audioPlayer.src = `/audio/${item.id}`;
+                        this.audioPlayer.play();
+                        this.isPlayingId = item.id;
+                        this.audioPlayer.onended = () => {
+                            this.isPlayingId = null;
+                        };
+                    }
+                },
+
+                async editAudio(item) {
+                    this.originalAudioTitle = item.title;
+                    this.editingAudioId = item.id;
+                    await this.$nextTick(() => {
+                        const el = document.getElementById('audio-input-' + item.id);
+                        if (el) el.focus();
+                    });
+                },
+
+                async cancelAudioRename(item) {
+                    item.title = this.originalAudioTitle;
+                    this.editingAudioId = null;
+                },
+
+                async saveAudioRename(item) {
+                    if (!this.editingAudioId) return;
+                    if (item.title === this.originalAudioTitle) {
+                        this.editingAudioId = null;
+                        return;
+                    }
+                    if (!item.title.trim()) {
+                        this.cancelAudioRename(item);
+                        return;
+                    }
+                    const res = await this.api(`/audio/${item.id}/rename`, {
+                        method: 'POST',
+                        body: JSON.stringify({ title: item.title })
+                    });
+                    if (res && res.ok) {
+                        this.editingAudioId = null;
+                    } else if (res) {
+                        this.generalError = await this.extractError(res);
+                        this.cancelAudioRename(item);
+                    }
+                },
+
+                async deleteAudio(item) {
+                    if (!confirm('Удалить запись?')) return;
+                    const res = await this.api(`/audio/${item.id}/delete`, { method: 'DELETE' });
+                    if (res && res.ok) {
+                        await this.load();
+                    } else if (res) {
+                        this.generalError = await this.extractError(res);
+                    }
+                },
+
+                async startRecording() {
+                    try {
+                        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                            throw new Error('Ваш браузер не поддерживает запись аудио в небезопасном контексте (требуется HTTPS или localhost).');
+                        }
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        this.recordingStream = stream;
+                        this.mediaRecorder = new MediaRecorder(stream);
+                        this.audioChunks = [];
+                        this.recordingTime = 0;
+
+                        this.mediaRecorder.ondataavailable = (e) => {
+                            if (e.data.size > 0) this.audioChunks.push(e.data);
+                        };
+
+                        this.mediaRecorder.onstop = async () => {
+                            if (this._cancelRecording) {
+                                this._cancelRecording = false;
+                                if (this.recordingStream) {
+                                    this.recordingStream.getTracks().forEach(track => track.stop());
+                                }
+                                return;
+                            }
+                            const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+                            await this.saveRecording(audioBlob, this.recordingTime);
+                            if (this.recordingStream) {
+                                this.recordingStream.getTracks().forEach(track => track.stop());
+                            }
+                        };
+
+                        this.mediaRecorder.start();
+                        this.isRecording = true;
+                        this.recordingInterval = setInterval(() => {
+                            this.recordingTime++;
+                        }, 1000);
+                    } catch (err) {
+                        console.error('Ошибка доступа к микрофону:', err);
+                        this.generalError = 'Ошибка доступа к микрофону. Убедитесь, что сайт использует HTTPS и доступ разрешен.';
+                    }
+                },
+
+                async stopRecording() {
+                    if (this.mediaRecorder && this.isRecording) {
+                        this.mediaRecorder.stop();
+                        this.isRecording = false;
+                        clearInterval(this.recordingInterval);
+                    }
+                },
+
+                async cancelRecording() {
+                    if (this.mediaRecorder && this.isRecording) {
+                        this._cancelRecording = true;
+                        this.mediaRecorder.stop();
+                        this.isRecording = false;
+                        clearInterval(this.recordingInterval);
+                        this.audioChunks = [];
+                        this.recordingTime = 0;
+                        this.rewriteId = null;
+                    }
+                },
+
+                async saveRecording(blob, duration) {
+                    let title = '';
+                    if (this.rewriteId) {
+                        const item = this.audio.find(a => a.id === this.rewriteId);
+                        title = item ? item.title : 'Запись';
+                    } else {
+                        title = prompt('Введите название записи:', 'Запись от ' + new Date().toLocaleString('ru-RU'));
+                        if (title === null) {
+                            this.rewriteId = null;
+                            return;
+                        }
+                        if (!title.trim()) title = 'Новая запись';
+                    }
+
+                    const formData = new FormData();
+                    formData.append('audio', blob, 'recording.webm');
+                    formData.append('title', title);
+                    formData.append('duration', duration);
+
+                    const url = this.rewriteId ? `/audio/${this.rewriteId}/rewrite` : '/audio/';
+                    const res = await this.api(url, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (res && res.ok) {
+                        await this.load();
+                        this.rewriteId = null;
+                    } else if (res) {
+                        this.generalError = await this.extractError(res);
+                        this.rewriteId = null;
+                    }
+                },
+
+                async startRewriting(item) {
+                    if (!confirm('Перезаписать эту запись? Текущий файл будет удален.')) return;
+                    this.rewriteId = item.id;
+                    await this.startRecording();
                 },
             }));
         });
