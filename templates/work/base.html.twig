@@ -3,7 +3,11 @@
 {% block title %}Мастерская{% endblock %}
 
 {% block stylesheets %}
-    <link rel="stylesheet" href="{{ asset('assets/work.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/work.css') }}" />
+{% endblock %}
+
+{% block favicon %}
+    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/work-favicon.svg') }}" />
 {% endblock %}
 
 {% block javascripts %}

@@ -4,6 +4,10 @@
     <link rel="stylesheet" href="{{ asset('assets/site.css') }}">
 {% endblock %}
 
+{% block favicon %}
+    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/www-favicon.svg') }}" />
+{% endblock %}
+
 {% block body %}
     <header class="site-header">
         <div class="container site-header-bar">
