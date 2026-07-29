@@ -381,18 +381,7 @@
                     if (!res) return 'Ошибка сети';
                     try {
                         const data = await res.json();
-                        if (data.error) {
-                            return data.error.message || 'Ошибка';
-                        }
-                        if (typeof data === 'object') {
-                            const msgs = [];
-                            for (const [k, v] of Object.entries(data)) {
-                                if (Array.isArray(v)) msgs.push(...v);
-                                else msgs.push(String(v));
-                            }
-                            if (msgs.length) return msgs[0];
-                        }
-                        return res.statusText || 'Ошибка';
+                        return data.title || data.error.message || res.statusText || 'Ошибка';
                     } catch (e) {
                         return res.statusText || 'Ошибка';
                     }
@@ -472,7 +461,6 @@
                 },
 
                 async scrollToPoem(id) {
-                    location.hash = '#poem-' + id;
                     let el = document.getElementById('poem-' + id);
                     if (!el) {
                         this.view = 'feed';
