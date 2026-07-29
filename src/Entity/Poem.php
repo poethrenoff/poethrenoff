@@ -228,28 +228,6 @@ class Poem
         return $this;
     }
 
-    public function createSnapshot(): PoemVersion
-    {
-        $version = new PoemVersion();
-        $version->setPoem($this);
-        $version->setTitle($this->title);
-        $version->setContent($this->content);
-        $version->setComment($this->comment);
-
-        $this->addVersion($version);
-
-        return $version;
-    }
-
-    public function restoreFromVersion(PoemVersion $version): static
-    {
-        $this->title = $version->getTitle();
-        $this->content = $version->getContent();
-        $this->comment = $version->getComment();
-
-        return $this;
-    }
-
     public function trash(): static
     {
         $this->status = PoemStatus::Trash;
@@ -286,6 +264,18 @@ class Poem
     {
         return $this->title === $poem->getTitle()
             && $this->content === $poem->getContent()
-            && $this->comment == $poem->getComment(); // exactly like that
+            && ($this->comment?->format('d.m.Y') ?? '') ===
+                ($poem->getComment()?->format('d.m.Y') ?? '');
+    }
+
+    public function createVersion(Poem $poem): PoemVersion
+    {
+        $version = new PoemVersion();
+        $version->setPoem($this);
+        $version->setTitle($poem->getTitle());
+        $version->setContent($poem->getContent());
+        $version->setComment($poem->getComment());
+
+        return $version;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Entity\Poem;
 use App\Repository\PoemVersionRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -101,12 +102,31 @@ class PoemVersion
         return (string) $this->title;
     }
 
-    public function diffWith(PoemVersion $other): array
+    public function diffWithVersion(PoemVersion $version): array
     {
         return [
-            'title_changed' => $this->title !== $other->title,
-            'content_changed' => $this->content !== $other->content,
-            'comment_changed' => ($this->comment?->format('d.m.Y') ?? '') !== ($other->comment?->format('d.m.Y') ?? ''),
+            'title_changed' => $this->title !== $version->title,
+            'content_changed' => $this->content !== $version->content,
+            'comment_changed' => ($this->comment?->format('d.m.Y') ?? '') !==
+                ($version->comment?->format('d.m.Y') ?? ''),
         ];
+    }
+
+    public function diffWithPoem(Poem $poem): array
+    {
+        return [
+            'title_changed' => $this->title !== $poem->getTitle(),
+            'content_changed' => $this->content !== $poem->getContent(),
+            'comment_changed' => ($this->comment?->format('d.m.Y') ?? '') !==
+                ($poem->getComment()?->format('d.m.Y') ?? ''),
+        ];
+    }
+
+    /**
+     * Virtual property for Sonata Admin diff view
+     */
+    public function getDiff(): ?string
+    {
+        return null;
     }
 }

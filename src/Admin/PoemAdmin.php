@@ -73,11 +73,14 @@ class PoemAdmin extends AbstractAdmin
             ->add('position', null, ['editable' => true])
             ->add(ListMapper::NAME_ACTIONS, null, [
                 'actions' => [
+                    'versions' => [
+                        'template' => 'admin/poem/versions.html.twig',
+                    ],
                     'show' => [],
                     'edit' => [],
                     'delete' => [],
                 ],
-                'header_style' => 'width: 210px',
+                'header_style' => 'width: 280px',
             ])
         ;
     }
@@ -95,5 +98,11 @@ class PoemAdmin extends AbstractAdmin
             ->add('updatedAt')
             ->add('deletedAt')
         ;
+    }
+
+    protected function configureDefaultSortValues(array &$sortValues): void
+    {
+        $sortValues['_sort_by'] = 'position';
+        $sortValues['_sort_order'] = 'ASC';
     }
 }

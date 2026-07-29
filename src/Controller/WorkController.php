@@ -129,8 +129,6 @@ class WorkController extends AbstractController
             return $this->json(['error' => ['message' => 'Некорректные данные']], Response::HTTP_BAD_REQUEST);
         }
 
-        $originalPoem = clone $poem;
-
         $title = trim($data['title']);
         $content = rtrim($data['content']);
         $comment = $this->parseCommentDate($data['comment'] ?? null);
@@ -141,13 +139,16 @@ class WorkController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
+        $originalPoem = clone $poem;
+
         $poem->setTitle($title);
         $poem->setContent($content);
         $poem->setComment($comment);
         $this->entityManager->flush();
 
         if (!$poem->isEqual($originalPoem)) {
-            $poem->createSnapshot();
+            $version = $poem->createVersion($originalPoem);
+            $this->entityManager->persist($version);
             $this->entityManager->flush();
         }
 

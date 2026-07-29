@@ -14,6 +14,7 @@ services:
         exclude:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
+            - '../src/Admin/'
             - '../src/Kernel.php'
 
     # Sonata Admin Service Configurations using FQCN
@@ -60,6 +61,14 @@ services:
         public: true
         tags:
             - { name: sonata.admin, manager_type: orm, group: work, label: Черновики, model_class: App\Entity\Poem }
+        calls:
+            - [addChild, ['@App\Admin\PoemVersionAdmin', 'poem']]
+
+    # PoemVersionAdmin
+    App\Admin\PoemVersionAdmin:
+        public: true
+        tags:
+            - { name: sonata.admin, manager_type: orm, model_class: App\Entity\PoemVersion }
 
     # AudioAdmin
     App\Admin\AudioAdmin:

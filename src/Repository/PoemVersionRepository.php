@@ -15,4 +15,17 @@ class PoemVersionRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, PoemVersion::class);
     }
+
+    public function findNextVersion(PoemVersion $version): ?PoemVersion
+    {
+        return $this->createQueryBuilder('v')
+            ->where('v.poem = :poem')
+            ->andWhere('v.createdAt > :createdAt')
+            ->setParameter('poem', $version->getPoem())
+            ->setParameter('createdAt', $version->getCreatedAt())
+            ->orderBy('v.createdAt', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

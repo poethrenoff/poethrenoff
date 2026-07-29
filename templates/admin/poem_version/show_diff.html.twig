@@ -1,0 +1,68 @@
+{% extends '@SonataAdmin/CRUD/base_show_field.html.twig' %}
+
+{% block field %}
+    {% set nextVersion = admin.getNextVersion(object) %}
+    {% set target = nextVersion ?: object.poem %}
+    {% set isPoem = nextVersion is empty %}
+
+    <style>
+        .diff-container { display: flex; gap: 20px; }
+        .diff-column { flex: 1; min-width: 0; }
+        .diff-field { margin-bottom: 15px; border: 1px solid #ddd; padding: 10px; border-radius: 4px; }
+        .diff-label { font-weight: bold; margin-bottom: 5px; color: #555; }
+        .diff-value { white-space: pre-wrap; word-break: break-word; font-family: monospace; }
+        .diff-changed { background-color: #fff3cd; border-color: #ffeeba; }
+        .diff-header { font-size: 1.2em; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 2px solid #eee; font-weight: bold; }
+        @media (max-width: 768px) {
+            .diff-container { flex-direction: column; }
+        }
+    </style>
+
+    <div class="diff-container">
+        <div class="diff-column">
+            <div class="diff-header">Эта версия ({{ object.createdAt|date('d.m.Y H:i:s') }})</div>
+
+            <div class="diff-field">
+                <div class="diff-label">Заголовок</div>
+                <div class="diff-value">{{ object.title }}</div>
+            </div>
+
+            <div class="diff-field">
+                <div class="diff-label">Содержание</div>
+                <div class="diff-value">{{ object.content }}</div>
+            </div>
+
+            <div class="diff-field">
+                <div class="diff-label">Комментарий</div>
+                <div class="diff-value">{{ object.comment ? object.comment|date('d.m.Y') : '-' }}</div>
+            </div>
+        </div>
+
+        <div class="diff-column">
+            <div class="diff-header">
+                {% if isPoem %}
+                    Текущее состояние
+                {% else %}
+                    Следующая версия ({{ target.createdAt|date('d.m.Y H:i:s') }})
+                {% endif %}
+            </div>
+
+            {% set diff = isPoem ? object.diffWithPoem(target) : object.diffWithVersion(target) %}
+
+            <div class="diff-field {{ diff.title_changed ? 'diff-changed' : '' }}">
+                <div class="diff-label">Заголовок</div>
+                <div class="diff-value">{{ target.title }}</div>
+            </div>
+
+            <div class="diff-field {{ diff.content_changed ? 'diff-changed' : '' }}">
+                <div class="diff-label">Содержание</div>
+                <div class="diff-value">{{ target.content }}</div>
+            </div>
+
+            <div class="diff-field {{ diff.comment_changed ? 'diff-changed' : '' }}">
+                <div class="diff-label">Комментарий</div>
+                <div class="diff-value">{{ target.comment ? target.comment|date('d.m.Y') : '-' }}</div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

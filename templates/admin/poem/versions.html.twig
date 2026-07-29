@@ -1,0 +1,6 @@
+{% if admin.hasAccess('edit', object) %}
+    <a href="{{ path('admin_app_poem_poemversion_list', {'id': object.id}) }}" class="btn btn-sm btn-default edit_link" title="Versions">
+        <i class="fa fa-history" aria-hidden="true"></i>
+        Versions
+    </a>
+{% endif %}
