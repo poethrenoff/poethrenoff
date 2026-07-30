@@ -8,6 +8,7 @@ use App\Repository\PoemRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -68,8 +69,8 @@ class WorkController extends AbstractController
             return $this->json(['error' => ['message' => 'Некорректные данные']], Response::HTTP_BAD_REQUEST);
         }
 
-        $title = trim($data['title']);
-        $content = rtrim($data['content']);
+        $title = trim($data['title'] ?? '');
+        $content = rtrim($data['content'] ?? '');
         $comment = $this->parseCommentDate($data['comment'] ?? null);
 
         if (($data['comment'] ?? '') !== '' && $comment === null) {
@@ -129,8 +130,8 @@ class WorkController extends AbstractController
             return $this->json(['error' => ['message' => 'Некорректные данные']], Response::HTTP_BAD_REQUEST);
         }
 
-        $title = trim($data['title']);
-        $content = rtrim($data['content']);
+        $title = trim($data['title'] ?? '');
+        $content = rtrim($data['content'] ?? '');
         $comment = $this->parseCommentDate($data['comment'] ?? null);
 
         if (($data['comment'] ?? '') !== '' && $comment === null) {
@@ -220,7 +221,7 @@ class WorkController extends AbstractController
 
         return new Response($result, 200, [
             'Content-Type' => 'text/plain; charset=utf-8',
-            'Content-Disposition' => 'attachment; filename="Новые стихи.txt"',
+            'Content-Disposition' => HeaderUtils::makeDisposition('attachment', 'Новые стихи.txt', 'poems.txt'),
         ]);
     }
 
