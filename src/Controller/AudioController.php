@@ -18,6 +18,8 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 #[IsGranted('ROLE_ADMIN')]
 class AudioController extends AbstractController
 {
+    private const array ALLOWED_EXTENSIONS = ['webm', 'mp3', 'ogg', 'wav'];
+
     private string $audioDir;
 
     public function __construct(
@@ -60,7 +62,14 @@ class AudioController extends AbstractController
              return $this->json(['error' => ['message' => 'Файл не получен']], Response::HTTP_BAD_REQUEST);
         }
 
-        $fileName = uniqid() . '.' . ($file->guessExtension() ?: 'webm');
+        $extension = strtolower($file->guessExtension() ?: '');
+        if (!in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
+            return $this->json([
+                'error' => ['message' => 'Допустимые форматы: ' . implode(', ', self::ALLOWED_EXTENSIONS)],
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $fileName = bin2hex(random_bytes(16)) . '.' . $extension;
         $file->move($this->audioDir, $fileName);
 
         $title = $request->request->get('title', 'Новая запись');
@@ -105,14 +114,21 @@ class AudioController extends AbstractController
             return $this->json(['error' => ['message' => 'Файл не получен']], Response::HTTP_BAD_REQUEST);
         }
 
+        $extension = strtolower($file->guessExtension() ?: '');
+        if (!in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
+            return $this->json([
+                'error' => ['message' => 'Допустимые форматы: ' . implode(', ', self::ALLOWED_EXTENSIONS)],
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $fileName = bin2hex(random_bytes(16)) . '.' . $extension;
+        $file->move($this->audioDir, $fileName);
+
         $oldFileName = basename($audio->getFilePath());
         $oldPath = $this->audioDir . '/' . $oldFileName;
         if (file_exists($oldPath)) {
             unlink($oldPath);
         }
-
-        $fileName = uniqid() . '.' . ($file->guessExtension() ?: 'webm');
-        $file->move($this->audioDir, $fileName);
 
         $audio->setFilePath('/upload/audio/' . $fileName);
 
