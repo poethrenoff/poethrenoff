@@ -309,6 +309,10 @@ class SiteController extends AbstractController
             return $this->json(['error' => 'Имя обязательно'], Response::HTTP_BAD_REQUEST);
         }
 
+        if (mb_strlen($author) > 100) {
+            return $this->json(['error' => 'Имя не должно превышать 100 символов'], Response::HTTP_BAD_REQUEST);
+        }
+
         $sanitizedContent = $this->htmlSanitizer->sanitize($this->autolink($content));
         if (empty(strip_tags($sanitizedContent))) {
             return $this->json(['error' => 'Комментарий не может быть пустым'], Response::HTTP_BAD_REQUEST);
