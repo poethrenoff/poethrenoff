@@ -28,7 +28,8 @@
 
         {{ include('common/comments/form.html.twig', {
             commentUrl: path('work_comment_save', {id: work.id}),
-            storageKey: 'work_comment_author_name'
+            storageKey: 'work_comment_author_name',
+            csrfTokenId: 'site_comment'
         }) }}
 
         {% if rootComments is not empty %}

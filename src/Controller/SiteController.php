@@ -301,7 +301,7 @@ class SiteController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         $token = $data['_token'] ?? '';
-        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken('comment', $token))) {
+        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken('site_comment', $token))) {
             return $this->json(['error' => 'Invalid CSRF token'], Response::HTTP_FORBIDDEN);
         }
 
