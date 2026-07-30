@@ -3,6 +3,34 @@
 > Подробная история всех изменений, исправлений и улучшений, внесённых в проект.
 > Актуальные инструкции для агента — в [`AGENTS.md`](AGENTS.md).
 
+## 2026-07-30
+
+- Добавлена CSRF-защита API-эндпоинтов мастерской (`WorkController`, `AudioController`):
+    - Создан `CsrfTrait` с методом `validateCsrf()` для единообразной проверки CSRF-токена во всех контроллерах.
+    - Исправлена ошибка, при которой `validateCsrf()` в `WorkController` дописывал `'1'` к значению токена, из-за чего все CSRF-проверки всегда проваливались.
+    - Убраны `stateless_token_ids` из `csrf.yaml`, из-за которых `SameOriginCsrfTokenManager` возвращал заглушку `'csrf-token'` вместо реального токена.
+    - Шаблон мастерской переведён на использование `csrf_token()` Twig-функции (как на публичных сайтах) вместо токенов, генерируемых контроллером.
+    - Добавлен `_token` во все мутирующие API-запросы фронтенда мастерской (create, update, trash, restore, reorder для стихов; create, rename, rewrite, delete для аудио).
+    - Добавлен `IS_AUTHENTICATED_FULLY` для `WorkController` и `AudioController`, маршрут `/audio/` добавлен в `access_control` firewall.
+- Исправлены CSRF-токены для комментариев блога и сайта: использованы разные token ID для `BlogController` и `SiteController`, чтобы не было конфликтов при использовании на одной странице.
+- Усилена безопасность загрузки аудио (`AudioController`):
+    - Добавлен allowlist допустимых расширений файлов (`webm`, `mp3`, `ogg`, `wav`).
+    - Заменён `uniqid()` на `bin2hex(random_bytes(16))` для генерации имён файлов (криптографически стойкий RNG).
+    - Исправлен порядок операций при перезаписи: сначала перемещение нового файла, затем удаление старого (ранее было наоборот — race condition при ошибке).
+- Исправлен `WorkController::export()`: добавлен null-safe operator (`??`) для `title`/`content`, предотвращающий `TypeError` при пустых данных. Заголовок `Content-Disposition` формируется через `HeaderUtils::makeDisposition()` с RFC 5987-корректным fallback-именем файла.
+- Добавлены SRI-хеши (integrity) для CDN-скриптов в шаблонах (`admin/layout.html.twig`, `base.html.twig`, `site/picture.html.twig`, `work/base.html.twig`).
+- В `AudioAdmin` и `PictureAdmin` заменён `getClientOriginalExtension()` на `guessExtension()` — определение расширения по Mime-Type вместо доверия клиентскому имени файла.
+- Удалены неиспользуемые импорты и serialization group `poem:sidebar` из `Poem.php` и `WorkVoteAdmin`.
+- Исправлен `CacheClearListener`: вместо зависимости от магической константы `ConsoleCommandEvent::RETURN_CODE_DISABLED` в обработчике `onConsoleTerminate` внедрён явный флаг-состояние `$commandHandled`. Это делает логику сброса exit code устойчивой к изменениям внутренней реализации Symfony Console.
+- Устранено использование deprecated `$this->getRequest()` в Sonata Admin:
+    - В `PictureAdmin` и `AudioAdmin` параметр `app.site_context` теперь инжектируется через `#[Autowire('%app.site_context%')]` с setter`ом, помеченным `#[Required]`.
+    - Метод `getUploadRootDir()` в обоих классах больше не обращается к `Request`, что устраняет deprecation-предупреждения и повышает совместимость с будущими версиями Sonata.
+- Удалён мёртвый код: поле `sessionHash` сущности `WorkVote`:
+    - Удалены свойство, геттер и сеттер `sessionHash` из `WorkVote.php`.
+    - Удалены вычисление `$sessionId`/`$sessionHash` и вызов `setSessionHash()` из `SiteController::vote()`.
+    - Удалены отображение `sessionHash` в форме и show-режиме `WorkVoteAdmin`.
+    - Создана миграция `Version20260730161801` для удаления колонки `session_hash` из таблицы `work_vote`.
+
 ## 2026-07-28
 
 - Исправлена ошибка `unable to find the route App\Admin\PoemAdmin|App\Admin\PoemVersionAdmin.list` на странице `/admin/app/poem/{id}/poemversion/list`:
