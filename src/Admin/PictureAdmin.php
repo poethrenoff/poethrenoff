@@ -21,12 +21,19 @@ use Symfony\Contracts\Service\Attribute\Required;
 class PictureAdmin extends AbstractAdmin
 {
     private string $projectDir;
+    private string $siteContext;
     private EntityManagerInterface $entityManager;
 
     #[Required]
     public function setProjectDir(#[Autowire('%kernel.project_dir%')] string $projectDir): void
     {
         $this->projectDir = $projectDir;
+    }
+
+    #[Required]
+    public function setSiteContext(#[Autowire('%app.site_context%')] string $siteContext): void
+    {
+        $this->siteContext = $siteContext;
     }
 
     #[Required]
@@ -149,7 +156,7 @@ class PictureAdmin extends AbstractAdmin
 
     private function getUploadRootDir(): string
     {
-        return $this->projectDir . '/htdocs/' . $this->getRequest()->server->get('APP_SITE_CONTEXT');
+        return $this->projectDir . '/htdocs/' . $this->siteContext;
     }
 
     private function getMaxPositionForDate(\DateTimeInterface $date): float

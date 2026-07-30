@@ -22,11 +22,18 @@ use Symfony\Contracts\Service\Attribute\Required;
 class AudioAdmin extends AbstractAdmin
 {
     private string $projectDir;
+    private string $siteContext;
 
     #[Required]
     public function setProjectDir(#[Autowire('%kernel.project_dir%')] string $projectDir): void
     {
         $this->projectDir = $projectDir;
+    }
+
+    #[Required]
+    public function setSiteContext(#[Autowire('%app.site_context%')] string $siteContext): void
+    {
+        $this->siteContext = $siteContext;
     }
 
     protected function configureFormFields(FormMapper $form): void
@@ -105,7 +112,7 @@ class AudioAdmin extends AbstractAdmin
 
     private function getUploadRootDir(): string
     {
-        return $this->projectDir . '/htdocs/' . $this->getRequest()->server->get('APP_SITE_CONTEXT');
+        return $this->projectDir . '/htdocs/' . $this->siteContext;
     }
 
     protected function configureDatagridFilters(DatagridMapper $filter): void
