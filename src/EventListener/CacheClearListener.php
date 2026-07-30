@@ -11,6 +11,7 @@ use Symfony\Component\Process\Process;
 class CacheClearListener implements EventSubscriberInterface
 {
     private array $contexts = ['www', 'blog', 'work'];
+    private bool $commandHandled = false;
 
     public static function getSubscribedEvents(): array
     {
@@ -18,16 +19,6 @@ class CacheClearListener implements EventSubscriberInterface
             ConsoleEvents::COMMAND => ['onConsoleCommand', 10],
             ConsoleEvents::TERMINATE => ['onConsoleTerminate', 10],
         ];
-    }
-
-    public function onConsoleTerminate(ConsoleTerminateEvent $event): void
-    {
-        if (
-            $event->getExitCode() === ConsoleCommandEvent::RETURN_CODE_DISABLED &&
-            $event->getCommand()?->getName() === 'cache:clear'
-        ) {
-            $event->setExitCode(0);
-        }
     }
 
     public function onConsoleCommand(ConsoleCommandEvent $event): void
@@ -51,10 +42,8 @@ class CacheClearListener implements EventSubscriberInterface
         foreach ($this->contexts as $context) {
             $output->writeln("  -> Context: <comment>$context</comment>");
 
-            // Собираем команду для запуска в подпроцессе
             $commandLine = [PHP_BINARY, 'bin/console', 'cache:clear', '--env=' . $env];
 
-            // Пробрасываем важные опции
             if ($input->getOption('no-warmup')) {
                 $commandLine[] = '--no-warmup';
             }
@@ -75,9 +64,17 @@ class CacheClearListener implements EventSubscriberInterface
 
         $output->writeln('<info>All site context caches have been cleared.</info>');
 
-        // Отменяем выполнение оригинальной команды для "пустого" контекста,
-        // так как мы уже всё очистили для конкретных контекстов.
+        $this->commandHandled = true;
         $event->disableCommand();
         $event->stopPropagation();
+    }
+
+    public function onConsoleTerminate(ConsoleTerminateEvent $event): void
+    {
+        if ($this->commandHandled && $event->getCommand()?->getName() === 'cache:clear') {
+            $event->setExitCode(0);
+        }
+
+        $this->commandHandled = false;
     }
 }
