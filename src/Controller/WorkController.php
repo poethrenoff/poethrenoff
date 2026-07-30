@@ -16,6 +16,8 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use App\Traits\CsrfTrait;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 #[Route(condition: "request.server.get('APP_SITE_CONTEXT') == 'work'")]
 #[IsGranted('ROLE_ADMIN')]
@@ -24,10 +26,14 @@ class WorkController extends AbstractController
 {
     use CsrfTrait;
 
+    private const int STATS_CACHE_TTL = 300;
+    private const string STATS_CACHE_KEY = 'work_poems_stats';
+
     public function __construct(
         private PoemRepository $poemRepository,
         private EntityManagerInterface $entityManager,
         private CsrfTokenManagerInterface $csrfTokenManager,
+        private CacheInterface $cache,
     ) {
     }
 
@@ -100,6 +106,7 @@ class WorkController extends AbstractController
 
         $this->entityManager->persist($poem);
         $this->entityManager->flush();
+        $this->cache->delete(self::STATS_CACHE_KEY);
 
         return $this->json(
             $poem,
@@ -111,12 +118,18 @@ class WorkController extends AbstractController
     #[Route('/poems/stats/', name: 'work_api_poems_stats', methods: ['GET'])]
     public function stats(): JsonResponse
     {
-        return $this->json([
-            'total' => $this->poemRepository->countActive(),
-            'trash' => $this->poemRepository->countByStatus(PoemStatus::Trash),
-            'streak' => $this->poemRepository->findStreak(),
-            'max_streak' => $this->poemRepository->findMaxStreak(),
-        ]);
+        $data = $this->cache->get(self::STATS_CACHE_KEY, function (ItemInterface $item): array {
+            $item->expiresAfter(self::STATS_CACHE_TTL);
+
+            return [
+                'total' => $this->poemRepository->countActive(),
+                'trash' => $this->poemRepository->countByStatus(PoemStatus::Trash),
+                'streak' => $this->poemRepository->findStreak(),
+                'max_streak' => $this->poemRepository->findMaxStreak(),
+            ];
+        });
+
+        return $this->json($data);
     }
 
     #[Route('/poems/{id}/', name: 'work_api_poems_detail', methods: ['GET'], requirements: ['id' => '\d+'])]
@@ -160,6 +173,7 @@ class WorkController extends AbstractController
         $poem->setContent($content);
         $poem->setComment($comment);
         $this->entityManager->flush();
+        $this->cache->delete(self::STATS_CACHE_KEY);
 
         if (!$poem->isEqual($originalPoem)) {
             $version = $poem->createVersion($originalPoem);
@@ -183,6 +197,7 @@ class WorkController extends AbstractController
 
         $poem->trash();
         $this->entityManager->flush();
+        $this->cache->delete(self::STATS_CACHE_KEY);
 
         return $this->json(['status' => 'ok']);
     }
@@ -200,6 +215,7 @@ class WorkController extends AbstractController
 
         $poem->restore();
         $this->entityManager->flush();
+        $this->cache->delete(self::STATS_CACHE_KEY);
 
         return $this->json(['status' => 'ok']);
     }
@@ -266,6 +282,7 @@ class WorkController extends AbstractController
 
         $this->entityManager->remove($poem);
         $this->entityManager->flush();
+        $this->cache->delete(self::STATS_CACHE_KEY);
 
         return $this->json(['status' => 'ok']);
     }
