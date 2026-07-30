@@ -4,7 +4,7 @@ security:
     resource: '../src/Controller/SecurityController.php'
     type: attribute
 
-site:
+www:
     resource: '../src/Controller/SiteController.php'
     type: attribute
     condition: "request.server.get('APP_SITE_CONTEXT') == 'www'"
