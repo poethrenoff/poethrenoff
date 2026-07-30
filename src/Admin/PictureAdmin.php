@@ -114,7 +114,7 @@ class PictureAdmin extends AbstractAdmin
         $slugger = new AsciiSlugger();
         $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $safeFilename = $slugger->slug($originalFilename)->lower();
-        $extension = $file->getClientOriginalExtension();
+        $extension = $file->guessExtension();
 
         $newFilename = sprintf('%s.%s', $safeFilename, $extension);
 
