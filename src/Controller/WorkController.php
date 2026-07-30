@@ -6,7 +6,6 @@ use App\Entity\Poem;
 use App\Enum\PoemStatus;
 use App\Repository\PoemRepository;
 use App\Traits\CsrfTrait;
-use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\HeaderUtils;
@@ -37,14 +36,14 @@ class WorkController extends AbstractController
     ) {
     }
 
-    private function parseCommentDate(?string $value): ?DateTimeImmutable
+    private function parseCommentDate(?string $value): ?\DateTimeImmutable
     {
         if (!$value) {
             return null;
         }
 
-        $date = DateTimeImmutable::createFromFormat('!d.m.Y', $value);
-        $errors = DateTimeImmutable::getLastErrors();
+        $date = \DateTimeImmutable::createFromFormat('!d.m.Y', $value);
+        $errors = \DateTimeImmutable::getLastErrors();
 
         if ($date && (!$errors || ($errors['warning_count'] === 0 && $errors['error_count'] === 0))) {
             return $date;
