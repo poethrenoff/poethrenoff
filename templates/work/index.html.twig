@@ -37,7 +37,7 @@
             </div>
         </div>
 
-        <div class="toc-panel" x-show="toc.length > 0">
+        <div class="toc-panel" x-show="toc.length > 0 && view !== 'audio'">
             <div class="toc-list">
                 <template x-for="item in toc" :key="item.id">
                     <a class="toc-link" @click.prevent="scrollToPoem(item.id)" x-text="item.title"></a>
