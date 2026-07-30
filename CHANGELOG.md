@@ -5,6 +5,8 @@
 
 ## 2026-07-30
 
+- JS-код Alpine.js-компонента мастерской вынесен из `templates/work/index.html.twig` (~630 строк) в отдельный файл `public/assets/js/work.js`. Инлайн остался только блок с CSRF-токенами (Twig-генерация). Шаблон сокращён с 879 до 244 строк.
+
 - Маршрутизация унифицирована: `#[Route(condition: ...)]` перенесён из контроллеров в `config/routes.yaml`. Каждый импорт контроллера содержит `condition` по `APP_SITE_CONTEXT`. SecurityController импортируется без условия (доступен на всех сайтах). Бандловые маршруты загружаются из `config/routes/` через `MicroKernelTrait`.
 - Оптимизация отдачи аудиофайлов: `AudioController::getAudio()` теперь использует `X-Accel-Redirect` вместо `$this->file()`. PHP отдаёт заголовки (Content-Type, Content-Length, Cache-Control), а файл发送ляется nginx напрямую — PHP-воркер не занят чтением файла. В nginx добавлен `internal` location `/upload/` для блока `lo.work.poethrenoff.ru`.
 - Обновлены Symfony-зависимости до актуальных patch-версий (v8.1.2–v8.1.3). Добавлено платформенное требование `ext-fileinfo`. Синхронизированы типы конфигурации в `config/reference.php` с новыми версиями пакетов.
