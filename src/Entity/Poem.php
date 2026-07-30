@@ -19,31 +19,31 @@ class Poem
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
-    #[Groups(['poem:list', 'poem:detail', 'poem:sidebar'])]
+    #[Groups(['poem:list', 'poem:detail'])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 512, nullable: true)]
-    #[Groups(['poem:list', 'poem:detail', 'poem:sidebar'])]
+    #[Groups(['poem:list', 'poem:detail'])]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['poem:list', 'poem:detail', 'poem:sidebar'])]
+    #[Groups(['poem:list', 'poem:detail'])]
     private string $content = '';
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
-    #[Groups(['poem:list', 'poem:detail', 'poem:sidebar'])]
+    #[Groups(['poem:list', 'poem:detail'])]
     private ?\DateTimeImmutable $comment = null;
 
     #[ORM\Column(type: Types::STRING, length: 20, enumType: PoemStatus::class)]
-    #[Groups(['poem:list', 'poem:detail', 'poem:sidebar'])]
+    #[Groups(['poem:list', 'poem:detail'])]
     private PoemStatus $status = PoemStatus::Draft;
 
     #[ORM\Column(type: Types::SMALLFLOAT)]
-    #[Groups(['poem:list', 'poem:detail', 'poem:sidebar'])]
+    #[Groups(['poem:list', 'poem:detail'])]
     private float $position = 0.0;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
-    #[Groups(['poem:list', 'poem:detail', 'poem:sidebar'])]
+    #[Groups(['poem:list', 'poem:detail'])]
     private ?\DateTimeImmutable $deletedAt = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
