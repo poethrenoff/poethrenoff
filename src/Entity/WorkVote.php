@@ -22,9 +22,6 @@ class WorkVote
     #[ORM\Column(type: Types::STRING, length: 64)]
     private string $ipHash = '';
 
-    #[ORM\Column(type: Types::STRING, length: 64, nullable: true)]
-    private ?string $sessionHash = null;
-
     #[ORM\Column(type: Types::STRING, length: 64)]
     private string $userAgentHash = '';
 
@@ -63,17 +60,6 @@ class WorkVote
     public function setIpHash(string $ipHash): static
     {
         $this->ipHash = $ipHash;
-        return $this;
-    }
-
-    public function getSessionHash(): ?string
-    {
-        return $this->sessionHash;
-    }
-
-    public function setSessionHash(?string $sessionHash): static
-    {
-        $this->sessionHash = $sessionHash;
         return $this;
     }
 

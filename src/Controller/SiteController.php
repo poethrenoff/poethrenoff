@@ -245,12 +245,10 @@ class SiteController extends AbstractController
         }
 
         $ip = $request->getClientIp() ?? '127.0.0.1';
-        $sessionId = $request->getSession()->getId();
         $userAgent = $request->headers->get('User-Agent', '');
 
         $salt = $this->getParameter('app.vote_salt');
         $ipHash = hash('sha256', $ip . $salt);
-        $sessionHash = hash('sha256', $sessionId . $salt);
         $userAgentHash = hash('sha256', $userAgent . $salt);
 
         $existingVote = $this->workVoteRepository->findOneBy([
@@ -266,7 +264,6 @@ class SiteController extends AbstractController
         $vote = new WorkVote();
         $vote->setWork($work);
         $vote->setIpHash($ipHash);
-        $vote->setSessionHash($sessionHash);
         $vote->setUserAgentHash($userAgentHash);
         $vote->setVoteType($type);
 

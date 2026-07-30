@@ -29,7 +29,6 @@ class WorkVoteAdmin extends AbstractAdmin
                 'btn_add' => false,
             ])
             ->add('ipHash', TextType::class)
-            ->add('sessionHash', TextType::class)
             ->add('userAgentHash', TextType::class)
             ->add('voteType', ChoiceType::class, [
                 'choices' => [
@@ -102,7 +101,6 @@ class WorkVoteAdmin extends AbstractAdmin
             ->add('id')
             ->add('work')
             ->add('ipHash')
-            ->add('sessionHash')
             ->add('userAgentHash')
             ->add('voteType')
             ->add('createdAt')
