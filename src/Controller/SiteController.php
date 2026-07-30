@@ -22,7 +22,6 @@ use App\Traits\CommentUtilsTrait;
 use App\Traits\CsrfTrait;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 
-#[Route(condition: "request.server.get('APP_SITE_CONTEXT') == 'www'")]
 class SiteController extends AbstractController
 {
     use CommentUtilsTrait;
@@ -134,7 +133,7 @@ class SiteController extends AbstractController
     #[Route('/picture/{page}', name: 'site_picture', defaults: ['page' => 1])]
     public function picture(int $page): Response
     {
-        $pictures = $this->pictureRepository->findActivePaginated($page, 24); // 24 per page as per plan
+        $pictures = $this->pictureRepository->findActivePaginated($page, 24);
         $paginationData = $pictures->getPaginationData();
 
         $pagination = [
@@ -345,9 +344,6 @@ class SiteController extends AbstractController
         ]);
     }
 
-    /**
-     * Helper method to build breadcrumbs for a WorkGroup.
-     */
     private function buildBreadcrumbs(?WorkGroup $group = null): array
     {
         $breadcrumbs = [];

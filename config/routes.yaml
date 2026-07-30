@@ -1,11 +1,25 @@
 # yaml-language-server: $schema=../vendor/symfony/routing/Loader/schema/routing.schema.json
 
-# This file is the entry point to configure the routes of your app.
-# Methods with the #[Route] attribute are automatically imported.
-# See also https://symfony.com/doc/current/routing.html
+security:
+    resource: '../src/Controller/SecurityController.php'
+    type: attribute
 
-# To list all registered routes, run the following command:
-#   bin/console debug:router
+site:
+    resource: '../src/Controller/SiteController.php'
+    type: attribute
+    condition: "request.server.get('APP_SITE_CONTEXT') == 'www'"
 
-controllers:
-    resource: routing.controllers
+blog:
+    resource: '../src/Controller/BlogController.php'
+    type: attribute
+    condition: "request.server.get('APP_SITE_CONTEXT') == 'blog'"
+
+work:
+    resource: '../src/Controller/WorkController.php'
+    type: attribute
+    condition: "request.server.get('APP_SITE_CONTEXT') == 'work'"
+
+audio:
+    resource: '../src/Controller/AudioController.php'
+    type: attribute
+    condition: "request.server.get('APP_SITE_CONTEXT') == 'work'"

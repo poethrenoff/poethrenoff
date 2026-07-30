@@ -18,7 +18,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
-#[Route(condition: "request.server.get('APP_SITE_CONTEXT') == 'work'")]
 #[IsGranted('ROLE_ADMIN')]
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 class WorkController extends AbstractController

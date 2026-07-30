@@ -16,7 +16,6 @@ use App\Entity\BlogComment;
 use App\Traits\CommentUtilsTrait;
 use App\Traits\CsrfTrait;
 
-#[Route(condition: "request.server.get('APP_SITE_CONTEXT') == 'blog'")]
 class BlogController extends AbstractController
 {
     use CommentUtilsTrait;

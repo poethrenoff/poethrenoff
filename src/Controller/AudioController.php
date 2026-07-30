@@ -17,7 +17,6 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use App\Traits\CsrfTrait;
 
-#[Route(condition: "request.server.get('APP_SITE_CONTEXT') == 'work'")]
 #[IsGranted('ROLE_ADMIN')]
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 class AudioController extends AbstractController
@@ -95,7 +94,6 @@ class AudioController extends AbstractController
         $audio->setTitle($title);
         $audio->setFilePath('/upload/audio/' . $fileName);
 
-        // Duration can be sent from client or calculated
         $duration = (int) $request->request->get('duration');
         if ($duration > 0) {
             $audio->setDuration($duration);
