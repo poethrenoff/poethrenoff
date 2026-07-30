@@ -31,6 +31,7 @@
     - Удалены вычисление `$sessionId`/`$sessionHash` и вызов `setSessionHash()` из `SiteController::vote()`.
     - Удалены отображение `sessionHash` в форме и show-режиме `WorkVoteAdmin`.
     - Создана миграция `Version20260730161801` для удаления колонки `session_hash` из таблицы `work_vote`.
+- Оптимизирован `PoemRepository::getSortedDraftDays()`: вместо загрузки всех сущностей `Poem` в PHP и постобработки дат заменён на DQL-запрос с `select('p.comment')` и `distinct()` — устранена проблема N+1 при 1000+ стихах и убран полный hydrate сущностей. Корректно используется `format('Y-m-d')` вместо `getTimestamp()` для конвертации дат, чтобы избежать сдвига из-за timezone сервера.
 
 ## 2026-07-28
 

@@ -113,19 +113,17 @@ class PoemRepository extends ServiceEntityRepository
      */
     private function getSortedDraftDays(): array
     {
-        $poems = $this->createQueryBuilder('p')
+        $rows = $this->createQueryBuilder('p')
+            ->select('DISTINCT p.comment as day')
             ->where('p.comment IS NOT NULL')
             ->andWhere('p.status = :status')
             ->setParameter('status', PoemStatus::Draft)
             ->getQuery()
-            ->toIterable();
+            ->getArrayResult();
 
         $days = [];
-        foreach ($poems as $poem) {
-            $comment = $poem->getComment();
-            if ($comment instanceof \DateTimeImmutable) {
-                $days[] = (int)(strtotime($comment->format('Y-m-d') . ' UTC') / 86400);
-            }
+        foreach ($rows as $row) {
+            $days[] = (int) (strtotime($row['day']->format('Y-m-d') . ' UTC') / 86400);
         }
 
         $days = array_unique($days);
