@@ -6,6 +6,7 @@
     "require": {
         "php": ">=8.4",
         "ext-ctype": "*",
+        "ext-fileinfo": "*",
         "ext-iconv": "*",
         "ext-json": "*",
         "doctrine/doctrine-bundle": "^3.3.1",
