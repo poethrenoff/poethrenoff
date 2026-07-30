@@ -106,4 +106,4 @@ services:
     App\Admin\WorkVoteAdmin:
         public: true
         tags:
-            - { name: sonata.admin, manager_type: orm, group: site, label: Голоса, model_class: App\Entity\WorkVote}
+            - { name: sonata.admin, manager_type: orm, group: site, label: Голоса, model_class: App\Entity\WorkVote }
