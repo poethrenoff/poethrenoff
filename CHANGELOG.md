@@ -5,6 +5,7 @@
 
 ## 2026-07-30
 
+- Оптимизация отдачи аудиофайлов: `AudioController::getAudio()` теперь использует `X-Accel-Redirect` вместо `$this->file()`. PHP отдаёт заголовки (Content-Type, Content-Length, Cache-Control), а файл发送ляется nginx напрямую — PHP-воркер не занят чтением файла. В nginx добавлен `internal` location `/upload/` для блока `lo.work.poethrenoff.ru`.
 - Добавлен файл `config/reference.php` — конфигуратор ссылки Symfony DI для type-safe конфигурации сервисов. (`/poems/stats/`) через `cache.app` на 5 минут (TTL 300с). Кэш инвалидируется при создании, обновлении, удалении, перемещении в корзину и восстановлении стихов.
 - Добавлена валидация длины имени комментария (макс. 100 символов) в `BlogController` и `SiteController` — предотвращает SQL-ошибку 500 при слишком длинном `author`.
 - Добавлена CSRF-защита API-эндпоинтов мастерской (`WorkController`, `AudioController`):

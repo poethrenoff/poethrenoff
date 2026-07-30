@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
@@ -57,7 +58,13 @@ class AudioController extends AbstractController
             return new Response('File not found', Response::HTTP_NOT_FOUND);
         }
 
-        return $this->file($path);
+        $response = new Response();
+        $response->headers->set('X-Accel-Redirect', $audio->getFilePath());
+        $response->headers->set('Content-Type', mime_content_type($path) ?: 'application/octet-stream');
+        $response->headers->set('Content-Length', (string) filesize($path));
+        $response->headers->set('Cache-Control', 'public, max-age=31536000');
+
+        return $response;
     }
 
     #[Route('/audio/', name: 'work_api_audio_create', methods: ['POST'])]
