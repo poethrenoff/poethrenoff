@@ -13,15 +13,21 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Traits\CsrfTrait;
 
 #[Route(condition: "request.server.get('APP_SITE_CONTEXT') == 'work'")]
 #[IsGranted('ROLE_ADMIN')]
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
 class WorkController extends AbstractController
 {
+    use CsrfTrait;
+
     public function __construct(
         private PoemRepository $poemRepository,
         private EntityManagerInterface $entityManager,
+        private CsrfTokenManagerInterface $csrfTokenManager,
     ) {
     }
 
@@ -63,6 +69,10 @@ class WorkController extends AbstractController
     #[Route('/poems/', name: 'work_api_poems_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
+        if (!$this->validateCsrf($request, 'work_poem_create')) {
+            return $this->json(['error' => ['message' => 'Invalid CSRF token']], Response::HTTP_FORBIDDEN);
+        }
+
         $data = json_decode($request->getContent(), true);
 
         if (!is_array($data) || empty(trim($data['content'] ?? ''))) {
@@ -118,6 +128,10 @@ class WorkController extends AbstractController
     #[Route('/poems/{id}/', name: 'work_api_poems_update', methods: ['PUT'], requirements: ['id' => '\d+'])]
     public function update(Request $request, Poem $poem): JsonResponse
     {
+        if (!$this->validateCsrf($request, 'work_poem_update')) {
+            return $this->json(['error' => ['message' => 'Invalid CSRF token']], Response::HTTP_FORBIDDEN);
+        }
+
         if ($poem->getStatus() === PoemStatus::Trash) {
             return $this->json(['error' => [
                 'message' => 'Нельзя редактировать удалённый стих',
@@ -157,8 +171,12 @@ class WorkController extends AbstractController
     }
 
     #[Route('/poems/{id}/trash/', name: 'work_api_poems_trash', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function trash(Poem $poem): JsonResponse
+    public function trash(Request $request, Poem $poem): JsonResponse
     {
+        if (!$this->validateCsrf($request, 'work_poem_trash')) {
+            return $this->json(['error' => ['message' => 'Invalid CSRF token']], Response::HTTP_FORBIDDEN);
+        }
+
         if ($poem->getStatus() === PoemStatus::Trash) {
             return $this->json(['error' => ['message' => 'Стих уже в корзине']], Response::HTTP_BAD_REQUEST);
         }
@@ -170,8 +188,12 @@ class WorkController extends AbstractController
     }
 
     #[Route('/poems/{id}/restore/', name: 'work_api_poems_restore', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function restore(Poem $poem): JsonResponse
+    public function restore(Request $request, Poem $poem): JsonResponse
     {
+        if (!$this->validateCsrf($request, 'work_poem_restore')) {
+            return $this->json(['error' => ['message' => 'Invalid CSRF token']], Response::HTTP_FORBIDDEN);
+        }
+
         if ($poem->getStatus() !== PoemStatus::Trash || $poem->getDeletedAt() === null) {
             return $this->json(['error' => ['message' => 'Стих уже восстановлен']], Response::HTTP_BAD_REQUEST);
         }
@@ -185,6 +207,10 @@ class WorkController extends AbstractController
     #[Route('/poems/{id}/reorder/', name: 'work_api_poems_reorder', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function reorder(Request $request, Poem $poem): JsonResponse
     {
+        if (!$this->validateCsrf($request, 'work_poem_reorder')) {
+            return $this->json(['error' => ['message' => 'Invalid CSRF token']], Response::HTTP_FORBIDDEN);
+        }
+
         $data = json_decode($request->getContent(), true);
 
         if (!is_array($data)) {
@@ -226,8 +252,12 @@ class WorkController extends AbstractController
     }
 
     #[Route('/poems/{id}/', name: 'work_api_poems_delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]
-    public function delete(Poem $poem): JsonResponse
+    public function delete(Request $request, Poem $poem): JsonResponse
     {
+        if (!$this->validateCsrf($request, 'work_poem_delete')) {
+            return $this->json(['error' => ['message' => 'Invalid CSRF token']], Response::HTTP_FORBIDDEN);
+        }
+
         if ($poem->getStatus() !== PoemStatus::Trash || $poem->getDeletedAt() === null) {
             return $this->json(['error' => [
                 'message' => 'Можно удалить навсегда только стих из корзины',

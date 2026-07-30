@@ -227,6 +227,20 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
+        window.CSRF_TOKENS = {
+            work_poem_create: '{{ csrf_token('work_poem_create') }}',
+            work_poem_update: '{{ csrf_token('work_poem_update') }}',
+            work_poem_trash: '{{ csrf_token('work_poem_trash') }}',
+            work_poem_restore: '{{ csrf_token('work_poem_restore') }}',
+            work_poem_reorder: '{{ csrf_token('work_poem_reorder') }}',
+            work_poem_delete: '{{ csrf_token('work_poem_delete') }}',
+            work_audio_create: '{{ csrf_token('work_audio_create') }}',
+            work_audio_rename: '{{ csrf_token('work_audio_rename') }}',
+            work_audio_rewrite: '{{ csrf_token('work_audio_rewrite') }}',
+            work_audio_delete: '{{ csrf_token('work_audio_delete') }}',
+        };
+    </script>
+    <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('app', () => ({
                 username: '',
@@ -525,6 +539,7 @@
                     const afterNeighbor = newPoems[newIndex - 1] || null;
 
                     const payload = {
+                        _token: CSRF_TOKENS.work_poem_reorder,
                         before_id: beforeNeighbor && beforeNeighbor.id !== moved.id ? beforeNeighbor.id : null,
                         after_id: afterNeighbor && afterNeighbor.id !== moved.id ? afterNeighbor.id : null,
                     };
@@ -557,6 +572,7 @@
                     const res = await this.api('/poems/', {
                         method: 'POST',
                         body: JSON.stringify({
+                            _token: CSRF_TOKENS.work_poem_create,
                             title: this.newTitle || null,
                             content: this.newContent,
                             comment: this.newComment || null,
@@ -626,6 +642,7 @@
                     const res = await this.api(`/poems/${poem.id}/`, {
                         method: 'PUT',
                         body: JSON.stringify({
+                            _token: CSRF_TOKENS.work_poem_update,
                             title: poem.title || null,
                             content: poem.content,
                             comment: poem.comment || null,
@@ -645,7 +662,10 @@
 
                 async trash(poem) {
                     this.generalError = '';
-                    const res = await this.api(`/poems/${poem.id}/trash/`, { method: 'POST' });
+                    const res = await this.api(`/poems/${poem.id}/trash/`, {
+                        method: 'POST',
+                        body: JSON.stringify({ _token: CSRF_TOKENS.work_poem_trash }),
+                    });
                     if (res && res.ok) {
                         await this.load();
                         await this.updateToc();
@@ -657,7 +677,10 @@
 
                 async restore(poem) {
                     this.generalError = '';
-                    const res = await this.api(`/poems/${poem.id}/restore/`, { method: 'POST' });
+                    const res = await this.api(`/poems/${poem.id}/restore/`, {
+                        method: 'POST',
+                        body: JSON.stringify({ _token: CSRF_TOKENS.work_poem_restore }),
+                    });
                     if (res && res.ok) {
                         await this.load();
                         await this.updateToc();
@@ -670,7 +693,10 @@
                 async remove(poem) {
                     if (!confirm('Удалить навсегда? Это действие необратимо.')) return;
                     this.generalError = '';
-                    const res = await this.api(`/poems/${poem.id}/`, { method: 'DELETE' });
+                    const res = await this.api(`/poems/${poem.id}/`, {
+                        method: 'DELETE',
+                        body: JSON.stringify({ _token: CSRF_TOKENS.work_poem_delete }),
+                    });
                     if (res && res.ok) {
                         await this.load();
                         await this.updateToc();
@@ -723,7 +749,7 @@
                     }
                     const res = await this.api(`/audio/${item.id}/rename`, {
                         method: 'POST',
-                        body: JSON.stringify({ title: item.title })
+                        body: JSON.stringify({ _token: CSRF_TOKENS.work_audio_rename, title: item.title })
                     });
                     if (res && res.ok) {
                         this.editingAudioId = null;
@@ -735,7 +761,10 @@
 
                 async deleteAudio(item) {
                     if (!confirm('Удалить запись?')) return;
-                    const res = await this.api(`/audio/${item.id}/delete`, { method: 'DELETE' });
+                    const res = await this.api(`/audio/${item.id}/delete`, {
+                        method: 'DELETE',
+                        body: JSON.stringify({ _token: CSRF_TOKENS.work_audio_delete }),
+                    });
                     if (res && res.ok) {
                         await this.load();
                     } else if (res) {
@@ -822,6 +851,7 @@
                     formData.append('audio', blob, 'recording.webm');
                     formData.append('title', title);
                     formData.append('duration', duration);
+                    formData.append('_token', this.rewriteId ? CSRF_TOKENS.work_audio_rewrite : CSRF_TOKENS.work_audio_create);
 
                     const url = this.rewriteId ? `/audio/${this.rewriteId}/rewrite` : '/audio/';
                     const res = await this.api(url, {

@@ -11,15 +11,16 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
-use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use App\Entity\BlogComment;
 use App\Traits\CommentUtilsTrait;
+use App\Traits\CsrfTrait;
 
 #[Route(condition: "request.server.get('APP_SITE_CONTEXT') == 'blog'")]
 class BlogController extends AbstractController
 {
     use CommentUtilsTrait;
+    use CsrfTrait;
 
     public function __construct(
         private BlogPostRepository $postRepository,
@@ -84,12 +85,11 @@ class BlogController extends AbstractController
             return $this->json(['error' => 'Post not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $data = json_decode($request->getContent(), true);
-
-        $token = $data['_token'] ?? '';
-        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken('blog_comment', $token))) {
+        if (!$this->validateCsrf($request, 'blog_comment')) {
             return $this->json(['error' => 'Invalid CSRF token'], Response::HTTP_FORBIDDEN);
         }
+
+        $data = json_decode($request->getContent(), true);
 
         $author = trim($data['author'] ?? '');
         $content = $data['content'] ?? '';

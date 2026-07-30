@@ -11,13 +11,18 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use App\Traits\CsrfTrait;
 
 #[Route(condition: "request.server.get('APP_SITE_CONTEXT') == 'work'")]
 #[IsGranted('ROLE_ADMIN')]
+#[IsGranted('IS_AUTHENTICATED_FULLY')]
 class AudioController extends AbstractController
 {
+    use CsrfTrait;
+
     private const array ALLOWED_EXTENSIONS = ['webm', 'mp3', 'ogg', 'wav'];
 
     private string $audioDir;
@@ -25,6 +30,7 @@ class AudioController extends AbstractController
     public function __construct(
         private AudioRepository $audioRepository,
         private EntityManagerInterface $entityManager,
+        private CsrfTokenManagerInterface $csrfTokenManager,
         #[Autowire('%app.site_context%')]
         private string $siteContext,
         #[Autowire('%kernel.project_dir%')]
@@ -57,6 +63,10 @@ class AudioController extends AbstractController
     #[Route('/audio/', name: 'work_api_audio_create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
+        if (!$this->validateCsrf($request, 'work_audio_create')) {
+            return $this->json(['error' => ['message' => 'Invalid CSRF token']], Response::HTTP_FORBIDDEN);
+        }
+
         $file = $request->files->get('audio') ?? $request->files->get('file');
         if (!$file instanceof UploadedFile) {
              return $this->json(['error' => ['message' => 'Файл не получен']], Response::HTTP_BAD_REQUEST);
@@ -93,6 +103,10 @@ class AudioController extends AbstractController
     #[Route('/audio/{id}/rename', name: 'work_api_audio_rename', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function rename(Audio $audio, Request $request): JsonResponse
     {
+        if (!$this->validateCsrf($request, 'work_audio_rename')) {
+            return $this->json(['error' => ['message' => 'Invalid CSRF token']], Response::HTTP_FORBIDDEN);
+        }
+
         $data = json_decode($request->getContent(), true);
         $title = trim($data['title'] ?? '');
 
@@ -109,6 +123,10 @@ class AudioController extends AbstractController
     #[Route('/audio/{id}/rewrite', name: 'work_api_audio_rewrite', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function rewrite(Audio $audio, Request $request): JsonResponse
     {
+        if (!$this->validateCsrf($request, 'work_audio_rewrite')) {
+            return $this->json(['error' => ['message' => 'Invalid CSRF token']], Response::HTTP_FORBIDDEN);
+        }
+
         $file = $request->files->get('audio') ?? $request->files->get('file');
         if (!$file instanceof UploadedFile) {
             return $this->json(['error' => ['message' => 'Файл не получен']], Response::HTTP_BAD_REQUEST);
@@ -143,8 +161,12 @@ class AudioController extends AbstractController
     }
 
     #[Route('/audio/{id}/delete', name: 'work_api_audio_delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]
-    public function delete(Audio $audio): JsonResponse
+    public function delete(Request $request, Audio $audio): JsonResponse
     {
+        if (!$this->validateCsrf($request, 'work_audio_delete')) {
+            return $this->json(['error' => ['message' => 'Invalid CSRF token']], Response::HTTP_FORBIDDEN);
+        }
+
         $fileName = basename($audio->getFilePath());
         $path = $this->audioDir . '/' . $fileName;
         if (file_exists($path)) {

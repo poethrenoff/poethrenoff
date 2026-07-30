@@ -33,6 +33,7 @@ security:
         - { path: ^/admin/logout$, role: PUBLIC_ACCESS }
         - { path: ^/admin/, role: ROLE_ADMIN }
         - { path: ^/poems/, role: ROLE_ADMIN }
+        - { path: ^/audio/, role: ROLE_ADMIN }
 
 when@test:
     security:

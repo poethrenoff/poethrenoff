@@ -16,16 +16,17 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use App\Repository\WorkCommentRepository;
 use App\Traits\CommentUtilsTrait;
+use App\Traits\CsrfTrait;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 
 #[Route(condition: "request.server.get('APP_SITE_CONTEXT') == 'www'")]
 class SiteController extends AbstractController
 {
     use CommentUtilsTrait;
+    use CsrfTrait;
 
     public function __construct(
         private StaticTextRepository $staticTextRepository,
@@ -229,8 +230,7 @@ class SiteController extends AbstractController
     #[Route('/work/vote/{id}', name: 'work_vote', methods: ['POST'])]
     public function vote(int $id, Request $request): JsonResponse
     {
-        $token = $request->request->get('_token');
-        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken('work_vote', $token))) {
+        if (!$this->validateCsrf($request, 'work_vote')) {
             return new JsonResponse(['error' => 'Invalid CSRF token'], Response::HTTP_FORBIDDEN);
         }
 
@@ -298,12 +298,11 @@ class SiteController extends AbstractController
             return $this->json(['error' => 'Work not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $data = json_decode($request->getContent(), true);
-
-        $token = $data['_token'] ?? '';
-        if (!$this->csrfTokenManager->isTokenValid(new CsrfToken('site_comment', $token))) {
+        if (!$this->validateCsrf($request, 'site_comment')) {
             return $this->json(['error' => 'Invalid CSRF token'], Response::HTTP_FORBIDDEN);
         }
+
+        $data = json_decode($request->getContent(), true);
 
         $author = trim($data['author'] ?? '');
         $content = $data['content'] ?? '';
