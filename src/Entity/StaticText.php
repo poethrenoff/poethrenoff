@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\StaticTextRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: StaticTextRepository::class)]
 class StaticText
@@ -15,12 +16,17 @@ class StaticText
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 100, unique: true)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 100)]
     private string $slug = '';
 
     #[ORM\Column(type: Types::STRING, length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $title = '';
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank]
     private string $content = '';
 
     public function getId(): ?int

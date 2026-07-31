@@ -1,7 +1,5 @@
 sonata_admin:
     title: 'Поэт Хренов'
-    templates:
-        layout: admin/layout.html.twig
     options:
         confirm_exit: false
     dashboard:

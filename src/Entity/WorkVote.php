@@ -6,6 +6,7 @@ use App\Enum\VoteType;
 use App\Repository\WorkVoteRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: WorkVoteRepository::class)]
 #[ORM\UniqueConstraint(name: 'uniq_work_vote', columns: ['work_id', 'ip_hash', 'user_agent_hash'])]
@@ -21,9 +22,13 @@ class WorkVote
     private ?Work $work = null;
 
     #[ORM\Column(type: Types::STRING, length: 64)]
+    #[Assert\NotBlank]
+    #[Assert\Length(exactly: 64)]
     private string $ipHash = '';
 
     #[ORM\Column(type: Types::STRING, length: 64)]
+    #[Assert\NotBlank]
+    #[Assert\Length(exactly: 64)]
     private string $userAgentHash = '';
 
     #[ORM\Column(type: Types::STRING, length: 10, enumType: VoteType::class)]

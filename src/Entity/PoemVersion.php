@@ -6,6 +6,7 @@ use App\Entity\Poem;
 use App\Repository\PoemVersionRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PoemVersionRepository::class)]
 #[ORM\Index(columns: ['poem_id', 'created_at'], name: 'idx_poem_version_poem_date')]
@@ -21,9 +22,11 @@ class PoemVersion
     private ?Poem $poem = null;
 
     #[ORM\Column(type: Types::STRING, length: 512, nullable: true)]
+    #[Assert\Length(max: 512)]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank]
     private string $content = '';
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]

@@ -5,20 +5,19 @@ namespace App\Controller;
 use App\Repository\BlogPostRepository;
 use App\Repository\BlogCommentRepository;
 use App\Repository\TagRepository;
+use App\Service\CommentService;
+use App\Service\SearchService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use App\Entity\BlogComment;
-use App\Traits\CommentUtilsTrait;
 use App\Traits\CsrfTrait;
 
 class BlogController extends AbstractController
 {
-    use CommentUtilsTrait;
     use CsrfTrait;
 
     public function __construct(
@@ -26,8 +25,9 @@ class BlogController extends AbstractController
         private BlogCommentRepository $commentRepository,
         private TagRepository $tagRepository,
         private EntityManagerInterface $entityManager,
-        private HtmlSanitizerInterface $htmlSanitizer,
         private CsrfTokenManagerInterface $csrfTokenManager,
+        private SearchService $searchService,
+        private CommentService $commentService,
     ) {
     }
 
@@ -62,7 +62,7 @@ class BlogController extends AbstractController
         }
 
         $allComments = $this->commentRepository->findActiveByPost($post);
-        $rootComments = $this->buildCommentTree($allComments);
+        $rootComments = $this->commentService->buildCommentTree($allComments);
 
         $prevNext = $this->postRepository->findPrevNext($post);
 
@@ -90,19 +90,16 @@ class BlogController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
-        $author = trim($data['author'] ?? '');
+        $authorError = $this->commentService->validateAuthor($data['author'] ?? '');
+        if ($authorError !== null) {
+            return $this->json(['error' => $authorError], Response::HTTP_BAD_REQUEST);
+        }
+
+        $author = trim($data['author']);
         $content = $data['content'] ?? '';
         $parentId = $data['parentId'] ?? null;
 
-        if (empty($author)) {
-            return $this->json(['error' => 'Имя обязательно'], Response::HTTP_BAD_REQUEST);
-        }
-
-        if (mb_strlen($author) > 100) {
-            return $this->json(['error' => 'Имя не должно превышать 100 символов'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $sanitizedContent = $this->htmlSanitizer->sanitize($this->autolink($content));
+        $sanitizedContent = $this->commentService->sanitizeContent($content);
         if (empty(strip_tags($sanitizedContent))) {
             return $this->json(['error' => 'Комментарий не может быть пустым'], Response::HTTP_BAD_REQUEST);
         }
@@ -145,50 +142,13 @@ class BlogController extends AbstractController
         $pagination = null;
 
         if ($tag) {
-            $searchPagination = $this->postRepository->findActiveByTagPaginated($tag, $page, 10);
-            $paginationData = $searchPagination->getPaginationData();
-            foreach ($searchPagination as $post) {
-                $searchResults[] = [
-                    'id' => $post->getId(),
-                    'publishedAt' => $post->getPublishedAt(),
-                    'content' => $post->getContent(),
-                    'tags' => $post->getTags(),
-                ];
-            }
-
-            $pagination = [
-                'total_pages' => $paginationData['pageCount'],
-                'current_page' => $paginationData['current'],
-                'prev_page' => $paginationData['previous'] ?? null,
-                'next_page' => $paginationData['next'] ?? null,
-            ];
+            $result = $this->searchService->searchBlogPostsByTag($tag, $page, 10);
+            $searchResults = $result['results'];
+            $pagination = $result['pagination'];
         } elseif ($text) {
-            $searchPagination = $this->postRepository->searchByText($text, $page, 10);
-            $paginationData = $searchPagination->getPaginationData();
-
-            $words = explode(' ', $text);
-            $words = array_filter($words);
-
-            foreach ($searchPagination as $post) {
-                $content = $post->getContent();
-                foreach ($words as $word) {
-                    $content = preg_replace('/(' . preg_quote($word, '/') . ')/ui', '<b>$1</b>', $content);
-                }
-
-                $searchResults[] = [
-                    'id' => $post->getId(),
-                    'publishedAt' => $post->getPublishedAt(),
-                    'content' => $content,
-                    'tags' => $post->getTags(),
-                ];
-            }
-
-            $pagination = [
-                'total_pages' => $paginationData['pageCount'],
-                'current_page' => $paginationData['current'],
-                'prev_page' => $paginationData['previous'] ?? null,
-                'next_page' => $paginationData['next'] ?? null,
-            ];
+            $result = $this->searchService->searchBlogPostsByText($text, $page, 10);
+            $searchResults = $result['results'];
+            $pagination = $result['pagination'];
         }
 
         $tags = $this->tagRepository->findTagCloud(50);

@@ -38,7 +38,29 @@
 5. **Локальная разработка:** Для доступа по локальным доменам необходимо добавить их в `/etc/hosts` (или использовать `Host` header при тестировании `curl` внутри окружения). **ВАЖНО:** Для работы функционала записи аудио (`getUserMedia`) браузеры требуют **Secure Context**. На локальных доменах (например, `work.poethrenoff.ru`) без HTTPS API `navigator.mediaDevices` будет `undefined`. Для разработки рекомендуется использовать `localhost` или настроить локальный HTTPS.
 6. **Роутинг:** Все контроллеры — в общей папке `src/Controller/`. Маршруты настраиваются в едином файле `config/routes.yaml` — каждый контроллер импортируется с `condition: "request.server.get('APP_SITE_CONTEXT') == '...'"` для привязки к контексту. SecurityController (login/logout) импортируется без условия — доступен на всех сайтах. Бандловые маршруты (Sonata, security, framework) подгружаются из `config/routes/` автоматически через `MicroKernelTrait`.
 
+## Сервисный слой
+
+Проект использует вынесенную бизнес-логику в сервисы (`src/Service/`):
+- `FileUploadService` — загрузка, замена и удаление аудиофайлов
+- `SearchService` — поиск работ и блог-записей с подсветкой результатов
+- `CommentService` — санитизация комментариев, автолинкинг, построение деревьев, валидация автора
+- `WorkService` — версионирование стихов, переупорядочивание, парсинг дат, trash/restore/delete
+
+Контроллеры делегируют бизнес-логику сервисам и отвечают только за HTTP-обработку (request/response, CSRF, маршрутизация).
+
+`CommentUtilsTrait` удалён — его методы `autolink()` и `buildCommentTree()` перенесены в `CommentService`.
+
+### Безопасность и аутентификация
+
+- **Session + remember-me кросс-доменно:** `cookie_domain: '.%env(BASE_DOMAIN)%'` (`poethrenoff.ru`) на сессию и remember-me cookie позволяет пользователю быть залогиненным на всех поддоменах (`lo.poethrenoff.ru`, `lo.blog.poethrenoff.ru`, `lo.work.poethrenoff.ru`).
+- **Важно для контроллеров с `IsGranted`:** когда сессия истекает (`cookie_lifetime: 3600s`, `gc_maxlifetime: 1440s`), `RememberMeAuthenticator` пересоздаёт токен как `RememberMeToken` (не `UsernamePasswordToken`). `RememberMeToken` проходит проверку `IS_AUTHENTICATED_REMEMBERED`, но **не** `IS_AUTHENTICATED_FULLY` (`AuthenticationTrustResolver::isFullFledge()` возвращает `false` для `RememberMeToken`). `ExceptionListener` при `IS_AUTHENTICATED_FULLY` redirectит на `/admin/login` вместо 403. Используй `IS_AUTHENTICATED_REMEMBERED` (или только `ROLE_*`) на контроллерах, где remember-me должен работать.
+- `WorkController` и `AudioController` используют `#[IsGranted('IS_AUTHENTICATED_REMEMBERED')]` — не `IS_AUTHENTICATED_FULLY`.
+
 ## Команды
+
+- Проверка стиля кода: `bin/phpcs` (PHP должен быть доступен в PATH; в Docker-контейнере использовать `docker compose exec php bin/phpcs`)
+- Автоисправление стиля кода: `bin/phpcbf`
+- Статический анализ (PHPStan): `make analyze`
 - Очистка кэша: `make cache-clear` (удаляет все файлы) или `docker compose exec php bin/console cache:clear` (теперь автоматически чистит и прогревает кэш для всех контекстов: www, blog, work).
 - Проверка роутов: `docker compose exec php bin/console debug:router`.
 - Создание миграций: `make makemigrations`.

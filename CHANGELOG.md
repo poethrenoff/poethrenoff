@@ -5,13 +5,20 @@
 
 ## 2026-07-31
 
-- Рефакторинг: централизация шаблона макета admin layout в `config/packages/sonata_admin.yaml` через `templates.layout` вместо дублирования `setTemplate` в `config/services.yaml` для каждого admin-са
+- Исправлена ошибка, при которой аутентифицированный пользователь (залогиненный через «Запомнить меня») перенаправлялся на `/admin/login` при заходе на `lo.work.poethrenoff.ru`. Причина: `WorkController` и `AudioController` требовали `IS_AUTHENTICATED_FULLY`, но после истечения сессии `RememberMeAuthenticator` создаёт `RememberMeToken` (не `UsernamePasswordToken`), который не проходит проверку `IS_AUTHENTICATED_FULLY` (см. `AuthenticationTrustResolver::isFullFledged()`). `ExceptionListener` в этом случае перенаправляет на страницу логина вместо возврата 403. Исправлено: заменено `IS_AUTHENTICATED_FULLY` на `IS_AUTHENTICATED_REMEMBERED`, что позволяет пользователям, прошедшим аутентификацию через «Запомнить меня», получать доступ к контроллерам мастерской.
 - Добавлен PHPStan (уровень 8) для статического анализа PHP-кода. Конфигурация в `phpstan.neon`, baseline в `phpstan-baseline.neon`, запуск через `make analyze`
 - Добавлена секция `remember_me` в firewall `main` для функционала «Запомнить меня» при авторизации в админ-панели. Cookie хранится 7 дней.
 - Уменьшено время жизни сессии до 1 часа (`cookie_lifetime: 3600`) в `config/packages/framework.yaml`.
 - Добавлена галочка «Запомнить меня» на форму входа в админ-панель (`templates/security/login.html.twig`).
 - Установлен домен куки `remember_me` на `.%env(BASE_DOMAIN)%`, чтобы cookie была доступна на всех поддоменах (как и у сессии).
 - Добавлен уникальный индекс на поле `login` сущности `Monster` (`#[ORM\Column(type: Types::STRING, length: 255, unique: true)]`) для предотвращения дублирования записей. Индекс уже существовал в БД, поэтому миграция помечена как выполненная.
+- Выделен сервисный слой (`src/Service/`) для устранения нарушения принципа единственной ответственности в контроллерах:
+    - `FileUploadService` — управление загрузкой, заменой и удалением аудиофайлов (вынесено из `AudioController`)
+    - `SearchService` — логика поиска и подсветки результатов для работ и блог-записей (вынесено из `SiteController`, `BlogController`)
+    - `CommentService` — санитизация комментариев, автолинкинг, построение деревьев комментариев, валидация автора (вынесено из `SiteController`, `BlogController`)
+    - `WorkService` — версионирование стихов, переупорядочивание, парсинг дат, перемещение в корзину/восстановление/удаление (вынесено из `WorkController`)
+- Удалён `CommentUtilsTrait` — методы `autolink()` и `buildCommentTree()` перенесены в `CommentService`
+- Контроллеры `AudioController`, `WorkController`, `SiteController`, `BlogController` обновлены для использования новых сервисов
 
 ## 2026-07-30
 

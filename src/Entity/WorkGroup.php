@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: WorkGroupRepository::class)]
 #[ORM\Index(columns: ['parent_id', 'position'], name: 'idx_group_parent_position')]
@@ -26,6 +27,8 @@ class WorkGroup
     private Collection $children;
 
     #[ORM\Column(type: Types::STRING, length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $title = '';
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]

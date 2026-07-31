@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Poem;
 use App\Enum\PoemStatus;
 use App\Repository\PoemRepository;
+use App\Service\WorkService;
 use App\Traits\CsrfTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,7 +20,7 @@ use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
 #[IsGranted('ROLE_ADMIN')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[IsGranted('IS_AUTHENTICATED_REMEMBERED')]
 class WorkController extends AbstractController
 {
     use CsrfTrait;
@@ -32,23 +33,8 @@ class WorkController extends AbstractController
         private EntityManagerInterface $entityManager,
         private CsrfTokenManagerInterface $csrfTokenManager,
         private CacheInterface $cache,
+        private WorkService $workService,
     ) {
-    }
-
-    private function parseCommentDate(?string $value): ?\DateTimeImmutable
-    {
-        if (!$value) {
-            return null;
-        }
-
-        $date = \DateTimeImmutable::createFromFormat('!d.m.Y', $value);
-        $errors = \DateTimeImmutable::getLastErrors();
-
-        if ($date && (!$errors || ($errors['warning_count'] === 0 && $errors['error_count'] === 0))) {
-            return $date;
-        }
-
-        return null;
     }
 
     #[Route('/', name: 'work_homepage')]
@@ -85,7 +71,7 @@ class WorkController extends AbstractController
 
         $title = trim($data['title'] ?? '');
         $content = rtrim($data['content'] ?? '');
-        $comment = $this->parseCommentDate($data['comment'] ?? null);
+        $comment = $this->workService->parseCommentDate($data['comment'] ?? null);
 
         if (($data['comment'] ?? '') !== '' && $comment === null) {
             return $this->json([
@@ -157,7 +143,7 @@ class WorkController extends AbstractController
 
         $title = trim($data['title'] ?? '');
         $content = rtrim($data['content'] ?? '');
-        $comment = $this->parseCommentDate($data['comment'] ?? null);
+        $comment = $this->workService->parseCommentDate($data['comment'] ?? null);
 
         if (($data['comment'] ?? '') !== '' && $comment === null) {
             return $this->json([
@@ -174,9 +160,7 @@ class WorkController extends AbstractController
         $this->cache->delete(self::STATS_CACHE_KEY);
 
         if (!$poem->isEqual($originalPoem)) {
-            $version = $poem->createVersion($originalPoem);
-            $this->entityManager->persist($version);
-            $this->entityManager->flush();
+            $this->workService->createVersion($poem, $originalPoem);
         }
 
         return $this->json($poem, context: ['groups' => 'poem:detail', 'datetime_format' => 'd.m.Y']);
@@ -189,12 +173,11 @@ class WorkController extends AbstractController
             return $this->json(['error' => ['message' => 'Invalid CSRF token']], Response::HTTP_FORBIDDEN);
         }
 
-        if ($poem->getStatus() === PoemStatus::Trash) {
+        if ($this->workService->isPoemTrash($poem)) {
             return $this->json(['error' => ['message' => 'Стих уже в корзине']], Response::HTTP_BAD_REQUEST);
         }
 
-        $poem->trash();
-        $this->entityManager->flush();
+        $this->workService->trashPoem($poem);
         $this->cache->delete(self::STATS_CACHE_KEY);
 
         return $this->json(['status' => 'ok']);
@@ -211,8 +194,7 @@ class WorkController extends AbstractController
             return $this->json(['error' => ['message' => 'Стих уже восстановлен']], Response::HTTP_BAD_REQUEST);
         }
 
-        $poem->restore();
-        $this->entityManager->flush();
+        $this->workService->restorePoem($poem);
         $this->cache->delete(self::STATS_CACHE_KEY);
 
         return $this->json(['status' => 'ok']);
@@ -234,20 +216,7 @@ class WorkController extends AbstractController
         $beforeId = isset($data['before_id']) ? (int) $data['before_id'] : null;
         $afterId = isset($data['after_id']) ? (int) $data['after_id'] : null;
 
-        $before = $beforeId !== null ? $this->poemRepository->find($beforeId) : null;
-        $after = $afterId !== null ? $this->poemRepository->find($afterId) : null;
-
-        if ($before !== null && $after !== null) {
-            $poem->setPosition(($before->getPosition() + $after->getPosition()) / 2);
-        } elseif ($before !== null) {
-            $poem->setPosition($before->getPosition() - 1.0);
-        } elseif ($after !== null) {
-            $poem->setPosition($after->getPosition() + 1.0);
-        } else {
-            $poem->setPosition($this->poemRepository->findNextPosition());
-        }
-
-        $this->entityManager->flush();
+        $this->workService->reorderPoem($poem, $beforeId, $afterId);
 
         return $this->json($poem, context: ['groups' => 'poem:detail', 'datetime_format' => 'd.m.Y']);
     }
@@ -278,8 +247,7 @@ class WorkController extends AbstractController
             ]], Response::HTTP_BAD_REQUEST);
         }
 
-        $this->entityManager->remove($poem);
-        $this->entityManager->flush();
+        $this->workService->deletePoem($poem);
         $this->cache->delete(self::STATS_CACHE_KEY);
 
         return $this->json(['status' => 'ok']);

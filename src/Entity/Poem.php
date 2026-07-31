@@ -9,6 +9,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PoemRepository::class)]
 #[ORM\Index(columns: ['status', 'deleted_at'], name: 'idx_poem_status_deleted')]
@@ -24,10 +25,12 @@ class Poem
 
     #[ORM\Column(type: Types::STRING, length: 512, nullable: true)]
     #[Groups(['poem:list', 'poem:detail'])]
+    #[Assert\Length(max: 512)]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
     #[Groups(['poem:list', 'poem:detail'])]
+    #[Assert\NotBlank]
     private string $content = '';
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]

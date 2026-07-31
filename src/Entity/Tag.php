@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: TagRepository::class)]
 class Tag
@@ -17,6 +18,8 @@ class Tag
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 100, unique: true)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 100)]
     private string $title = '';
 
     #[ORM\ManyToMany(targetEntity: BlogPost::class, mappedBy: 'tags')]

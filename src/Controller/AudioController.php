@@ -4,39 +4,29 @@ namespace App\Controller;
 
 use App\Entity\Audio;
 use App\Repository\AudioRepository;
+use App\Service\FileUploadService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use App\Traits\CsrfTrait;
 
 #[IsGranted('ROLE_ADMIN')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[IsGranted('IS_AUTHENTICATED_REMEMBERED')]
 class AudioController extends AbstractController
 {
     use CsrfTrait;
-
-    private const array ALLOWED_EXTENSIONS = ['webm', 'mp3', 'ogg', 'wav'];
-
-    private string $audioDir;
 
     public function __construct(
         private AudioRepository $audioRepository,
         private EntityManagerInterface $entityManager,
         private CsrfTokenManagerInterface $csrfTokenManager,
-        #[Autowire('%app.site_context%')]
-        private string $siteContext,
-        #[Autowire('%kernel.project_dir%')]
-        private string $projectDir
+        private FileUploadService $fileUploadService,
     ) {
-        $this->audioDir = $this->projectDir . '/htdocs/' . $this->siteContext . '/upload/audio';
     }
 
     #[Route('/audio/', name: 'work_api_audio_list', methods: ['GET'])]
@@ -51,7 +41,7 @@ class AudioController extends AbstractController
     public function getAudio(Audio $audio): Response
     {
         $fileName = basename($audio->getFilePath());
-        $path = $this->audioDir . '/' . $fileName;
+        $path = $this->fileUploadService->getAudioDir() . '/' . $fileName;
 
         if (!file_exists($path)) {
             return new Response('File not found', Response::HTTP_NOT_FOUND);
@@ -74,19 +64,17 @@ class AudioController extends AbstractController
         }
 
         $file = $request->files->get('audio') ?? $request->files->get('file');
-        if (!$file instanceof UploadedFile) {
+        if (!$file instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
              return $this->json(['error' => ['message' => 'Файл не получен']], Response::HTTP_BAD_REQUEST);
         }
 
-        $extension = strtolower($file->guessExtension() ?: '');
-        if (!in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
+        try {
+            $fileName = $this->fileUploadService->uploadFile($file);
+        } catch (\InvalidArgumentException $e) {
             return $this->json([
-                'error' => ['message' => 'Допустимые форматы: ' . implode(', ', self::ALLOWED_EXTENSIONS)],
+                'error' => ['message' => $e->getMessage()],
             ], Response::HTTP_BAD_REQUEST);
         }
-
-        $fileName = bin2hex(random_bytes(16)) . '.' . $extension;
-        $file->move($this->audioDir, $fileName);
 
         $title = $request->request->get('title', 'Новая запись');
 
@@ -133,24 +121,16 @@ class AudioController extends AbstractController
         }
 
         $file = $request->files->get('audio') ?? $request->files->get('file');
-        if (!$file instanceof UploadedFile) {
+        if (!$file instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
             return $this->json(['error' => ['message' => 'Файл не получен']], Response::HTTP_BAD_REQUEST);
         }
 
-        $extension = strtolower($file->guessExtension() ?: '');
-        if (!in_array($extension, self::ALLOWED_EXTENSIONS, true)) {
+        try {
+            $fileName = $this->fileUploadService->replaceFile($audio, $file);
+        } catch (\InvalidArgumentException $e) {
             return $this->json([
-                'error' => ['message' => 'Допустимые форматы: ' . implode(', ', self::ALLOWED_EXTENSIONS)],
+                'error' => ['message' => $e->getMessage()],
             ], Response::HTTP_BAD_REQUEST);
-        }
-
-        $fileName = bin2hex(random_bytes(16)) . '.' . $extension;
-        $file->move($this->audioDir, $fileName);
-
-        $oldFileName = basename($audio->getFilePath());
-        $oldPath = $this->audioDir . '/' . $oldFileName;
-        if (file_exists($oldPath)) {
-            unlink($oldPath);
         }
 
         $audio->setFilePath('/upload/audio/' . $fileName);
@@ -172,11 +152,7 @@ class AudioController extends AbstractController
             return $this->json(['error' => ['message' => 'Invalid CSRF token']], Response::HTTP_FORBIDDEN);
         }
 
-        $fileName = basename($audio->getFilePath());
-        $path = $this->audioDir . '/' . $fileName;
-        if (file_exists($path)) {
-            unlink($path);
-        }
+        $this->fileUploadService->deleteAudioFile($audio);
 
         $this->entityManager->remove($audio);
         $this->entityManager->flush();

@@ -23,6 +23,8 @@ services:
     # StaticTextAdmin
     App\Admin\StaticTextAdmin:
         public: true
+        calls:
+            - [setTemplate, [layout, admin/layout.html.twig]]
         tags:
             - { name: sonata.admin, manager_type: orm, group: common, label: Тексты, model_class: App\Entity\StaticText }
 
@@ -35,12 +37,16 @@ services:
     # PostAdmin
     App\Admin\BlogPostAdmin:
         public: true
+        calls:
+            - [setTemplate, [layout, admin/layout.html.twig]]
         tags:
             - { name: sonata.admin, manager_type: orm, group: blog, label: Новости, model_class: App\Entity\BlogPost }
 
     # BlogCommentAdmin
     App\Admin\BlogCommentAdmin:
         public: true
+        calls:
+            - [setTemplate, [layout, admin/layout.html.twig]]
         tags:
             - { name: sonata.admin, manager_type: orm, group: blog, label: Комментарии, model_class: App\Entity\BlogComment }
 
@@ -85,6 +91,8 @@ services:
     # WorkCommentAdmin
     App\Admin\WorkCommentAdmin:
         public: true
+        calls:
+            - [setTemplate, [layout, admin/layout.html.twig]]
         tags:
             - { name: sonata.admin, manager_type: orm, group: site, label: Комментарии, model_class: App\Entity\WorkComment }
 

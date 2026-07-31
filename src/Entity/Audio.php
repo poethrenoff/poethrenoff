@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\AudioRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AudioRepository::class)]
 class Audio
@@ -15,9 +16,13 @@ class Audio
     private ?int $id = null;
 
     #[ORM\Column(type: Types::STRING, length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $title = '';
 
     #[ORM\Column(type: Types::STRING, length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private string $filePath = '';
 
     #[ORM\Column(type: Types::INTEGER, nullable: true)]

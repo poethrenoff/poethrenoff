@@ -7,10 +7,13 @@ use App\Repository\WorkGroupRepository;
 use App\Repository\WorkRepository;
 use App\Repository\WorkVoteRepository;
 use App\Repository\PictureRepository;
+use App\Repository\WorkCommentRepository;
 use App\Entity\WorkGroup;
 use App\Entity\WorkVote;
 use App\Enum\VoteType;
 use App\Entity\WorkComment;
+use App\Service\CommentService;
+use App\Service\SearchService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,14 +21,11 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
-use App\Repository\WorkCommentRepository;
-use App\Traits\CommentUtilsTrait;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use App\Traits\CsrfTrait;
-use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 
 class SiteController extends AbstractController
 {
-    use CommentUtilsTrait;
     use CsrfTrait;
 
     public function __construct(
@@ -37,7 +37,8 @@ class SiteController extends AbstractController
         private WorkCommentRepository $workCommentRepository,
         private EntityManagerInterface $entityManager,
         private CsrfTokenManagerInterface $csrfTokenManager,
-        private HtmlSanitizerInterface $htmlSanitizer,
+        private SearchService $searchService,
+        private CommentService $commentService,
     ) {
     }
 
@@ -82,14 +83,6 @@ class SiteController extends AbstractController
             throw $this->createNotFoundException('Group not found');
         }
 
-        $hasChildren = false;
-        foreach ($groups as $g) {
-            if ($g->getParent() && $g->getParent()->getId() === $group->getId()) {
-                $hasChildren = true;
-                break;
-            }
-        }
-
         $tree = $this->buildTree($groups, $id);
         $breadcrumbs = $this->buildBreadcrumbs($group);
 
@@ -120,7 +113,7 @@ class SiteController extends AbstractController
         $prevNext = $this->workRepository->findPrevNext($work);
 
         $allComments = $this->workCommentRepository->findActiveByWork($work);
-        $rootComments = $this->buildCommentTree($allComments);
+        $rootComments = $this->commentService->buildCommentTree($allComments);
 
         return $this->render('site/work.html.twig', [
             'work' => $work,
@@ -160,35 +153,9 @@ class SiteController extends AbstractController
         $pagination = null;
 
         if (!empty($query)) {
-            $searchPagination = $this->workRepository->search($query, $page, 10);
-            $paginationData = $searchPagination->getPaginationData();
-
-            $words = explode(' ', $query);
-            $words = array_filter($words);
-
-            $searchResults = [];
-            foreach ($searchPagination->getItems() as $work) {
-                $text = strip_tags($work->getText());
-                $snippet = mb_substr($text, 0, 300);
-
-                foreach ($words as $word) {
-                    $snippet = preg_replace('/(' . preg_quote($word, '/') . ')/ui', '<b>$1</b>', $snippet);
-                }
-
-                $searchResults[] = [
-                    'id' => $work->getId(),
-                    'title' => $work->getTitle(),
-                    'group' => $work->getGroup(),
-                    'snippet' => $snippet . '...',
-                ];
-            }
-
-            $pagination = [
-                'total_pages' => $paginationData['pageCount'],
-                'current_page' => $paginationData['current'],
-                'prev_page' => $paginationData['previous'] ?? null,
-                'next_page' => $paginationData['next'] ?? null,
-            ];
+            $result = $this->searchService->searchWorks($query, $page, 10);
+            $searchResults = $result['results'];
+            $pagination = $result['pagination'];
         }
 
         return $this->render('site/search.html.twig', [
@@ -216,7 +183,7 @@ class SiteController extends AbstractController
         $prevNext = $this->workRepository->findPrevNext($randomWork);
 
         $allComments = $this->workCommentRepository->findActiveByWork($randomWork);
-        $rootComments = $this->buildCommentTree($allComments);
+        $rootComments = $this->commentService->buildCommentTree($allComments);
 
         return $this->render('site/work.html.twig', [
             'work' => $randomWork,
@@ -301,19 +268,16 @@ class SiteController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
-        $author = trim($data['author'] ?? '');
+        $authorError = $this->commentService->validateAuthor($data['author'] ?? '');
+        if ($authorError !== null) {
+            return $this->json(['error' => $authorError], Response::HTTP_BAD_REQUEST);
+        }
+
+        $author = trim($data['author']);
         $content = $data['content'] ?? '';
         $parentId = $data['parentId'] ?? null;
 
-        if (empty($author)) {
-            return $this->json(['error' => 'Имя обязательно'], Response::HTTP_BAD_REQUEST);
-        }
-
-        if (mb_strlen($author) > 100) {
-            return $this->json(['error' => 'Имя не должно превышать 100 символов'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $sanitizedContent = $this->htmlSanitizer->sanitize($this->autolink($content));
+        $sanitizedContent = $this->commentService->sanitizeContent($content);
         if (empty(strip_tags($sanitizedContent))) {
             return $this->json(['error' => 'Комментарий не может быть пустым'], Response::HTTP_BAD_REQUEST);
         }

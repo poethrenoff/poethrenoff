@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: BlogCommentRepository::class)]
 #[ORM\Index(columns: ['post_id', 'created_at'], name: 'idx_blog_comment_post_date')]
@@ -31,9 +32,12 @@ class BlogComment
     private Collection $children;
 
     #[ORM\Column(type: Types::STRING, length: 100)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 100)]
     private string $author = '';
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Assert\NotBlank]
     private string $content = '';
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
