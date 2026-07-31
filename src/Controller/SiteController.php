@@ -128,14 +128,7 @@ class SiteController extends AbstractController
     public function picture(int $page): Response
     {
         $pictures = $this->pictureRepository->findActivePaginated($page, 24);
-        $paginationData = $pictures->getPaginationData();
-
-        $pagination = [
-            'total_pages' => $paginationData['pageCount'],
-            'current_page' => $paginationData['current'],
-            'prev_page' => $paginationData['previous'] ?? null,
-            'next_page' => $paginationData['next'] ?? null,
-        ];
+        $pagination = $this->searchService->buildPagination($pictures);
 
         return $this->render('site/picture.html.twig', [
             'pictures' => $pictures,
@@ -215,6 +208,10 @@ class SiteController extends AbstractController
         $userAgent = $request->headers->get('User-Agent', '');
 
         $salt = $this->getParameter('app.vote_salt');
+        if (!is_string($salt)) {
+            throw new \LogicException('Parameter "app.vote_salt" must be a string');
+        }
+
         $ipHash = hash('sha256', $ip . $salt);
         $userAgentHash = hash('sha256', $userAgent . $salt);
 
@@ -292,7 +289,7 @@ class SiteController extends AbstractController
 
         if ($parentId) {
             $parent = $this->workCommentRepository->find($parentId);
-            if ($parent && $parent->getWork()->getId() === $work->getId()) {
+            if ($parent && $parent->getWork()?->getId() === $work->getId()) {
                 $comment->setParent($parent);
             }
         }
@@ -309,6 +306,9 @@ class SiteController extends AbstractController
         ]);
     }
 
+    /**
+     * @return list<array{label: string, path: string}>
+     */
     private function buildBreadcrumbs(?WorkGroup $group = null): array
     {
         $breadcrumbs = [];
@@ -332,6 +332,10 @@ class SiteController extends AbstractController
         return $breadcrumbs;
     }
 
+    /**
+     * @param list<WorkGroup> $groups
+     * @return list<array{group: WorkGroup, children: list<mixed>}>
+     */
     private function buildTree(array $groups, ?int $parentId = null): array
     {
         $tree = [];

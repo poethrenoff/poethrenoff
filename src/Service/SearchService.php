@@ -2,9 +2,23 @@
 
 namespace App\Service;
 
+use App\Entity\Tag;
+use App\Entity\WorkGroup;
 use App\Repository\BlogPostRepository;
 use App\Repository\WorkRepository;
+use Doctrine\Common\Collections\Collection;
+use Knp\Component\Pager\Pagination\PaginationInterface;
 
+/**
+ * @phpstan-type BlogPostResult array{
+ *     id: int|null,
+ *     publishedAt: \DateTimeImmutable,
+ *     content: string,
+ *     tags: Collection<int, Tag>,
+ * }
+ * @phpstan-type WorkResult array{id: int|null, title: string, group: WorkGroup|null, snippet: string}
+ * @phpstan-type PaginationResult array{total_pages: int, current_page: int, prev_page: int|null, next_page: int|null}
+ */
 class SearchService
 {
     public function __construct(
@@ -14,16 +28,11 @@ class SearchService
     }
 
     /**
-     * @param string $query
-     * @param int $page
-     * @param int $limit
-     * @return array
+     * @return array{results: list<WorkResult>, pagination: PaginationResult}
      */
     public function searchWorks(string $query, int $page = 1, int $limit = 10): array
     {
-        $words = $this->splitQuery($query);
         $searchPagination = $this->workRepository->search($query, $page, $limit);
-        $paginationData = $searchPagination->getPaginationData();
 
         $results = [];
         foreach ($searchPagination->getItems() as $work) {
@@ -40,49 +49,16 @@ class SearchService
 
         return [
             'results' => $results,
-            'pagination' => $this->buildPagination($paginationData),
+            'pagination' => $this->buildPagination($searchPagination),
         ];
     }
 
     /**
-     * @param string $text
-     * @param int $page
-     * @param int $limit
-     * @return array
+     * @return array{results: list<BlogPostResult>, pagination: PaginationResult}
      */
     public function searchBlogPostsByText(string $text, int $page = 1, int $limit = 10): array
     {
-        $words = $this->splitQuery($text);
         $searchPagination = $this->blogPostRepository->searchByText($text, $page, $limit);
-        $paginationData = $searchPagination->getPaginationData();
-
-        $results = [];
-        foreach ($searchPagination as $post) {
-            $content = strip_tags($post->getContent());
-            $results[] = [
-                'id' => $post->getId(),
-                'publishedAt' => $post->getPublishedAt(),
-                'content' => $content,
-                'tags' => $post->getTags(),
-            ];
-        }
-
-        return [
-            'results' => $results,
-            'pagination' => $this->buildPagination($paginationData),
-        ];
-    }
-
-    /**
-     * @param string $tag
-     * @param int $page
-     * @param int $limit
-     * @return array
-     */
-    public function searchBlogPostsByTag(string $tag, int $page = 1, int $limit = 10): array
-    {
-        $searchPagination = $this->blogPostRepository->findActiveByTagPaginated($tag, $page, $limit);
-        $paginationData = $searchPagination->getPaginationData();
 
         $results = [];
         foreach ($searchPagination as $post) {
@@ -96,32 +72,49 @@ class SearchService
 
         return [
             'results' => $results,
-            'pagination' => $this->buildPagination($paginationData),
+            'pagination' => $this->buildPagination($searchPagination),
         ];
     }
 
     /**
-     * @param string $query
-     * @return list<string>
+     * @return array{results: list<BlogPostResult>, pagination: PaginationResult}
      */
-    private function splitQuery(string $query): array
+    public function searchBlogPostsByTag(string $tag, int $page = 1, int $limit = 10): array
     {
-        $words = explode(' ', $query);
+        $searchPagination = $this->blogPostRepository->findActiveByTagPaginated($tag, $page, $limit);
 
-        return array_values(array_filter($words));
+        $results = [];
+        foreach ($searchPagination as $post) {
+            $results[] = [
+                'id' => $post->getId(),
+                'publishedAt' => $post->getPublishedAt(),
+                'content' => $post->getContent(),
+                'tags' => $post->getTags(),
+            ];
+        }
+
+        return [
+            'results' => $results,
+            'pagination' => $this->buildPagination($searchPagination),
+        ];
     }
 
     /**
-     * @param array $paginationData
-     * @return array
+     * @param PaginationInterface<int, mixed> $pagination
+     * @return PaginationResult
      */
-    private function buildPagination(array $paginationData): array
+    public function buildPagination(PaginationInterface $pagination): array
     {
+        $totalItems = $pagination->getTotalItemCount();
+        $itemsPerPage = $pagination->getItemNumberPerPage();
+        $currentPage = $pagination->getCurrentPageNumber();
+        $totalPages = (int) ceil($totalItems / $itemsPerPage);
+
         return [
-            'total_pages' => $paginationData['pageCount'],
-            'current_page' => $paginationData['current'],
-            'prev_page' => $paginationData['previous'] ?? null,
-            'next_page' => $paginationData['next'] ?? null,
+            'total_pages' => $totalPages,
+            'current_page' => $currentPage,
+            'prev_page' => $currentPage > 1 ? $currentPage - 1 : null,
+            'next_page' => $currentPage < $totalPages ? $currentPage + 1 : null,
         ];
     }
 }

@@ -36,14 +36,7 @@ class BlogController extends AbstractController
     {
         $page = $request->query->getInt('page', 1);
         $postResults = $this->postRepository->findActivePaginated($page, 10);
-        $paginationData = $postResults->getPaginationData();
-
-        $pagination = [
-            'total_pages' => $paginationData['pageCount'],
-            'current_page' => $paginationData['current'],
-            'prev_page' => $paginationData['previous'] ?? null,
-            'next_page' => $paginationData['next'] ?? null,
-        ];
+        $pagination = $this->searchService->buildPagination($postResults);
 
         $response = $this->render('blog/index.html.twig', [
             'postResults' => $postResults,
@@ -114,7 +107,7 @@ class BlogController extends AbstractController
 
         if ($parentId) {
             $parent = $this->commentRepository->find($parentId);
-            if ($parent && $parent->getPost()->getId() === $post->getId()) {
+            if ($parent && $parent->getPost()?->getId() === $post->getId()) {
                 $comment->setParent($parent);
             }
         }
