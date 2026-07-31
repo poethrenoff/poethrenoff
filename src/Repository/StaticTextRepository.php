@@ -10,9 +10,9 @@ use Doctrine\Persistence\ManagerRegistry;
  * @extends ServiceEntityRepository<StaticText>
  *
  * @method StaticText|null find($id, $lockMode = null, $lockVersion = null)
- * @method StaticText|null findOneBy(array $criteria, array $orderBy = null)
+ * @method StaticText|null findOneBy(mixed[] $criteria, mixed[] $orderBy = null)
  * @method StaticText[]    findAll()
- * @method StaticText[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method StaticText[]    findBy(mixed[] $criteria, mixed[] $orderBy = null, $limit = null, $offset = null)
  */
 class StaticTextRepository extends ServiceEntityRepository
 {

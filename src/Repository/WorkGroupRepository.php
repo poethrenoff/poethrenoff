@@ -10,9 +10,9 @@ use Doctrine\Persistence\ManagerRegistry;
  * @extends ServiceEntityRepository<WorkGroup>
  *
  * @method WorkGroup|null find($id, $lockMode = null, $lockVersion = null)
- * @method WorkGroup|null findOneBy(array $criteria, array $orderBy = null)
+ * @method WorkGroup|null findOneBy(mixed[] $criteria, mixed[] $orderBy = null)
  * @method WorkGroup[]    findAll()
- * @method WorkGroup[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method WorkGroup[]    findBy(mixed[] $criteria, mixed[] $orderBy = null, $limit = null, $offset = null)
  */
 class WorkGroupRepository extends ServiceEntityRepository
 {
@@ -21,6 +21,9 @@ class WorkGroupRepository extends ServiceEntityRepository
         parent::__construct($registry, WorkGroup::class);
     }
 
+    /**
+     * @return list<WorkGroup>
+     */
     public function findAllActiveSorted(): array
     {
         return $this->createQueryBuilder('wg')
@@ -31,6 +34,9 @@ class WorkGroupRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @return list<WorkGroup>
+     */
     public function findFavoriteActiveSorted(): array
     {
         return $this->createQueryBuilder('wg')

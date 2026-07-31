@@ -21,6 +21,9 @@ class BlogPostRepository extends ServiceEntityRepository
         $this->paginator = $paginator;
     }
 
+    /**
+     * @return PaginationInterface<int, BlogPost>
+     */
     public function findActivePaginated(int $page, int $limit): PaginationInterface
     {
         $qb = $this->createQueryBuilder('p')
@@ -30,7 +33,10 @@ class BlogPostRepository extends ServiceEntityRepository
             ->setParameter('active', true)
             ->orderBy('p.publishedAt', 'DESC');
 
-        return $this->paginator->paginate($qb, $page, $limit);
+        /** @var PaginationInterface<int, BlogPost> $pagination */
+        $pagination = $this->paginator->paginate($qb, $page, $limit);
+
+        return $pagination;
     }
 
     public function findOneActiveById(int $id): ?BlogPost
@@ -46,6 +52,9 @@ class BlogPostRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    /**
+     * @return PaginationInterface<int, BlogPost>
+     */
     public function searchByText(string $query, int $page, int $limit): PaginationInterface
     {
         $words = explode(' ', $query);
@@ -74,9 +83,15 @@ class BlogPostRepository extends ServiceEntityRepository
 
         $qb->orderBy('p.publishedAt', 'DESC');
 
-        return $this->paginator->paginate($qb, $page, $limit);
+        /** @var PaginationInterface<int, BlogPost> $pagination */
+        $pagination = $this->paginator->paginate($qb, $page, $limit);
+
+        return $pagination;
     }
 
+    /**
+     * @return PaginationInterface<int, BlogPost>
+     */
     public function findActiveByTagPaginated(string $tagTitle, int $page, int $limit): PaginationInterface
     {
         $qb = $this->createQueryBuilder('p')
@@ -88,14 +103,17 @@ class BlogPostRepository extends ServiceEntityRepository
             ->setParameter('tagTitle', $tagTitle)
             ->orderBy('p.publishedAt', 'DESC');
 
-        return $this->paginator->paginate($qb, $page, $limit);
+        /** @var PaginationInterface<int, BlogPost> $pagination */
+        $pagination = $this->paginator->paginate($qb, $page, $limit);
+
+        return $pagination;
     }
 
     /**
      * Finds the previous and next active blog posts.
      *
      * @param BlogPost $post The current post.
-     * @return array An array containing 'prev' and 'next' BlogPost objects, or null.
+     * @return array{prev: BlogPost|null, next: BlogPost|null}
      */
     public function findPrevNext(BlogPost $post): array
     {

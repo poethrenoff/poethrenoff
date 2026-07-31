@@ -17,6 +17,9 @@ class WorkCommentRepository extends ServiceEntityRepository
         parent::__construct($registry, WorkComment::class);
     }
 
+    /**
+     * @return list<WorkComment>
+     */
     public function findActiveByWork(Work $work): array
     {
         return $this->createQueryBuilder('c')

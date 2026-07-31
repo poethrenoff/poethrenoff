@@ -13,9 +13,9 @@ use Knp\Component\Pager\PaginatorInterface;
  * @extends ServiceEntityRepository<Work>
  *
  * @method Work|null find($id, $lockMode = null, $lockVersion = null)
- * @method Work|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Work|null findOneBy(mixed[] $criteria, mixed[] $orderBy = null)
  * @method Work[]    findAll()
- * @method Work[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Work[]    findBy(mixed[] $criteria, mixed[] $orderBy = null, $limit = null, $offset = null)
  */
 class WorkRepository extends ServiceEntityRepository
 {
@@ -31,9 +31,7 @@ class WorkRepository extends ServiceEntityRepository
      * Finds active works within a specific WorkGroup, sorted by position.
      *
      * @param WorkGroup $group The parent WorkGroup.
-     * @param int $page Current page number for pagination.
-     * @param int $limit Items per page.
-     * @return array
+     * @return list<Work>
      */
     public function findActiveByGroup(WorkGroup $group): array
     {
@@ -51,7 +49,7 @@ class WorkRepository extends ServiceEntityRepository
      * Finds the previous and next active work within the same WorkGroup.
      *
      * @param Work $work The current work.
-     * @return array An array containing 'prev' and 'next' Work objects, or null.
+     * @return array{prev: Work|null, next: Work|null}
      */
     public function findPrevNext(Work $work): array
     {
@@ -97,12 +95,11 @@ class WorkRepository extends ServiceEntityRepository
     /**
      * Performs a full-text search across active works.
      * Splits the query into words and applies AND logic.
-     * Hightlights matching terms.
      *
      * @param string $query The search query.
      * @param int $page Current page number.
      * @param int $limit Items per page.
-     * @return PaginationInterface
+     * @return PaginationInterface<int, Work>
      */
     public function search(string $query, int $page = 1, int $limit = 10): PaginationInterface
     {
@@ -162,11 +159,14 @@ class WorkRepository extends ServiceEntityRepository
         // Example: Add fields needed for snippet generation:
         // $qb->addSelect('w.title', 'w.text');
 
-        return $this->paginator->paginate(
+        /** @var PaginationInterface<int, Work> $pagination */
+        $pagination = $this->paginator->paginate(
             $qb,
             $page,
             $limit
         );
+
+        return $pagination;
     }
 
     /**
@@ -190,7 +190,7 @@ class WorkRepository extends ServiceEntityRepository
      */
     public function findRandomActiveFromFavorites(): ?Work
     {
-        $count = $this->createQueryBuilder('w')
+        $count = (int) $this->createQueryBuilder('w')
             ->select('COUNT(w.id)')
             ->innerJoin('w.group', 'g')
             ->andWhere('w.isActive = :active')

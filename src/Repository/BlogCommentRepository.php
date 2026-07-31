@@ -17,6 +17,9 @@ class BlogCommentRepository extends ServiceEntityRepository
         parent::__construct($registry, BlogComment::class);
     }
 
+    /**
+     * @return list<BlogComment>
+     */
     public function findActiveByPost(BlogPost $post): array
     {
         return $this->createQueryBuilder('c')

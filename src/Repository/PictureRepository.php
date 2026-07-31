@@ -12,9 +12,9 @@ use Knp\Component\Pager\PaginatorInterface;
  * @extends ServiceEntityRepository<Picture>
  *
  * @method Picture|null find($id, $lockMode = null, $lockVersion = null)
- * @method Picture|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Picture|null findOneBy(mixed[] $criteria, mixed[] $orderBy = null)
  * @method Picture[]    findAll()
- * @method Picture[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Picture[]    findBy(mixed[] $criteria, mixed[] $orderBy = null, $limit = null, $offset = null)
  */
 class PictureRepository extends ServiceEntityRepository
 {
@@ -31,7 +31,7 @@ class PictureRepository extends ServiceEntityRepository
      *
      * @param int $page Current page number.
      * @param int $limit Items per page.
-     * @return PaginationInterface
+     * @return PaginationInterface<int, Picture>
      */
     public function findActivePaginated(int $page = 1, int $limit = 24): PaginationInterface
     {
@@ -40,10 +40,13 @@ class PictureRepository extends ServiceEntityRepository
             ->orderBy('p.date', 'DESC')
             ->setParameter('active', true);
 
-        return $this->paginator->paginate(
+        /** @var PaginationInterface<int, Picture> $pagination */
+        $pagination = $this->paginator->paginate(
             $qb,
             $page,
             $limit
         );
+
+        return $pagination;
     }
 }

@@ -16,6 +16,9 @@ class TagRepository extends ServiceEntityRepository
         parent::__construct($registry, Tag::class);
     }
 
+    /**
+     * @return list<array{0: Tag, cnt: int}>
+     */
     public function findTagCloud(int $limit): array
     {
         $qb = $this->createQueryBuilder('t')
