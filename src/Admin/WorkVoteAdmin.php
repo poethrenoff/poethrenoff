@@ -2,6 +2,7 @@
 
 namespace App\Admin;
 
+use App\Enum\VoteType;
 use App\Entity\Work;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
@@ -10,11 +11,10 @@ use Sonata\AdminBundle\FieldDescription\FieldDescriptionInterface;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Form\Type\ModelAutocompleteType;
 use Sonata\AdminBundle\Show\ShowMapper;
-use Sonata\DoctrineORMAdminBundle\Filter\ChoiceFilter;
 use Sonata\DoctrineORMAdminBundle\Filter\DateTimeRangeFilter;
 use Sonata\Form\Type\DateTimeRangePickerType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
+use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 class WorkVoteAdmin extends AbstractAdmin
@@ -30,11 +30,8 @@ class WorkVoteAdmin extends AbstractAdmin
             ])
             ->add('ipHash', TextType::class)
             ->add('userAgentHash', TextType::class)
-            ->add('voteType', ChoiceType::class, [
-                'choices' => [
-                    '👍' => 'like',
-                    '👎' => 'dislike',
-                ],
+            ->add('voteType', EnumType::class, [
+                'class' => VoteType::class,
             ])
             ->add('createdAt', DateTimeType::class)
         ;
@@ -44,15 +41,7 @@ class WorkVoteAdmin extends AbstractAdmin
     {
         $filter
             ->add('work')
-            ->add('voteType', ChoiceFilter::class, [
-                'field_type' => ChoiceType::class,
-                'field_options' => [
-                    'choices' => [
-                        '👍' => 'like',
-                        '👎' => 'dislike',
-                    ]
-                ]
-            ])
+            ->add('voteType')
             ->add(
                 'createdAt',
                 DateTimeRangeFilter::class,
@@ -77,11 +66,10 @@ class WorkVoteAdmin extends AbstractAdmin
             ->add('work', null, [
                 'header_style' => 'width: 50%',
             ])
-            ->add('voteType', FieldDescriptionInterface::TYPE_CHOICE, [
-                'choices' => [
-                    'like' => '👍',
-                    'dislike' => '👎',
-                ],
+            ->add('voteType', FieldDescriptionInterface::TYPE_ENUM, [
+                'choices' => VoteType::cases(),
+                'class' => VoteType::class,
+                'editable' => true,
             ])
             ->add('createdAt')
             ->add(ListMapper::NAME_ACTIONS, null, [

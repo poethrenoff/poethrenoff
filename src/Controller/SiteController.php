@@ -9,6 +9,7 @@ use App\Repository\WorkVoteRepository;
 use App\Repository\PictureRepository;
 use App\Entity\WorkGroup;
 use App\Entity\WorkVote;
+use App\Enum\VoteType;
 use App\Entity\WorkComment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -238,8 +239,8 @@ class SiteController extends AbstractController
             return new JsonResponse(['error' => 'Work not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $type = $request->request->get('type');
-        if (!in_array($type, ['like', 'dislike'])) {
+        $type = VoteType::tryFrom($request->request->get('type'));
+        if (!$type) {
             return new JsonResponse(['error' => 'Invalid vote type'], Response::HTTP_BAD_REQUEST);
         }
 
@@ -268,7 +269,7 @@ class SiteController extends AbstractController
 
         $this->entityManager->persist($vote);
 
-        if ($type === 'like') {
+        if ($type === VoteType::Like) {
             $work->setLikesCount($work->getLikesCount() + 1);
         } else {
             $work->setDislikesCount($work->getDislikesCount() + 1);

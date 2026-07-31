@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\VoteType;
 use App\Repository\WorkVoteRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -25,8 +26,8 @@ class WorkVote
     #[ORM\Column(type: Types::STRING, length: 64)]
     private string $userAgentHash = '';
 
-    #[ORM\Column(type: Types::STRING, length: 10)]
-    private string $voteType = ''; // 'like' или 'dislike'
+    #[ORM\Column(type: Types::STRING, length: 10, enumType: VoteType::class)]
+    private VoteType $voteType = VoteType::Like;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
@@ -74,12 +75,12 @@ class WorkVote
         return $this;
     }
 
-    public function getVoteType(): string
+    public function getVoteType(): VoteType
     {
         return $this->voteType;
     }
 
-    public function setVoteType(string $voteType): static
+    public function setVoteType(VoteType $voteType): static
     {
         $this->voteType = $voteType;
         return $this;
@@ -87,7 +88,7 @@ class WorkVote
 
     public function __toString(): string
     {
-        return sprintf('%s (%s)', $this->voteType, $this->ipHash);
+        return sprintf('%s (%s)', $this->voteType->value, $this->work->getTitle());
     }
 
     public function getCreatedAt(): \DateTimeImmutable
