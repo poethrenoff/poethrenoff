@@ -20,7 +20,7 @@
                         <a href="{{ path('site_work', {'id': result.id}) }}">{{ result.title }}</a>
                     </h3>
                     <p>
-                        {{ result.snippet|safe_highlight(query) }}
+                        {{ result.snippet }}
                     </p>
                     {% if result.group %}<a href="{{ path('site_group', {'id': result.group.id}) }}" class="hover:underline">{{ result.group.title }}</a>{% endif %}
                 </div>

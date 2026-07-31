@@ -27,7 +27,7 @@
                     </a>
                 </h3>
                  <div class="post-content">
-                     {{ post.content|safe_highlight(searchText) }}
+                     {{ post.content|raw }}
                 </div>
                 {% if post.tags|length > 0 %}
                     <div class="post-tags">
