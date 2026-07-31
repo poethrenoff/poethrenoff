@@ -2,19 +2,19 @@
 
 namespace App\Controller;
 
+use App\Entity\BlogComment;
 use App\Repository\BlogPostRepository;
 use App\Repository\BlogCommentRepository;
 use App\Repository\TagRepository;
 use App\Service\CommentService;
 use App\Service\SearchService;
+use App\Trait\CsrfTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
-use App\Entity\BlogComment;
-use App\Traits\CsrfTrait;
 
 class BlogController extends AbstractController
 {

@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Traits;
+namespace App\Trait;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Csrf\CsrfToken;
-use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 trait CsrfTrait
 {

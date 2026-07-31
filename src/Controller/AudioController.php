@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Audio;
 use App\Repository\AudioRepository;
 use App\Service\FileUploadService;
+use App\Trait\CsrfTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -13,7 +14,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use App\Traits\CsrfTrait;
 
 #[IsGranted('ROLE_ADMIN')]
 #[IsGranted('IS_AUTHENTICATED_REMEMBERED')]

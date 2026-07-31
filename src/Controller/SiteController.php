@@ -2,18 +2,19 @@
 
 namespace App\Controller;
 
+use App\Entity\WorkGroup;
+use App\Entity\WorkVote;
+use App\Enum\VoteType;
+use App\Entity\WorkComment;
 use App\Repository\StaticTextRepository;
 use App\Repository\WorkGroupRepository;
 use App\Repository\WorkRepository;
 use App\Repository\WorkVoteRepository;
 use App\Repository\PictureRepository;
 use App\Repository\WorkCommentRepository;
-use App\Entity\WorkGroup;
-use App\Entity\WorkVote;
-use App\Enum\VoteType;
-use App\Entity\WorkComment;
 use App\Service\CommentService;
 use App\Service\SearchService;
+use App\Trait\CsrfTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,7 +23,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use App\Traits\CsrfTrait;
 
 class SiteController extends AbstractController
 {

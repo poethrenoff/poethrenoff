@@ -6,7 +6,7 @@ use App\Entity\Poem;
 use App\Enum\PoemStatus;
 use App\Repository\PoemRepository;
 use App\Service\WorkService;
-use App\Traits\CsrfTrait;
+use App\Trait\CsrfTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\HeaderUtils;
