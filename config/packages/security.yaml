@@ -19,6 +19,11 @@ security:
         main:
             lazy: true
             provider: app_user_provider
+            remember_me:
+                secret: '%kernel.secret%'
+                domain: '.%env(BASE_DOMAIN)%'
+                lifetime: 604800
+                path: /
             form_login:
                 login_path: admin_login
                 check_path: admin_login
@@ -34,6 +39,13 @@ security:
         - { path: ^/admin/, role: ROLE_ADMIN }
         - { path: ^/poems/, role: ROLE_ADMIN }
         - { path: ^/audio/, role: ROLE_ADMIN }
+
+when@dev:
+    security:
+        firewalls:
+            main:
+                remember_me:
+                    name: LOCALREMEMBERME
 
 when@test:
     security:

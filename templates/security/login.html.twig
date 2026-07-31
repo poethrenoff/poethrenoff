@@ -11,18 +11,24 @@
 
         <h1>Admin Login</h1>
         <div style="margin-bottom: 10px;">
-            <label for="inputEmail" style="display: block; margin-bottom: 5px;">Email</label>
+            <label for="inputEmail" style="display: block; margin-bottom: 5px;">Логин</label>
             <input type="email" value="{{ last_username }}" name="_username" id="inputEmail" autocomplete="email" required autofocus style="width: 100%; padding: 8px; box-sizing: border-box;">
         </div>
         <div style="margin-bottom: 10px;">
-            <label for="inputPassword" style="display: block; margin-bottom: 5px;">Password</label>
+            <label for="inputPassword" style="display: block; margin-bottom: 5px;">Пароль</label>
             <input type="password" name="_password" id="inputPassword" autocomplete="current-password" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 10px;">
+            <label>
+                <input type="checkbox" name="_remember_me"> Запомнить меня
+            </label>
         </div>
 
         <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
         <button type="submit" style="padding: 10px 20px; cursor: pointer; background: #1982d1; color: white; border: none; border-radius: 4px;">
-            Sign in
+            Войти
         </button>
     </form>
 </div>

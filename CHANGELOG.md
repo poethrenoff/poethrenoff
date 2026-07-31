@@ -6,6 +6,10 @@
 ## 2026-07-31
 
 - Рефакторинг: замена строковых литералов типа голоса (`'like'`/`'dislike'`) на enum `VoteType` в сущности `WorkVote`, контроллере `SiteController` и админке `WorkVoteAdmin`.
+- Добавлена секция `remember_me` в firewall `main` для функционала «Запомнить меня» при авторизации в админ-панели. Cookie хранится 7 дней.
+- Уменьшено время жизни сессии до 1 часа (`cookie_lifetime: 3600`) в `config/packages/framework.yaml`.
+- Добавлена галочка «Запомнить меня» на форму входа в админ-панель (`templates/security/login.html.twig`).
+- Установлен домен куки `remember_me` на `.%env(BASE_DOMAIN)%`, чтобы cookie была доступна на всех поддоменах (как и у сессии).
 
 ## 2026-07-30
 
