@@ -29,7 +29,6 @@ class SearchService
         foreach ($searchPagination->getItems() as $work) {
             $text = strip_tags($work->getText());
             $snippet = mb_substr($text, 0, 300);
-            $snippet = $this->highlight($snippet, $words);
 
             $results[] = [
                 'id' => $work->getId(),
@@ -59,9 +58,7 @@ class SearchService
 
         $results = [];
         foreach ($searchPagination as $post) {
-            $content = $post->getContent();
-            $content = $this->highlight($content, $words);
-
+            $content = strip_tags($post->getContent());
             $results[] = [
                 'id' => $post->getId(),
                 'publishedAt' => $post->getPublishedAt(),
@@ -104,18 +101,7 @@ class SearchService
     }
 
     /**
-     * @param list<string> $words
-     */
-    private function highlight(string $text, array $words): string
-    {
-        foreach ($words as $word) {
-            $text = preg_replace('/(' . preg_quote($word, '/') . ')/ui', '<b>$1</b>', $text) ?? $text;
-        }
-
-        return $text;
-    }
-
-    /**
+     * @param string $query
      * @return list<string>
      */
     private function splitQuery(string $query): array

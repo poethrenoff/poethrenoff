@@ -5,6 +5,12 @@
 
 ## 2026-07-31
 
+- Устранены XSS-уязвимости в результатах поиска (`SearchService::highlight()` и шаблоны `site/search.html.twig`, `blog/search.html.twig`):
+    - Удалён небезопасный метод `SearchService::highlight()`, который оборачивал совпадения в `<b>` через `preg_replace` на исходном HTML-контенте. Далее выводя результат через `|raw`, это позволяло исполнить вредоносный ввод пользователя.
+    - Создан Twig-фильтр `safe_highlight` (`App\Twig\SafeHighlightExtension`), который выполняет `htmlspecialchars()` на исходном тексте (с предварительным `strip_tags()`) и только потом подсвечивает совпадения тегом `<b>`. Фильтр помечен как `is_safe: ['html']`, чтобы Twig не экранировал теги подсветки повторно.
+    - В `SearchService::searchWorks()` убрана ручная подсветка сниппета; подсветка теперь происходит в шаблоне `site/search.html.twig` через новый фильтр.
+    - В `SearchService::searchBlogPostsByText()` добавлен `strip_tags()` для содержимого поста (ранее контент передавался без очистки, что делало уязвимость в блоге критической) и удалена ручная подсветка; подсветка теперь происходит в шаблоне `blog/search.html.twig` через новый фильтр.
+    - В обоих шаблонах заменён `|raw` на `|safe_highlight(query)` / `|safe_highlight(searchText)`.
 - Исправлены N+1 запросы в репозиториях:
     - `BlogPostRepository::findActivePaginated`, `searchByText`, `findActiveByTagPaginated`, `findOneActiveById` — добавлен `leftJoin('p.tags', 't')->addSelect('t')` для жадной загрузки тегов, используемых в шаблонах `blog/index.html.twig` и `blog/search.html.twig`.
     - `BlogCommentRepository::findActiveByPost` и `WorkCommentRepository::findActiveByWork` — эager-загрузка дочерних комментариев не требуется: `CommentService::buildCommentTree()` уже строит дерево комментариев на плоском списке и инициализирует коллекции `children` перед передачей в шаблон, что предотвращает N+1 запросы при рекурсивном рендеринге в `common/comments/tree.html.twig`.

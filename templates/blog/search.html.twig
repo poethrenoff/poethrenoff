@@ -26,8 +26,8 @@
                         {{ post.publishedAt|date('d.m.Y H:i') }}
                     </a>
                 </h3>
-                <div class="post-content">
-                    {{ post.content|raw }}
+                 <div class="post-content">
+                     {{ post.content|safe_highlight(searchText) }}
                 </div>
                 {% if post.tags|length > 0 %}
                     <div class="post-tags">
