@@ -531,7 +531,17 @@ class MigrateLegacyCommand extends Command
         $content = preg_replace('/^\$\w+\s*=\s*/', '', $content);
         $content = rtrim($content, ";\n\r\t ");
 
-        $records = @eval('return ' . $content . ';');
+        $tmpFile = tempnam(sys_get_temp_dir(), 'migration_');
+        if ($tmpFile === false) {
+            return null;
+        }
+
+        try {
+            file_put_contents($tmpFile, '<?php' . "\n" . 'return ' . $content . ";\n");
+            $records = @include $tmpFile;
+        } finally {
+            @unlink($tmpFile);
+        }
         if (is_array($records) && isset($records[0]) && is_array($records[0])) {
             return $records;
         }
