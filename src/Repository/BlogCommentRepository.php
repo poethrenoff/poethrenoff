@@ -20,8 +20,6 @@ class BlogCommentRepository extends ServiceEntityRepository
     public function findActiveByPost(BlogPost $post): array
     {
         return $this->createQueryBuilder('c')
-            ->leftJoin('c.children', 'child')
-            ->addSelect('child')
             ->andWhere('c.post = :post')
             ->andWhere('c.isActive = :active')
             ->setParameter('post', $post)

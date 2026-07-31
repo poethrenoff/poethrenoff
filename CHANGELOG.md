@@ -7,8 +7,7 @@
 
 - Исправлены N+1 запросы в репозиториях:
     - `BlogPostRepository::findActivePaginated`, `searchByText`, `findActiveByTagPaginated`, `findOneActiveById` — добавлен `leftJoin('p.tags', 't')->addSelect('t')` для жадной загрузки тегов, используемых в шаблонах `blog/index.html.twig` и `blog/search.html.twig`.
-    - `BlogCommentRepository::findActiveByPost` — добавлен `leftJoin('c.children', 'child')->addSelect('child')` для жадной загрузки дочерних комментариев, используемых в шаблоне `common/comments/tree.html.twig`.
-    - `WorkCommentRepository::findActiveByWork` — добавлен `leftJoin('c.children', 'child')->addSelect('child')` для жадной загрузки дочерних комментариев, используемых в шаблоне `common/comments/tree.html.twig` на страницах произведений.
+    - `BlogCommentRepository::findActiveByPost` и `WorkCommentRepository::findActiveByWork` — эager-загрузка дочерних комментариев не требуется: `CommentService::buildCommentTree()` уже строит дерево комментариев на плоском списке и инициализирует коллекции `children` перед передачей в шаблон, что предотвращает N+1 запросы при рекурсивном рендеринге в `common/comments/tree.html.twig`.
 
 - Исправлена ошибка, при которой аутентифицированный пользователь (залогиненный через «Запомнить меня») перенаправлялся на `/admin/login` при заходе на `lo.work.poethrenoff.ru`. Причина: `WorkController` и `AudioController` требовали `IS_AUTHENTICATED_FULLY`, но после истечения сессии `RememberMeAuthenticator` создаёт `RememberMeToken` (не `UsernamePasswordToken`), который не проходит проверку `IS_AUTHENTICATED_FULLY` (см. `AuthenticationTrustResolver::isFullFledged()`). `ExceptionListener` в этом случае перенаправляет на страницу логина вместо возврата 403. Исправлено: заменено `IS_AUTHENTICATED_FULLY` на `IS_AUTHENTICATED_REMEMBERED`, что позволяет пользователям, прошедшим аутентификацию через «Запомнить меня», получать доступ к контроллерам мастерской.
 - Добавлен PHPStan (уровень 8) для статического анализа PHP-кода. Конфигурация в `phpstan.neon`, baseline в `phpstan-baseline.neon`, запуск через `make analyze`
@@ -24,6 +23,7 @@
     - `WorkService` — версионирование стихов, переупорядочивание, парсинг дат, перемещение в корзину/восстановление/удаление (вынесено из `WorkController`)
 - Удалён `CommentUtilsTrait` — методы `autolink()` и `buildCommentTree()` перенесены в `CommentService`
 - Контроллеры `AudioController`, `WorkController`, `SiteController`, `BlogController` обновлены для использования новых сервисов
+- Обновлён SRI-хеш (`integrity`) для `trumbowyg.table.min.css` в `templates/admin/layout.html.twig`.
 
 ## 2026-07-30
 
