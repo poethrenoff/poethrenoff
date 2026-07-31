@@ -13,7 +13,7 @@ class Monster
     #[ORM\Column(type: Types::INTEGER)]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::STRING, length: 255)]
+    #[ORM\Column(type: Types::STRING, length: 255, unique: true)]
     private string $login = '';
 
     #[ORM\Column(type: Types::STRING, length: 255)]
