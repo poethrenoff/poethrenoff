@@ -18,7 +18,7 @@ trait HasDefaultTitleTrait
 
     public function getDisplayTitle(): string
     {
-        return preg_match('/\".*\.\.\.\"$/', $this->getTitle())
+        return preg_match('/\".*\.\.\.\"$/', $this->getTitle() ?? '')
             ? '* * *'
             : mb_strtoupper($this->getTitle() ?? '');
     }

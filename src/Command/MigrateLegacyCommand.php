@@ -491,7 +491,7 @@ class MigrateLegacyCommand extends Command
         }
 
         $records = $this->decodeRecords($content);
-        if ($records === null || !is_array($records)) {
+        if ($records === null) {
             $io->warning("Не удалось распарсить PHP-array в файле: $file");
             return [];
         }
@@ -499,6 +499,9 @@ class MigrateLegacyCommand extends Command
         return $records;
     }
 
+    /**
+     * @param class-string $entityClass
+     */
     protected function truncateTable(EntityManagerInterface $entityManager, string $entityClass, SymfonyStyle $io): void
     {
         try {
@@ -511,6 +514,9 @@ class MigrateLegacyCommand extends Command
         }
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     protected function rawInsert(EntityManagerInterface $entityManager, string $table, array $data): void
     {
         $columns = array_keys($data);
@@ -527,8 +533,8 @@ class MigrateLegacyCommand extends Command
     {
         $content = ltrim($content);
 
-        $content = preg_replace('/^\s*\/\*.*?\*\/\s*/s', '', $content);
-        $content = preg_replace('/^\$\w+\s*=\s*/', '', $content);
+        $content = preg_replace('/^\s*\/\*.*?\*\/\s*/s', '', $content) ?? $content;
+        $content = preg_replace('/^\$\w+\s*=\s*/', '', $content) ?? $content;
         $content = rtrim($content, ";\n\r\t ");
 
         $tmpFile = tempnam(sys_get_temp_dir(), 'migration_');

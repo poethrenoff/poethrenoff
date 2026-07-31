@@ -76,7 +76,7 @@ class AudioController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        $title = $request->request->get('title', 'Новая запись');
+        $title = (string) ($request->request->get('title') ?? 'Новая запись');
 
         $audio = new Audio();
         $audio->setTitle($title);

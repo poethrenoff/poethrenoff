@@ -25,12 +25,4 @@ class Kernel extends BaseKernel
     {
         return $this->getProjectDir() . '/var/log/' . ($_SERVER['APP_SITE_CONTEXT'] ?? 'www');
     }
-
-    /**
-     * @return list<string> An array of allowed values for APP_ENV
-     */
-    private function getAllowedEnvs(): array
-    {
-        return ['prod', 'dev', 'test'];
-    }
 }

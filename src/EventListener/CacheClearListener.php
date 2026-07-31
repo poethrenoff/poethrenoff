@@ -2,6 +2,7 @@
 
 namespace App\EventListener;
 
+use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleTerminateEvent;
@@ -10,6 +11,7 @@ use Symfony\Component\Process\Process;
 
 class CacheClearListener implements EventSubscriberInterface
 {
+    /** @var list<string> */
     private array $contexts = ['www', 'blog', 'work'];
     private bool $commandHandled = false;
 
@@ -35,7 +37,11 @@ class CacheClearListener implements EventSubscriberInterface
 
         $output = $event->getOutput();
         $input = $event->getInput();
-        $env = $command->getApplication()->getKernel()->getEnvironment();
+        $application = $command->getApplication();
+        if (!$application instanceof Application) {
+            return;
+        }
+        $env = $application->getKernel()->getEnvironment();
 
         $output->writeln('<info>Clearing cache for all site contexts (www, blog, work)...</info>');
 

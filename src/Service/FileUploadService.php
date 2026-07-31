@@ -21,6 +21,9 @@ class FileUploadService
         $this->audioDir = $this->projectDir . '/htdocs/' . $this->siteContext . '/upload/audio';
     }
 
+    /**
+     * @return list<string>
+     */
     public function getAllowedExtensions(): array
     {
         return self::ALLOWED_EXTENSIONS;
