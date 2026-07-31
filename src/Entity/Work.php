@@ -50,9 +50,11 @@ class Work
     #[ORM\Column(type: Types::INTEGER)]
     private int $dislikesCount = 0;
 
+    /** @var Collection<int, WorkComment> */
     #[ORM\OneToMany(targetEntity: WorkComment::class, mappedBy: 'work', cascade: ['remove'])]
     private Collection $comments;
 
+    /** @var Collection<int, WorkVote> */
     #[ORM\OneToMany(targetEntity: WorkVote::class, mappedBy: 'work', cascade: ['remove'])]
     private Collection $votes;
 
@@ -193,6 +195,9 @@ class Work
         return $this;
     }
 
+    /**
+     * @return Collection<int, WorkComment>
+     */
     public function getComments(): Collection
     {
         return $this->comments;
@@ -217,6 +222,9 @@ class Work
         return $this;
     }
 
+    /**
+     * @return Collection<int, WorkVote>
+     */
     public function getVotes(): Collection
     {
         return $this->votes;

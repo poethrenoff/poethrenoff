@@ -45,6 +45,12 @@ class PoemVersion
         return $this->id;
     }
 
+    public function setId(int $id): static
+    {
+        $this->id = $id;
+        return $this;
+    }
+
     public function getPoem(): ?Poem
     {
         return $this->poem;
@@ -105,6 +111,9 @@ class PoemVersion
         return (string) $this->title;
     }
 
+    /**
+     * @return array{title_changed: bool, content_changed: bool, comment_changed: bool}
+     */
     public function diffWithVersion(PoemVersion $version): array
     {
         return [
@@ -115,6 +124,9 @@ class PoemVersion
         ];
     }
 
+    /**
+     * @return array{title_changed: bool, content_changed: bool, comment_changed: bool}
+     */
     public function diffWithPoem(Poem $poem): array
     {
         return [

@@ -40,6 +40,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->id;
     }
 
+    public function setId(int $id): static
+    {
+        $this->id = $id;
+
+        return $this;
+    }
+
     public function getEmail(): ?string
     {
         return $this->email;
@@ -59,7 +66,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        if ($this->email === null || $this->email === '') {
+            throw new \LogicException('Email пользователя не может быть пустым');
+        }
+
+        return $this->email;
     }
 
     /**

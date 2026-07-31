@@ -29,10 +29,12 @@ class BlogPost
     #[ORM\Column(type: Types::BOOLEAN)]
     private bool $isActive = true;
 
+    /** @var Collection<int, Tag> */
     #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'posts')]
     #[ORM\JoinTable(name: 'tag_blog_post')]
     private Collection $tags;
 
+    /** @var Collection<int, BlogComment> */
     #[ORM\OneToMany(targetEntity: BlogComment::class, mappedBy: 'post', cascade: ['remove'])]
     private Collection $comments;
 
@@ -97,6 +99,9 @@ class BlogPost
         );
     }
 
+    /**
+     * @return Collection<int, Tag>
+     */
     public function getTags(): Collection
     {
         return $this->tags;
@@ -116,6 +121,9 @@ class BlogPost
         return $this;
     }
 
+    /**
+     * @return Collection<int, BlogComment>
+     */
     public function getComments(): Collection
     {
         return $this->comments;

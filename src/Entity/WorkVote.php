@@ -47,6 +47,12 @@ class WorkVote
         return $this->id;
     }
 
+    public function setId(int $id): static
+    {
+        $this->id = $id;
+        return $this;
+    }
+
     public function getWork(): ?Work
     {
         return $this->work;
@@ -93,7 +99,7 @@ class WorkVote
 
     public function __toString(): string
     {
-        return sprintf('%s (%s)', $this->voteType->value, $this->work->getTitle());
+        return sprintf('%s (%s)', $this->voteType->value, $this->work?->getTitle() ?? '');
     }
 
     public function getCreatedAt(): \DateTimeImmutable

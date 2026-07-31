@@ -18,6 +18,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\HasLifecycleCallbacks]
 class Poem
 {
+    use HasDefaultTitleTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
@@ -101,6 +103,12 @@ class Poem
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function setId(int $id): static
+    {
+        $this->id = $id;
+        return $this;
     }
 
     public function getTitle(): ?string
@@ -191,6 +199,9 @@ class Poem
         return $this;
     }
 
+    /**
+     * @return Collection<int, PoemVersion>
+     */
     public function getVersions(): Collection
     {
         return $this->versions;

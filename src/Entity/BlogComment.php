@@ -25,6 +25,7 @@ class BlogComment
     #[ORM\JoinColumn(name: 'parent_id', referencedColumnName: 'id', nullable: true, onDelete: 'CASCADE')]
     private ?BlogComment $parent = null;
 
+    /** @var Collection<int, BlogComment> */
     #[ORM\OneToMany(targetEntity: BlogComment::class, mappedBy: 'parent')]
     #[ORM\OrderBy(['createdAt' => 'ASC'])]
     private Collection $children;
@@ -57,6 +58,9 @@ class BlogComment
         return $this;
     }
 
+    /**
+     * @return Collection<int, BlogComment>
+     */
     public function getChildren(): Collection
     {
         return $this->children;

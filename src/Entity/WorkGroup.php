@@ -22,6 +22,7 @@ class WorkGroup
     #[ORM\JoinColumn(name: 'parent_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
     private ?WorkGroup $parent = null;
 
+    /** @var Collection<int, WorkGroup> */
     #[ORM\OneToMany(targetEntity: WorkGroup::class, mappedBy: 'parent')]
     #[ORM\OrderBy(['position' => 'ASC'])]
     private Collection $children;
@@ -75,6 +76,9 @@ class WorkGroup
         return $this;
     }
 
+    /**
+     * @return Collection<int, WorkGroup>
+     */
     public function getChildren(): Collection
     {
         return $this->children;

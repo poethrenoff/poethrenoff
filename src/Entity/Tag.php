@@ -22,6 +22,7 @@ class Tag
     #[Assert\Length(max: 100)]
     private string $title = '';
 
+    /** @var Collection<int, BlogPost> */
     #[ORM\ManyToMany(targetEntity: BlogPost::class, mappedBy: 'tags')]
     private Collection $posts;
 
@@ -57,6 +58,9 @@ class Tag
         return $this->title;
     }
 
+    /**
+     * @return Collection<int, BlogPost>
+     */
     public function getPosts(): Collection
     {
         return $this->posts;

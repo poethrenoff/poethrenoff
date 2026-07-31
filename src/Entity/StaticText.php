@@ -34,6 +34,12 @@ class StaticText
         return $this->id;
     }
 
+    public function setId(int $id): static
+    {
+        $this->id = $id;
+        return $this;
+    }
+
     public function getSlug(): string
     {
         return $this->slug;
