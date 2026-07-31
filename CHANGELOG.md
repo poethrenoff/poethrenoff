@@ -5,6 +5,17 @@
 
 ## 2026-07-31
 
+- Полностью убран функционал подсветки результатов поиска:
+    - Удалён `SafeHighlightExtension` (Twig-фильтр `safe_highlight`) и все его использования в шаблонах.
+    - `blog/search.html.twig` — содержимое поста выводится в raw-формате (`post.content|raw`), как на странице поста и в ленте.
+    - `site/search.html.twig` — сниппет выводится без подсветки (текст и так проходит `strip_tags()` в `SearchService`).
+- Исправлена ошибка рендеринга `blog/search.html.twig` при поиске по тегу: фильтр `safe_highlight` получал `null` вместо строки (`searchText` не задан при поиске по `tag`), добавлен `|default('')`.
+- Исправлены все 125 ошибок PHPStan (уровень 8): `make analyze` теперь проходит без ошибок:
+    - Sonata-админы: добавлены `@extends AbstractAdmin<Entity>` и недостающие `use App\Entity\*`; убраны тернарники с `getSubject()` (всегда истинны) и проверки `instanceof` (тип уже известен из дженерика); `UserAdmin::updatePassword()` проверяет `instanceof User` и тип строки перед хешированием.
+    - Сущности: добавлены docblock-типы для коллекций (`Collection<int, Entity>`), методы `setId()` для сущностей без него (тип `?int` иначе никогда не получал `int`), `Poem` — подключён ранее импортированный, но не использованный `HasDefaultTitleTrait` (чинит крах `ensureDefaults()` в lifecycle-колбэках), `User::getUserIdentifier()` приведён к контракту `non-empty-string`, `WorkVote::__toString()` безопасен при null-связи.
+    - Пагинация: `getPaginationData()` (не входит в `PaginationInterface`) заменён на расчёт по методам интерфейса в общем `SearchService::buildPagination()`; репозитории возвращают `PaginationInterface<int, Entity>`.
+    - Репозитории: типизированы возвраты (`list<Entity>`, shape-массивы `prev`/`next`), в `@method` для `findBy`/`findOneBy` добавлены типы значений (`mixed[]`), из `WorkRepository::findActiveByGroup()` убраны несуществующие `@param $page`/`$limit`, `getSingleScalarResult()` приведён к `int`.
+    - Прочее: `MigrateLegacyCommand` — убран мёртвый `is_array()`, `preg_replace()` с `?? $content`, `@param class-string`/`array<string, mixed>`; `CacheClearListener` — проверка `FrameworkApplication` перед `getKernel()`; `SiteController` — параметр `app.vote_salt` проверяется на `is_string`; `CommentService::autolink()` — удалён недостижимый код в callback; удалён неиспользуемый `Kernel::getAllowedEnvs()`.
 - Устранены XSS-уязвимости в результатах поиска (`SearchService::highlight()` и шаблоны `site/search.html.twig`, `blog/search.html.twig`):
     - Удалён небезопасный метод `SearchService::highlight()`, который оборачивал совпадения в `<b>` через `preg_replace` на исходном HTML-контенте. Далее выводя результат через `|raw`, это позволяло исполнить вредоносный ввод пользователя.
     - Создан Twig-фильтр `safe_highlight` (`App\Twig\SafeHighlightExtension`), который выполняет `htmlspecialchars()` на исходном тексте (с предварительным `strip_tags()`) и только потом подсвечивает совпадения тегом `<b>`. Фильтр помечен как `is_safe: ['html']`, чтобы Twig не экранировал теги подсветки повторно.

@@ -75,6 +75,13 @@
 - Автоисправление стиля кода: `bin/phpcbf`.
 - Статический анализ (PHPStan): `make analyze`.
 
+### Конвенции для PHPStan (level 8)
+
+- Sonata-админы: класс обязательно с `/** @extends AbstractAdmin<Entity> */` и `use App\Entity\X;`; `getSubject()`/`prePersist($object)` уже типизированы как сущность — дополнительные `instanceof`/тернарники PHPStan флагует как `alwaysTrue`.
+- Сущности: коллекции Doctrine — `@var Collection<int, Entity>` на свойстве и `@return Collection<int, Entity>` на геттере; у сущности должен быть `setId()` (иначе `property.unusedType` для `?int $id`).
+- Репозитории: возвраты массивов — `list<Entity>` (или shape `array{prev: X|null, next: X|null}`); `@method findBy/findOneBy` — только одной строкой (многострочный `@method` PHPStan не парсит) и с типами значений (`mixed[]`), иначе phpcs ругается на длину строки.
+- Пагинация Knp: `getPaginationData()` есть только у `SlidingPagination`, не входит в `PaginationInterface`. Используй `SearchService::buildPagination(PaginationInterface)`; репозитории возвращают `PaginationInterface<int, Entity>` (с `/** @var PaginationInterface<int, Entity> $pagination */` перед `paginate()`).
+
 ## Git-коммиты
 
 Текст коммитов пишется на **английском языке** по стандарту **Conventional Commits**. 
