@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\WorkRepository;
+use App\Trait\HasDefaultTitleTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -14,6 +15,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Index(columns: ['is_active'], name: 'idx_work_active')]
 class Work
 {
+    use HasDefaultTitleTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER)]
@@ -71,14 +74,19 @@ class Work
         $this->ensureDefaults();
     }
 
-    private function ensureDefaults(): void
+    protected function getBodyContent(): string
     {
-        if (empty($this->title)) {
-            $this->title = $this->getDefaultTitle();
-        }
-        if (empty($this->comment)) {
-            $this->comment = $this->getDefaultComment();
-        }
+        return $this->text;
+    }
+
+    protected function getDefaultComment(): string
+    {
+        return (new \DateTimeImmutable())->format('d.m.Y');
+    }
+
+    public function getDisplayTitle(): string
+    {
+        return preg_match('/\".*\.\.\.\"$/', $this->title) ? '* * *' : $this->title;
     }
 
     public function getId(): ?int
@@ -119,18 +127,6 @@ class Work
         return $this;
     }
 
-    public function getDefaultTitle(): string
-    {
-        $lines = explode("\n", trim($this->text));
-        $firstLine = trim(rtrim($lines[0] ?? '', '.,!:?;…—-'));
-        return '"' . $firstLine . '..."';
-    }
-
-    public function getDisplayTitle(): string
-    {
-        return preg_match('/\".*\.\.\.\"$/', $this->title) ? '* * *' : $this->title;
-    }
-
     public function getText(): string
     {
         return rtrim($this->text);
@@ -151,12 +147,6 @@ class Work
     {
         $this->comment = $comment;
         return $this;
-    }
-
-    public function getDefaultComment(): string
-    {
-        $now = new \DateTimeImmutable();
-        return $now->format("d.m.Y");
     }
 
     public function getPosition(): float

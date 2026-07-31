@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Enum\PoemStatus;
 use App\Repository\PoemRepository;
+use App\Trait\HasDefaultTitleTrait;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -87,14 +88,14 @@ class Poem
         $this->ensureDefaults();
     }
 
-    private function ensureDefaults(): void
+    protected function getBodyContent(): string
     {
-        if (empty($this->title)) {
-            $this->title = $this->getDefaultTitle();
-        }
-        if (empty($this->comment)) {
-            $this->comment = $this->getDefaultComment();
-        }
+        return $this->content;
+    }
+
+    protected function getDefaultComment(): ?\DateTimeImmutable
+    {
+        return new \DateTimeImmutable('today');
     }
 
     public function getId(): ?int
@@ -111,18 +112,6 @@ class Poem
     {
         $this->title = $title;
         return $this;
-    }
-
-    public function getDefaultTitle(): string
-    {
-        $lines = explode("\n", trim($this->content));
-        $firstLine = trim(rtrim($lines[0] ?? '', '.,!:?;…—-'));
-        return '"' . $firstLine . '..."';
-    }
-
-    public function getDisplayTitle(): string
-    {
-        return preg_match('/\".*\.\.\.\"$/', $this->title) ? '* * *' : mb_strtoupper($this->title ?? '');
     }
 
     public function getContent(): string
@@ -145,11 +134,6 @@ class Poem
     {
         $this->comment = $comment;
         return $this;
-    }
-
-    public function getDefaultComment(): ?\DateTimeImmutable
-    {
-        return new \DateTimeImmutable('today');
     }
 
     public function getStatus(): PoemStatus

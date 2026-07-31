@@ -31,6 +31,11 @@
 - Контроллеры `AudioController`, `WorkController`, `SiteController`, `BlogController` обновлены для использования новых сервисов
 - Обновлён SRI-хеш (`integrity`) для `trumbowyg.table.min.css` в `templates/admin/layout.html.twig`.
 
+- Устранено дублирование кода между доменами blog и work:
+    - Создан `App\Trait\HasDefaultTitleTrait` с общей логикой заголовков (`getDefaultTitle`, `getDisplayTitle`, `ensureDefaults`) для сущностей `Poem` и `Work`.
+    - Создан `App\Trait\CommentFieldsTrait` с общими полями и методами для сущностей `BlogComment` и `WorkComment`.
+    - Конкретные сущности обновлены для использования этих трейтов.
+
 ## 2026-07-30
 
 - Исправлено: панель оглавления (TOC) больше не отображается на странице «Записи» — добавлено условие `view !== 'audio'` в `x-show` компонента в `templates/work/index.html.twig`.

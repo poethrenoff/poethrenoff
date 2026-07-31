@@ -50,6 +50,10 @@
 
 `CommentUtilsTrait` удалён — его методы `autolink()` и `buildCommentTree()` перенесены в `CommentService`.
 
+Для устранения дублирования между доменами выделены общие абстракции:
+- `App\Trait\HasDefaultTitleTrait` — общие методы `getDefaultTitle()`, `getDisplayTitle()` и `ensureDefaults()` для `Poem` и `Work`.
+- `App\Trait\CommentFieldsTrait` — общие поля и методы (id, author, content, info, createdAt, isActive) для `BlogComment` и `WorkComment`.
+
 ### Безопасность и аутентификация
 
 - **Session + remember-me кросс-доменно:** `cookie_domain: '.%env(BASE_DOMAIN)%'` (`poethrenoff.ru`) на сессию и remember-me cookie позволяет пользователю быть залогиненным на всех поддоменах (`lo.poethrenoff.ru`, `lo.blog.poethrenoff.ru`, `lo.work.poethrenoff.ru`).
