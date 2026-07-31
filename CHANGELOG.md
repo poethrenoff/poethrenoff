@@ -5,7 +5,8 @@
 
 ## 2026-07-31
 
-- Рефакторинг: замена строковых литералов типа голоса (`'like'`/`'dislike'`) на enum `VoteType` в сущности `WorkVote`, контроллере `SiteController` и админке `WorkVoteAdmin`.
+- Рефакторинг: централизация шаблона макета admin layout в `config/packages/sonata_admin.yaml` через `templates.layout` вместо дублирования `setTemplate` в `config/services.yaml` для каждого admin-са
+- Добавлен PHPStan (уровень 8) для статического анализа PHP-кода. Конфигурация в `phpstan.neon`, baseline в `phpstan-baseline.neon`, запуск через `make analyze`
 - Добавлена секция `remember_me` в firewall `main` для функционала «Запомнить меня» при авторизации в админ-панели. Cookie хранится 7 дней.
 - Уменьшено время жизни сессии до 1 часа (`cookie_lifetime: 3600`) в `config/packages/framework.yaml`.
 - Добавлена галочка «Запомнить меня» на форму входа в админ-панель (`templates/security/login.html.twig`).

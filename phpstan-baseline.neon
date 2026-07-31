@@ -1,0 +1,727 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Call to an undefined method object\:\:getFilePath\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Admin/AudioAdmin.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getId\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Admin/AudioAdmin.php
+
+		-
+			message: '#^Class App\\Admin\\AudioAdmin extends generic class Sonata\\AdminBundle\\Admin\\AbstractAdmin but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Admin/AudioAdmin.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 1
+			path: src/Admin/AudioAdmin.php
+
+		-
+			message: '#^Class App\\Admin\\BlogCommentAdmin extends generic class Sonata\\AdminBundle\\Admin\\AbstractAdmin but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Admin/BlogCommentAdmin.php
+
+		-
+			message: '#^Class App\\Admin\\BlogPostAdmin extends generic class Sonata\\AdminBundle\\Admin\\AbstractAdmin but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Admin/BlogPostAdmin.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getDate\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Admin/PictureAdmin.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getId\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Admin/PictureAdmin.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getImagePath\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Admin/PictureAdmin.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getPosition\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/Admin/PictureAdmin.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getSourcePath\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Admin/PictureAdmin.php
+
+		-
+			message: '#^Call to an undefined method object\:\:setPosition\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Admin/PictureAdmin.php
+
+		-
+			message: '#^Class App\\Admin\\PictureAdmin extends generic class Sonata\\AdminBundle\\Admin\\AbstractAdmin but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Admin/PictureAdmin.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: src/Admin/PictureAdmin.php
+
+		-
+			message: '#^Match expression does not handle remaining value\: string$#'
+			identifier: match.unhandled
+			count: 1
+			path: src/Admin/PictureAdmin.php
+
+		-
+			message: '#^Ternary operator condition is always true\.$#'
+			identifier: ternary.alwaysTrue
+			count: 2
+			path: src/Admin/PictureAdmin.php
+
+		-
+			message: '#^Class App\\Admin\\PoemAdmin extends generic class Sonata\\AdminBundle\\Admin\\AbstractAdmin but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Admin/PoemAdmin.php
+
+		-
+			message: '#^Class App\\Admin\\PoemVersionAdmin extends generic class Sonata\\AdminBundle\\Admin\\AbstractAdmin but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Admin/PoemVersionAdmin.php
+
+		-
+			message: '#^Class App\\Admin\\StaticTextAdmin extends generic class Sonata\\AdminBundle\\Admin\\AbstractAdmin but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Admin/StaticTextAdmin.php
+
+		-
+			message: '#^Class App\\Admin\\TagAdmin extends generic class Sonata\\AdminBundle\\Admin\\AbstractAdmin but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Admin/TagAdmin.php
+
+		-
+			message: '#^Call to an undefined method object\:\:setPassword\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Admin/UserAdmin.php
+
+		-
+			message: '#^Class App\\Admin\\UserAdmin extends generic class Sonata\\AdminBundle\\Admin\\AbstractAdmin but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Admin/UserAdmin.php
+
+		-
+			message: '#^Parameter \#1 \$user of method Symfony\\Component\\PasswordHasher\\Hasher\\UserPasswordHasherInterface\:\:hashPassword\(\) expects Symfony\\Component\\Security\\Core\\User\\PasswordAuthenticatedUserInterface, object given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Admin/UserAdmin.php
+
+		-
+			message: '#^Class App\\Admin\\WorkAdmin extends generic class Sonata\\AdminBundle\\Admin\\AbstractAdmin but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Admin/WorkAdmin.php
+
+		-
+			message: '#^Class App\\Admin\\WorkCommentAdmin extends generic class Sonata\\AdminBundle\\Admin\\AbstractAdmin but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Admin/WorkCommentAdmin.php
+
+		-
+			message: '#^Class App\\Admin\\WorkGroupAdmin extends generic class Sonata\\AdminBundle\\Admin\\AbstractAdmin but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Admin/WorkGroupAdmin.php
+
+		-
+			message: '#^Class App\\Admin\\WorkVoteAdmin extends generic class Sonata\\AdminBundle\\Admin\\AbstractAdmin but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Admin/WorkVoteAdmin.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<int, array\<string, mixed\>\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/Command/MigrateLegacyCommand.php
+
+		-
+			message: '#^Method App\\Command\\MigrateLegacyCommand\:\:rawInsert\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Command/MigrateLegacyCommand.php
+
+		-
+			message: '#^Parameter \#1 \$objectOrClass of class ReflectionClass constructor expects class\-string\<T of object\>\|T of object, string given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Command/MigrateLegacyCommand.php
+
+		-
+			message: '#^Parameter \#1 \$string of function rtrim expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Command/MigrateLegacyCommand.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Command/MigrateLegacyCommand.php
+
+		-
+			message: '#^Parameter \#1 \$title of method App\\Entity\\Audio\:\:setTitle\(\) expects string, bool\|float\|int\|string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/AudioController.php
+
+		-
+			message: '#^Call to an undefined method Knp\\Component\\Pager\\Pagination\\PaginationInterface\:\:getPaginationData\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: src/Controller/BlogController.php
+
+		-
+			message: '#^Cannot call method getId\(\) on App\\Entity\\BlogPost\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Controller/BlogController.php
+
+		-
+			message: '#^Method App\\Controller\\BlogController\:\:autolink\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Controller/BlogController.php
+
+		-
+			message: '#^Offset 3 on array\{non\-falsy\-string, '''', '''', non\-falsy\-string\} in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.offset
+			count: 1
+			path: src/Controller/BlogController.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: src/Controller/BlogController.php
+
+		-
+			message: '#^Binary operation "\." between string and array\|bool\|float\|int\|string\|UnitEnum\|null results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: src/Controller/SiteController.php
+
+		-
+			message: '#^Binary operation "\." between string\|null and array\|bool\|float\|int\|string\|UnitEnum\|null results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: src/Controller/SiteController.php
+
+		-
+			message: '#^Call to an undefined method Knp\\Component\\Pager\\Pagination\\PaginationInterface\:\:getPaginationData\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/Controller/SiteController.php
+
+		-
+			message: '#^Cannot call method getId\(\) on App\\Entity\\Work\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Controller/SiteController.php
+
+		-
+			message: '#^Method App\\Controller\\SiteController\:\:autolink\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Controller/SiteController.php
+
+		-
+			message: '#^Method App\\Controller\\SiteController\:\:buildBreadcrumbs\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Controller/SiteController.php
+
+		-
+			message: '#^Method App\\Controller\\SiteController\:\:buildTree\(\) has parameter \$groups with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Controller/SiteController.php
+
+		-
+			message: '#^Method App\\Controller\\SiteController\:\:buildTree\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Controller/SiteController.php
+
+		-
+			message: '#^Offset 3 on array\{non\-falsy\-string, '''', '''', non\-falsy\-string\} in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.offset
+			count: 1
+			path: src/Controller/SiteController.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method App\\Enum\\VoteType\:\:tryFrom\(\) expects int\|string, bool\|float\|int\|string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/SiteController.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/SiteController.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: src/Controller/SiteController.php
+
+		-
+			message: '#^Property App\\Entity\\Audio\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Audio.php
+
+		-
+			message: '#^Method App\\Entity\\BlogComment\:\:getChildren\(\) return type with generic interface Doctrine\\Common\\Collections\\Collection does not specify its types\: TKey, T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Entity/BlogComment.php
+
+		-
+			message: '#^Property App\\Entity\\BlogComment\:\:\$children with generic interface Doctrine\\Common\\Collections\\Collection does not specify its types\: TKey, T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Entity/BlogComment.php
+
+		-
+			message: '#^Method App\\Entity\\BlogPost\:\:getComments\(\) return type with generic interface Doctrine\\Common\\Collections\\Collection does not specify its types\: TKey, T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Entity/BlogPost.php
+
+		-
+			message: '#^Method App\\Entity\\BlogPost\:\:getTags\(\) return type with generic interface Doctrine\\Common\\Collections\\Collection does not specify its types\: TKey, T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Entity/BlogPost.php
+
+		-
+			message: '#^Property App\\Entity\\BlogPost\:\:\$comments with generic interface Doctrine\\Common\\Collections\\Collection does not specify its types\: TKey, T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Entity/BlogPost.php
+
+		-
+			message: '#^Property App\\Entity\\BlogPost\:\:\$tags with generic interface Doctrine\\Common\\Collections\\Collection does not specify its types\: TKey, T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Entity/BlogPost.php
+
+		-
+			message: '#^Method App\\Entity\\Poem\:\:getVersions\(\) return type with generic interface Doctrine\\Common\\Collections\\Collection does not specify its types\: TKey, T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Entity/Poem.php
+
+		-
+			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Entity/Poem.php
+
+		-
+			message: '#^Parameter \#1 \$string of function mb_strtoupper expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Entity/Poem.php
+
+		-
+			message: '#^Parameter \#2 \$subject of function preg_match expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Entity/Poem.php
+
+		-
+			message: '#^Property App\\Entity\\Poem\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Poem.php
+
+		-
+			message: '#^Method App\\Entity\\PoemVersion\:\:diffWithPoem\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Entity/PoemVersion.php
+
+		-
+			message: '#^Method App\\Entity\\PoemVersion\:\:diffWithVersion\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Entity/PoemVersion.php
+
+		-
+			message: '#^Property App\\Entity\\PoemVersion\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/PoemVersion.php
+
+		-
+			message: '#^Property App\\Entity\\StaticText\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/StaticText.php
+
+		-
+			message: '#^Method App\\Entity\\Tag\:\:getPosts\(\) return type with generic interface Doctrine\\Common\\Collections\\Collection does not specify its types\: TKey, T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Entity/Tag.php
+
+		-
+			message: '#^Property App\\Entity\\Tag\:\:\$posts with generic interface Doctrine\\Common\\Collections\\Collection does not specify its types\: TKey, T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Entity/Tag.php
+
+		-
+			message: '#^Method App\\Entity\\User\:\:getUserIdentifier\(\) should return non\-empty\-string but returns string\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Entity/User.php
+
+		-
+			message: '#^Property App\\Entity\\User\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/User.php
+
+		-
+			message: '#^Method App\\Entity\\Work\:\:getComments\(\) return type with generic interface Doctrine\\Common\\Collections\\Collection does not specify its types\: TKey, T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Entity/Work.php
+
+		-
+			message: '#^Method App\\Entity\\Work\:\:getVotes\(\) return type with generic interface Doctrine\\Common\\Collections\\Collection does not specify its types\: TKey, T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Entity/Work.php
+
+		-
+			message: '#^Offset 0 on non\-empty\-list\<string\> on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Entity/Work.php
+
+		-
+			message: '#^Property App\\Entity\\Work\:\:\$comments with generic interface Doctrine\\Common\\Collections\\Collection does not specify its types\: TKey, T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Entity/Work.php
+
+		-
+			message: '#^Property App\\Entity\\Work\:\:\$votes with generic interface Doctrine\\Common\\Collections\\Collection does not specify its types\: TKey, T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Entity/Work.php
+
+		-
+			message: '#^Method App\\Entity\\WorkComment\:\:getChildren\(\) return type with generic interface Doctrine\\Common\\Collections\\Collection does not specify its types\: TKey, T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Entity/WorkComment.php
+
+		-
+			message: '#^Property App\\Entity\\WorkComment\:\:\$children with generic interface Doctrine\\Common\\Collections\\Collection does not specify its types\: TKey, T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Entity/WorkComment.php
+
+		-
+			message: '#^Method App\\Entity\\WorkGroup\:\:getChildren\(\) return type with generic interface Doctrine\\Common\\Collections\\Collection does not specify its types\: TKey, T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Entity/WorkGroup.php
+
+		-
+			message: '#^Property App\\Entity\\WorkGroup\:\:\$children with generic interface Doctrine\\Common\\Collections\\Collection does not specify its types\: TKey, T$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Entity/WorkGroup.php
+
+		-
+			message: '#^Cannot call method getTitle\(\) on App\\Entity\\Work\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Entity/WorkVote.php
+
+		-
+			message: '#^Property App\\Entity\\WorkVote\:\:\$id \(int\|null\) is never assigned int so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/WorkVote.php
+
+		-
+			message: '#^Cannot call method getKernel\(\) on Symfony\\Component\\Console\\Application\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/EventListener/CacheClearListener.php
+
+		-
+			message: '#^Property App\\EventListener\\CacheClearListener\:\:\$contexts type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/EventListener/CacheClearListener.php
+
+		-
+			message: '#^Method App\\Kernel\:\:getAllowedEnvs\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: src/Kernel.php
+
+		-
+			message: '#^Method App\\Repository\\BlogCommentRepository\:\:findActiveByPost\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/BlogCommentRepository.php
+
+		-
+			message: '#^Method App\\Repository\\BlogPostRepository\:\:findActiveByTagPaginated\(\) return type has no value type specified in iterable type Knp\\Component\\Pager\\Pagination\\PaginationInterface\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/BlogPostRepository.php
+
+		-
+			message: '#^Method App\\Repository\\BlogPostRepository\:\:findActiveByTagPaginated\(\) return type with generic interface Knp\\Component\\Pager\\Pagination\\PaginationInterface does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Repository/BlogPostRepository.php
+
+		-
+			message: '#^Method App\\Repository\\BlogPostRepository\:\:findActivePaginated\(\) return type has no value type specified in iterable type Knp\\Component\\Pager\\Pagination\\PaginationInterface\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/BlogPostRepository.php
+
+		-
+			message: '#^Method App\\Repository\\BlogPostRepository\:\:findActivePaginated\(\) return type with generic interface Knp\\Component\\Pager\\Pagination\\PaginationInterface does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Repository/BlogPostRepository.php
+
+		-
+			message: '#^Method App\\Repository\\BlogPostRepository\:\:findPrevNext\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/BlogPostRepository.php
+
+		-
+			message: '#^Method App\\Repository\\BlogPostRepository\:\:searchByText\(\) return type has no value type specified in iterable type Knp\\Component\\Pager\\Pagination\\PaginationInterface\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/BlogPostRepository.php
+
+		-
+			message: '#^Method App\\Repository\\BlogPostRepository\:\:searchByText\(\) return type with generic interface Knp\\Component\\Pager\\Pagination\\PaginationInterface does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Repository/BlogPostRepository.php
+
+		-
+			message: '#^Class App\\Repository\\PictureRepository has PHPDoc tag @method for method findBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/PictureRepository.php
+
+		-
+			message: '#^Class App\\Repository\\PictureRepository has PHPDoc tag @method for method findBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/PictureRepository.php
+
+		-
+			message: '#^Class App\\Repository\\PictureRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/PictureRepository.php
+
+		-
+			message: '#^Class App\\Repository\\PictureRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/PictureRepository.php
+
+		-
+			message: '#^Method App\\Repository\\PictureRepository\:\:findActivePaginated\(\) return type has no value type specified in iterable type Knp\\Component\\Pager\\Pagination\\PaginationInterface\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/PictureRepository.php
+
+		-
+			message: '#^Method App\\Repository\\PictureRepository\:\:findActivePaginated\(\) return type with generic interface Knp\\Component\\Pager\\Pagination\\PaginationInterface does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Repository/PictureRepository.php
+
+		-
+			message: '#^Class App\\Repository\\StaticTextRepository has PHPDoc tag @method for method findBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/StaticTextRepository.php
+
+		-
+			message: '#^Class App\\Repository\\StaticTextRepository has PHPDoc tag @method for method findBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/StaticTextRepository.php
+
+		-
+			message: '#^Class App\\Repository\\StaticTextRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/StaticTextRepository.php
+
+		-
+			message: '#^Class App\\Repository\\StaticTextRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/StaticTextRepository.php
+
+		-
+			message: '#^Method App\\Repository\\TagRepository\:\:findTagCloud\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/TagRepository.php
+
+		-
+			message: '#^Method App\\Repository\\WorkCommentRepository\:\:findActiveByWork\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/WorkCommentRepository.php
+
+		-
+			message: '#^Class App\\Repository\\WorkGroupRepository has PHPDoc tag @method for method findBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/WorkGroupRepository.php
+
+		-
+			message: '#^Class App\\Repository\\WorkGroupRepository has PHPDoc tag @method for method findBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/WorkGroupRepository.php
+
+		-
+			message: '#^Class App\\Repository\\WorkGroupRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/WorkGroupRepository.php
+
+		-
+			message: '#^Class App\\Repository\\WorkGroupRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/WorkGroupRepository.php
+
+		-
+			message: '#^Method App\\Repository\\WorkGroupRepository\:\:findAllActiveSorted\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/WorkGroupRepository.php
+
+		-
+			message: '#^Method App\\Repository\\WorkGroupRepository\:\:findFavoriteActiveSorted\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/WorkGroupRepository.php
+
+		-
+			message: '#^Binary operation "\-" between float\|int\<min, \-1\>\|int\<1, max\>\|string\|true and 1 results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: src/Repository/WorkRepository.php
+
+		-
+			message: '#^Class App\\Repository\\WorkRepository has PHPDoc tag @method for method findBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/WorkRepository.php
+
+		-
+			message: '#^Class App\\Repository\\WorkRepository has PHPDoc tag @method for method findBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/WorkRepository.php
+
+		-
+			message: '#^Class App\\Repository\\WorkRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/WorkRepository.php
+
+		-
+			message: '#^Class App\\Repository\\WorkRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/WorkRepository.php
+
+		-
+			message: '#^Method App\\Repository\\WorkRepository\:\:findActiveByGroup\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/WorkRepository.php
+
+		-
+			message: '#^Method App\\Repository\\WorkRepository\:\:findPrevNext\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/WorkRepository.php
+
+		-
+			message: '#^Method App\\Repository\\WorkRepository\:\:search\(\) return type has no value type specified in iterable type Knp\\Component\\Pager\\Pagination\\PaginationInterface\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/WorkRepository.php
+
+		-
+			message: '#^Method App\\Repository\\WorkRepository\:\:search\(\) return type with generic interface Knp\\Component\\Pager\\Pagination\\PaginationInterface does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Repository/WorkRepository.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$limit$#'
+			identifier: parameter.notFound
+			count: 1
+			path: src/Repository/WorkRepository.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$page$#'
+			identifier: parameter.notFound
+			count: 1
+			path: src/Repository/WorkRepository.php
