@@ -13,6 +13,9 @@ use Sonata\DoctrineORMAdminBundle\Filter\DateTimeRangeFilter;
 use Sonata\Form\Type\DateTimeRangePickerType;
 use Symfony\Contracts\Service\Attribute\Required;
 
+/**
+ * @extends AbstractAdmin<PoemVersion>
+ */
 class PoemVersionAdmin extends AbstractAdmin
 {
     private PoemVersionRepository $repository;

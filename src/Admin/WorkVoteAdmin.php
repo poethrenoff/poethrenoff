@@ -4,6 +4,7 @@ namespace App\Admin;
 
 use App\Enum\VoteType;
 use App\Entity\Work;
+use App\Entity\WorkVote;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
@@ -17,6 +18,9 @@ use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
+/**
+ * @extends AbstractAdmin<WorkVote>
+ */
 class WorkVoteAdmin extends AbstractAdmin
 {
     protected function configureFormFields(FormMapper $form): void

@@ -19,6 +19,9 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Contracts\Service\Attribute\Required;
 
+/**
+ * @extends AbstractAdmin<Audio>
+ */
 class AudioAdmin extends AbstractAdmin
 {
     private string $projectDir;
@@ -39,12 +42,13 @@ class AudioAdmin extends AbstractAdmin
     protected function configureFormFields(FormMapper $form): void
     {
         $isNew = $this->isNew();
+        $subject = $this->getSubject();
 
         $form
             ->add('title', TextType::class)
             ->add('filePath', FileType::class, [
                 'required' => $isNew,
-                'help' => $this->getSubject() ? $this->getSubject()->getFilePath() : '',
+                'help' => $subject->getFilePath(),
                 'mapped' => false,
             ])
             ->add('duration', IntegerType::class, ['required' => false])
@@ -64,8 +68,7 @@ class AudioAdmin extends AbstractAdmin
 
     private function isNew(): bool
     {
-        $subject = $this->getSubject();
-        return $subject->getId() === null;
+        return $this->getSubject()->getId() === null;
     }
 
     private function manageFileUpload(object $object): void

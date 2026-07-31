@@ -2,6 +2,7 @@
 
 namespace App\Admin;
 
+use App\Entity\BlogPost;
 use App\Entity\Tag;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
@@ -16,6 +17,9 @@ use Sonata\Form\Type\DateTimeRangePickerType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 
+/**
+ * @extends AbstractAdmin<BlogPost>
+ */
 class BlogPostAdmin extends AbstractAdmin
 {
     protected function configureFormFields(FormMapper $form): void

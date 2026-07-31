@@ -2,6 +2,7 @@
 
 namespace App\Admin;
 
+use App\Entity\Work;
 use App\Entity\WorkGroup;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
@@ -16,6 +17,9 @@ use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
+/**
+ * @extends AbstractAdmin<Work>
+ */
 class WorkAdmin extends AbstractAdmin
 {
     protected function configureFormFields(FormMapper $form): void

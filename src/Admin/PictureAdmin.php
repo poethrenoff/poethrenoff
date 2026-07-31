@@ -18,6 +18,9 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\Service\Attribute\Required;
 
+/**
+ * @extends AbstractAdmin<Picture>
+ */
 class PictureAdmin extends AbstractAdmin
 {
     private string $projectDir;
@@ -45,17 +48,18 @@ class PictureAdmin extends AbstractAdmin
     protected function configureFormFields(FormMapper $form): void
     {
         $isNew = $this->isNew();
+        $subject = $this->getSubject();
 
         $form
             ->add('title')
             ->add('imagePath', FileType::class, [
                 'required' => $isNew,
-                'help' => $this->getSubject() ? $this->getSubject()->getImagePath() : '',
+                'help' => $subject->getImagePath(),
                 'mapped' => false,
             ])
             ->add('sourcePath', FileType::class, [
                 'required' => $isNew,
-                'help' => $this->getSubject() ? $this->getSubject()->getSourcePath() : '',
+                'help' => $subject->getSourcePath(),
                 'mapped' => false,
             ])
             ->add('date', DateType::class)
@@ -80,7 +84,7 @@ class PictureAdmin extends AbstractAdmin
     {
         $this->manageFileUpload($object);
 
-        if ($this->isNew() && ($object->getPosition() === null || $object->getPosition() === 0.0)) {
+        if ($this->isNew() && $object->getPosition() === 0.0) {
             $maxPosition = $this->getMaxPositionForDate($object->getDate());
             $object->setPosition($maxPosition + 1);
         }
@@ -93,8 +97,7 @@ class PictureAdmin extends AbstractAdmin
 
     private function isNew(): bool
     {
-        $subject = $this->getSubject();
-        return $subject->getId() === null;
+        return $this->getSubject()->getId() === null;
     }
 
     private function manageFileUpload(object $object): void
@@ -164,13 +167,13 @@ class PictureAdmin extends AbstractAdmin
     {
         $qb = $this->entityManager->createQueryBuilder();
 
-        return (float) $qb
+        return (float) ($qb
             ->select('MAX(p.position)')
             ->from(Picture::class, 'p')
             ->where("p.date = :date")
             ->setParameter('date', $date->format('Y-m-d'))
             ->getQuery()
-            ->getSingleScalarResult() ?? 0.0;
+            ->getSingleScalarResult() ?? 0.0);
     }
 
     protected function configureDatagridFilters(DatagridMapper $filter): void

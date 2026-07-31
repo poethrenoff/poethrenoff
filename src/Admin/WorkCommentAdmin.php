@@ -16,6 +16,9 @@ use Sonata\Form\Type\DateTimeRangePickerType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
+/**
+ * @extends AbstractAdmin<WorkComment>
+ */
 class WorkCommentAdmin extends AbstractAdmin
 {
     protected function configureFormFields(FormMapper $form): void

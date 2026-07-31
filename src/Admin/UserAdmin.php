@@ -2,6 +2,7 @@
 
 namespace App\Admin;
 
+use App\Entity\User;
 use Sonata\AdminBundle\Admin\AbstractAdmin;
 use Sonata\AdminBundle\Datagrid\DatagridMapper;
 use Sonata\AdminBundle\Datagrid\ListMapper;
@@ -14,6 +15,9 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Contracts\Service\Attribute\Required;
 
+/**
+ * @extends AbstractAdmin<User>
+ */
 class UserAdmin extends AbstractAdmin
 {
     private UserPasswordHasherInterface $passwordHasher;
@@ -94,14 +98,20 @@ class UserAdmin extends AbstractAdmin
 
     private function updatePassword(object $user): void
     {
+        if (!$user instanceof User) {
+            return;
+        }
+
         if (!$this->getForm()->has('plainPassword')) {
             return;
         }
 
         $plainPassword = $this->getForm()->get('plainPassword')->getData();
-        if ($plainPassword) {
-            $user->setPassword($this->passwordHasher->hashPassword($user, $plainPassword));
+        if (!is_string($plainPassword) || $plainPassword === '') {
+            return;
         }
+
+        $user->setPassword($this->passwordHasher->hashPassword($user, $plainPassword));
     }
 
     protected function configureDefaultSortValues(array &$sortValues): void
