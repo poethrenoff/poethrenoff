@@ -62,7 +62,7 @@ class BlogController extends AbstractController
         }
 
         $allComments = $this->commentRepository->findActiveByPost($post);
-        $rootComments = array_filter($allComments, fn($c) => $c->getParent() === null);
+        $rootComments = $this->buildCommentTree($allComments);
 
         $prevNext = $this->postRepository->findPrevNext($post);
 

@@ -11,19 +11,9 @@
             <a href="#" class="comment-toggle-link" data-target="{{ comment.id }}">Ответить</a>
         </div>
 
-
         {% if comment.children|length > 0 %}
             <div class="comment-children">
-                {% set activeChildren = [] %}
-                {% for child in comment.children %}
-                    {% if child.isActive %}
-                        {% set activeChildren = activeChildren|merge([child]) %}
-                    {% endif %}
-                {% endfor %}
-
-                {% if activeChildren|length > 0 %}
-                    {{ include('common/comments/tree.html.twig', {comments: activeChildren}) }}
-                {% endif %}
+                {{ include('common/comments/tree.html.twig', {comments: comment.children}) }}
             </div>
         {% endif %}
     </div>

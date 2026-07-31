@@ -120,7 +120,7 @@ class SiteController extends AbstractController
         $prevNext = $this->workRepository->findPrevNext($work);
 
         $allComments = $this->workCommentRepository->findActiveByWork($work);
-        $rootComments = array_filter($allComments, fn($c) => $c->getParent() === null);
+        $rootComments = $this->buildCommentTree($allComments);
 
         return $this->render('site/work.html.twig', [
             'work' => $work,
@@ -216,7 +216,7 @@ class SiteController extends AbstractController
         $prevNext = $this->workRepository->findPrevNext($randomWork);
 
         $allComments = $this->workCommentRepository->findActiveByWork($randomWork);
-        $rootComments = array_filter($allComments, fn($c) => $c->getParent() === null);
+        $rootComments = $this->buildCommentTree($allComments);
 
         return $this->render('site/work.html.twig', [
             'work' => $randomWork,
