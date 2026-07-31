@@ -24,6 +24,8 @@ class BlogPostRepository extends ServiceEntityRepository
     public function findActivePaginated(int $page, int $limit): PaginationInterface
     {
         $qb = $this->createQueryBuilder('p')
+            ->leftJoin('p.tags', 't')
+            ->addSelect('t')
             ->andWhere('p.isActive = :active')
             ->setParameter('active', true)
             ->orderBy('p.publishedAt', 'DESC');
@@ -34,6 +36,8 @@ class BlogPostRepository extends ServiceEntityRepository
     public function findOneActiveById(int $id): ?BlogPost
     {
         return $this->createQueryBuilder('p')
+            ->leftJoin('p.tags', 't')
+            ->addSelect('t')
             ->andWhere('p.id = :id')
             ->andWhere('p.isActive = :active')
             ->setParameter('id', $id)
@@ -48,6 +52,8 @@ class BlogPostRepository extends ServiceEntityRepository
         $words = array_filter($words);
 
         $qb = $this->createQueryBuilder('p')
+            ->leftJoin('p.tags', 't')
+            ->addSelect('t')
             ->andWhere('p.isActive = :active')
             ->setParameter('active', true);
 
@@ -75,6 +81,7 @@ class BlogPostRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('p')
             ->innerJoin('p.tags', 't')
+            ->addSelect('t')
             ->andWhere('p.isActive = :active')
             ->andWhere('t.title = :tagTitle')
             ->setParameter('active', true)

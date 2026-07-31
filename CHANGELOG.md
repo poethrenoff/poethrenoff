@@ -5,6 +5,11 @@
 
 ## 2026-07-31
 
+- Исправлены N+1 запросы в репозиториях:
+    - `BlogPostRepository::findActivePaginated`, `searchByText`, `findActiveByTagPaginated`, `findOneActiveById` — добавлен `leftJoin('p.tags', 't')->addSelect('t')` для жадной загрузки тегов, используемых в шаблонах `blog/index.html.twig` и `blog/search.html.twig`.
+    - `BlogCommentRepository::findActiveByPost` — добавлен `leftJoin('c.children', 'child')->addSelect('child')` для жадной загрузки дочерних комментариев, используемых в шаблоне `common/comments/tree.html.twig`.
+    - `WorkCommentRepository::findActiveByWork` — добавлен `leftJoin('c.children', 'child')->addSelect('child')` для жадной загрузки дочерних комментариев, используемых в шаблоне `common/comments/tree.html.twig` на страницах произведений.
+
 - Исправлена ошибка, при которой аутентифицированный пользователь (залогиненный через «Запомнить меня») перенаправлялся на `/admin/login` при заходе на `lo.work.poethrenoff.ru`. Причина: `WorkController` и `AudioController` требовали `IS_AUTHENTICATED_FULLY`, но после истечения сессии `RememberMeAuthenticator` создаёт `RememberMeToken` (не `UsernamePasswordToken`), который не проходит проверку `IS_AUTHENTICATED_FULLY` (см. `AuthenticationTrustResolver::isFullFledged()`). `ExceptionListener` в этом случае перенаправляет на страницу логина вместо возврата 403. Исправлено: заменено `IS_AUTHENTICATED_FULLY` на `IS_AUTHENTICATED_REMEMBERED`, что позволяет пользователям, прошедшим аутентификацию через «Запомнить меня», получать доступ к контроллерам мастерской.
 - Добавлен PHPStan (уровень 8) для статического анализа PHP-кода. Конфигурация в `phpstan.neon`, baseline в `phpstan-baseline.neon`, запуск через `make analyze`
 - Добавлена секция `remember_me` в firewall `main` для функционала «Запомнить меня» при авторизации в админ-панели. Cookie хранится 7 дней.

@@ -20,6 +20,8 @@ class WorkCommentRepository extends ServiceEntityRepository
     public function findActiveByWork(Work $work): array
     {
         return $this->createQueryBuilder('c')
+            ->leftJoin('c.children', 'child')
+            ->addSelect('child')
             ->andWhere('c.work = :work')
             ->andWhere('c.isActive = :active')
             ->setParameter('work', $work)
