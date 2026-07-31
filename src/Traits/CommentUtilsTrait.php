@@ -22,6 +22,6 @@ trait CommentUtilsTrait
                 return $matches[0];
             },
             $html
-        );
+        ) ?? '';
     }
 }

@@ -133,6 +133,7 @@ class PictureAdmin extends AbstractAdmin
         match ($property) {
             'imagePath' => $picture->setImagePath($relativePath),
             'sourcePath' => $picture->setSourcePath($relativePath),
+            default => null,
         };
     }
 

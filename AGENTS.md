@@ -47,6 +47,7 @@
 - Миграция всех данных: `docker compose exec php bin/console app:migrate:legacy`.
 - Проверка стиля кода: `bin/phpcs`.
 - Автоисправление стиля кода: `bin/phpcbf`.
+- Статический анализ (PHPStan): `make analyze`.
 
 ## Git-коммиты
 

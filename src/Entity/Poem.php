@@ -119,7 +119,7 @@ class Poem
 
     public function getDisplayTitle(): string
     {
-        return preg_match('/\".*\.\.\.\"$/', $this->title) ? '* * *' : mb_strtoupper($this->title);
+        return preg_match('/\".*\.\.\.\"$/', $this->title) ? '* * *' : mb_strtoupper($this->title ?? '');
     }
 
     public function getContent(): string

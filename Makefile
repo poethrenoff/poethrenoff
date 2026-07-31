@@ -20,7 +20,7 @@ phpcbf:
 	@docker compose -f docker-compose.yml exec php bin/phpcbf
 
 analyze:
-	@docker compose -f docker-compose.yml exec php php vendor/bin/phpstan analyse --no-progress
+	@docker compose -f docker-compose.yml exec php bin/phpstan analyse --no-progress
 
 cache-clear:
 	@docker compose -f docker-compose.yml exec php bin/console cache:clear

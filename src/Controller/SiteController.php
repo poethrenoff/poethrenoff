@@ -239,7 +239,7 @@ class SiteController extends AbstractController
             return new JsonResponse(['error' => 'Work not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $type = VoteType::tryFrom($request->request->get('type'));
+        $type = VoteType::tryFrom((string) $request->request->get('type'));
         if (!$type) {
             return new JsonResponse(['error' => 'Invalid vote type'], Response::HTTP_BAD_REQUEST);
         }
