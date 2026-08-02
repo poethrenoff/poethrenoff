@@ -134,6 +134,27 @@
                     <span class="recording-timer" x-text="formatDuration(recordingTime)"></span>
                 </div>
                 <span x-show="loading" class="loading">Загрузка…</span>
+                <button class="icon-btn" @click="openNew()" title="Новый стих">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+            </div>
+
+            <div x-show="showNew" class="poem" x-ref="newForm">
+                <div class="poem-header">
+                    <div class="title">
+                        <input class="title-input" tabindex="1" x-model="newTitle" placeholder="Название" @keydown.enter="create()" @keydown.escape="showNew = false" spellcheck="true" lang="ru">
+                    </div>
+                    <div class="poem-actions edit-actions">
+                        <button class="icon-btn" @click="create()" title="Сохранить">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </button>
+                        <button class="icon-btn" @click="cancelNew()" title="Отмена">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+                </div>
+                <textarea class="poem-textarea" tabindex="2" x-model="newContent" placeholder="Текст стиха" rows="10" @keydown.escape="showNew = false" spellcheck="true" lang="ru"></textarea>
+                <input class="comment-input" tabindex="3" type="text" x-model="newComment" placeholder="дд.мм.гггг" @keydown.enter="create()" @keydown.escape="showNew = false">
             </div>
 
             <div class="audio-list">
@@ -155,13 +176,14 @@
                             </div>
                         </div>
                         <div class="audio-actions">
-                            <button class="icon-btn" @click="togglePlay(item)" :title="isPlayingId === item.id ? 'Остановить' : 'Прослушать'">
-                                <template x-if="isPlayingId !== item.id">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                                </template>
-                                <template x-if="isPlayingId === item.id">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
-                                </template>
+                            <button class="icon-btn" @click="stopPlayback(item)" title="Стоп" x-show="isPlayingId === item.id || pausedId === item.id">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                            <button class="icon-btn" @click="togglePlay(item)" title="Пауза" x-show="isPlayingId === item.id">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                            </button>
+                            <button class="icon-btn" @click="togglePlay(item)" title="Прослушать" x-show="pausedId === item.id || (isPlayingId !== item.id && pausedId !== item.id)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                             </button>
                             <button class="icon-btn" @click="startRewriting(item)" title="Переписать">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/></svg>

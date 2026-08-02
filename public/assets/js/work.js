@@ -15,6 +15,7 @@ document.addEventListener('alpine:init', () => {
         audioChunks: [],
         audioPlayer: new Audio(),
         isPlayingId: null,
+        pausedId: null,
         rewriteId: null,
         newTitle: '',
         newContent: '',
@@ -466,7 +467,12 @@ document.addEventListener('alpine:init', () => {
         async togglePlay(item) {
             if (this.isPlayingId === item.id) {
                 this.audioPlayer.pause();
+                this.pausedId = item.id;
                 this.isPlayingId = null;
+            } else if (this.pausedId === item.id) {
+                this.isPlayingId = item.id;
+                this.pausedId = null;
+                this.audioPlayer.play();
             } else {
                 if (this.isPlayingId) {
                     this.audioPlayer.pause();
@@ -474,9 +480,20 @@ document.addEventListener('alpine:init', () => {
                 this.audioPlayer.src = `/audio/${item.id}`;
                 this.audioPlayer.play();
                 this.isPlayingId = item.id;
+                this.pausedId = null;
                 this.audioPlayer.onended = () => {
                     this.isPlayingId = null;
+                    this.pausedId = null;
                 };
+            }
+        },
+
+        async stopPlayback(item) {
+            if (this.isPlayingId === item.id) {
+                this.audioPlayer.pause();
+                this.audioPlayer.currentTime = 0;
+                this.isPlayingId = null;
+                this.pausedId = null;
             }
         },
 

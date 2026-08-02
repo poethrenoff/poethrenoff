@@ -22,7 +22,6 @@ class Picture
     private string $title = '';
 
     #[ORM\Column(type: Types::STRING, length: 255)]
-    #[Assert\NotBlank]
     #[Assert\Length(max: 255)]
     private string $imagePath = '';
 
