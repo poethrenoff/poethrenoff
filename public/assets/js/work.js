@@ -115,6 +115,15 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
+        async export() {
+            const a = document.createElement('a');
+            a.href = '/poems/export/';
+            a.download = '';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        },
+
         async cancelNew() {
             this.showNew = false;
             this.newTitle = '';

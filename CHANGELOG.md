@@ -11,6 +11,7 @@
 - Кнопка «Перетащить» на странице «Лента» перемещена из левого верхнего угла в правый нижний угол карточки стиха: в `templates/work/index.html.twig` перенесён HTML-элемент кнопки в конец `.poem`, в `public/assets/work.css` изменено позиционирование `.drag-handle` с `top: 8px; left: -40px` на `bottom: 12px; right: 12px`.
 - Поле ввода комментария и кнопка «Перетащить» на странице «Лента» обёрнуты в `<div class="poem-footer">` по аналогии с `<div class="poem-header">`. Добавлены стили `.poem-footer` (flex-контейнер с `justify-content: space-between`), `.poem-footer .comment-input` получает `flex: 1`, а `.drag-handle` больше не использует абсолютное позиционирование.
 - Кнопка «Перетащить» скрывается при переходе стиха в режим редактирования: добавлен `x-show="editingId !== poem.id"`.
+- Исправлен метод `export()` в `public/assets/js/work.js`: URL изменён с `/poem/export/` на `/poems/export/`, а `location.href` заменён на программный клик по временному `<a>` с `download`, чтобы файл скачивался без перезагрузки страницы.
 
 ## 2026-08-02
 
