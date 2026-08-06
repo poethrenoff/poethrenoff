@@ -1,0 +1,8 @@
+{% if object.filePath %}
+    <a href="{{ path('work_api_audio_download', {'id': object.id}) }}"
+       class="btn btn-sm btn-default"
+       title="Download">
+        <i class="fa fa-download"></i>
+        <span>Download</span>
+    </a>
+{% endif %}

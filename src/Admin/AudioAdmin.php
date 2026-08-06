@@ -52,7 +52,6 @@ class AudioAdmin extends AbstractAdmin
                 'mapped' => false,
             ])
             ->add('duration', IntegerType::class, ['required' => false])
-            ->add('createdAt', DateTimeType::class)
         ;
     }
 
@@ -155,11 +154,14 @@ class AudioAdmin extends AbstractAdmin
                     'listen' => [
                         'template' => 'admin/audio/play.html.twig',
                     ],
+                    'download' => [
+                        'template' => 'admin/audio/download.html.twig',
+                    ],
                     'show' => [],
                     'edit' => [],
                     'delete' => [],
                 ],
-                'header_style' => 'width: 265px',
+                'header_style' => 'width: 350px',
             ])
         ;
     }

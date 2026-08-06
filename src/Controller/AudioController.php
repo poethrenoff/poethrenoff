@@ -11,6 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -65,7 +66,7 @@ class AudioController extends AbstractController
 
         $file = $request->files->get('audio') ?? $request->files->get('file');
         if (!$file instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
-             return $this->json(['error' => ['message' => 'Файл не получен']], Response::HTTP_BAD_REQUEST);
+            return $this->json(['error' => ['message' => 'Файл не получен']], Response::HTTP_BAD_REQUEST);
         }
 
         try {
@@ -91,6 +92,32 @@ class AudioController extends AbstractController
         $this->entityManager->flush();
 
         return $this->json($audio, Response::HTTP_CREATED, context: ['datetime_format' => 'd.m.Y H:i']);
+    }
+
+    #[Route('/audio/{id}/download', name: 'work_api_audio_download', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function download(Audio $audio): Response
+    {
+        $fileName = basename($audio->getFilePath());
+        $path = $this->fileUploadService->getAudioDir() . '/' . $fileName;
+
+        if (!file_exists($path)) {
+            return new Response('File not found', Response::HTTP_NOT_FOUND);
+        }
+
+        $downloadName = $audio->getTitle() . '.' . pathinfo($fileName, PATHINFO_EXTENSION);
+
+        $response = new Response();
+        $response->headers->set('X-Accel-Redirect', $audio->getFilePath());
+        $response->headers->set('Content-Type', mime_content_type($path) ?: 'application/octet-stream');
+        $response->headers->set('Content-Length', (string) filesize($path));
+        $response->headers->set('Cache-Control', 'public, max-age=31536000');
+        $response->headers->set('Content-Disposition', HeaderUtils::makeDisposition(
+            'attachment',
+            $downloadName,
+            $fileName,
+        ));
+
+        return $response;
     }
 
     #[Route('/audio/{id}/rename', name: 'work_api_audio_rename', methods: ['POST'], requirements: ['id' => '\d+'])]
