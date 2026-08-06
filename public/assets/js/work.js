@@ -115,7 +115,7 @@ document.addEventListener('alpine:init', () => {
             });
         },
 
-        async export() {
+        async exportPoems() {
             const a = document.createElement('a');
             a.href = '/poems/export/';
             a.download = '';
