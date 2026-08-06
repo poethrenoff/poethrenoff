@@ -57,8 +57,8 @@
 
 .drag-handle {
     position: absolute;
-    top: 8px;
-    left: -40px;
+    bottom: 12px;
+    right: 12px;
     cursor: grab;
 }
 
