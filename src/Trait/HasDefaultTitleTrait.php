@@ -11,7 +11,7 @@ trait HasDefaultTitleTrait
     public function getDefaultTitle(): string
     {
         $lines = explode("\n", trim($this->getBodyContent()));
-        $firstLine = trim(rtrim($lines[0], '.,!:?;…—-'));
+        $firstLine = trim(preg_replace('/[.,!:?;…—\-]+$/u', '', $lines[0]));
 
         return '"' . $firstLine . '..."';
     }
