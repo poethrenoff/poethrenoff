@@ -5,7 +5,12 @@
 
 ## 2026-08-06
 
+- Добавлена кнопка «Download» в список действий админ-панели `AudioAdmin`: при нажатии начинается скачивание аудиофайла с заголовком `Content-Disposition: attachment`, а не воспроизведение в браузере. Для этого в `AudioController` добавлен маршрут `/audio/{id}/download` и Twig-шаблон `admin/audio/download.html.twig`.
 - Исправлен баг в `HasDefaultTitleTrait::getDefaultTitle()`: `rtrim` обрезал последний байт UTF-8 символов (например, `\x80` у кириллической "р"), так как работает с байтами, а не символами. В результате в заголовок попадал невалидный UTF-8, что вызывало SQL-ошибку `Incorrect string value`. Заменён на `preg_replace` с модификатором `u` для корректной обрезки на уровне Unicode-символов.
+- Исправлены ошибки PHPStan (уровень 8): в `HasDefaultTitleTrait::getDefaultTitle()` добавлен `?? ''` для результата `preg_replace()`, который теоретически может вернуть `null`. Теперь `make analyze` проходит без ошибок.
+- Кнопка «Перетащить» на странице «Лента» перемещена из левого верхнего угла в правый нижний угол карточки стиха: в `templates/work/index.html.twig` перенесён HTML-элемент кнопки в конец `.poem`, в `public/assets/work.css` изменено позиционирование `.drag-handle` с `top: 8px; left: -40px` на `bottom: 12px; right: 12px`.
+- Поле ввода комментария и кнопка «Перетащить» на странице «Лента» обёрнуты в `<div class="poem-footer">` по аналогии с `<div class="poem-header">`. Добавлены стили `.poem-footer` (flex-контейнер с `justify-content: space-between`), `.poem-footer .comment-input` получает `flex: 1`, а `.drag-handle` больше не использует абсолютное позиционирование.
+- Кнопка «Перетащить» скрывается при переходе стиха в режим редактирования: добавлен `x-show="editingId !== poem.id"`.
 
 ## 2026-08-02
 
