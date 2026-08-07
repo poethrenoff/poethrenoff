@@ -5,7 +5,7 @@ namespace App\Service;
 use Aws\S3\S3Client;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
-class YandexSpeechKitService
+class YandexAIStudioService
 {
     public function __construct(
         #[Autowire(env: 'YANDEX_CLOUD_S3_KEY')] private string $s3Key,
@@ -15,7 +15,7 @@ class YandexSpeechKitService
         #[Autowire(env: 'YANDEX_CLOUD_S3_REGION')] private string $s3Region,
         #[Autowire(env: 'YANDEX_CLOUD_S3_ENDPOINT')] private string $s3Endpoint,
         #[Autowire(env: 'YANDEX_CLOUD_FOLDER_ID')] private string $folderId,
-        #[Autowire(env: 'YANDEX_SPEECHKIT_API_KEY')] private string $speechKitApiKey,
+        #[Autowire(env: 'YANDEX_SERVICE_API_KEY')] private string $serviceApiKey,
     ) {
     }
 
@@ -57,7 +57,9 @@ class YandexSpeechKitService
 
             $operationId = $this->startRecognition($audioUrl);
 
-            return $this->pollForResult($operationId);
+            $text = $this->pollForResult($operationId);
+
+            return $this->formatPoem($text);
         } finally {
             try {
                 $s3Client->deleteObject([
@@ -87,11 +89,12 @@ class YandexSpeechKitService
                         'ru-RU'
                     ],
                 ],
-                'textNormalization' => [
-                    'textNormalization' => 'TEXT_NORMALIZATION_DISABLED',
+                'textNormalizationOptions' => [
+                    'textNormalization' => 'TEXT_NORMALIZATION_ENABLED',
+                    'literatureText' => true,
                 ],
             ],
-            'speakerLabeling' => [
+            'speakerLabelingOptions' => [
                 'speakerLabeling' => 'SPEAKER_LABELING_DISABLED',
             ],
         ]);
@@ -196,11 +199,10 @@ class YandexSpeechKitService
             }
 
             $alternatives = $final['alternatives'] ?? [];
-            if (is_iterable($alternatives)) {
-                foreach ($alternatives as $alternative) {
-                    if (isset($alternative['text'])) {
-                        $texts[] = (string) $alternative['text'];
-                    }
+            if (!empty($alternatives) && isset($alternatives[0]['text'])) {
+                $text = trim((string) $alternatives[0]['text']);
+                if ($text !== '') {
+                    $texts[] = mb_ucfirst($text);
                 }
             }
         }
@@ -209,7 +211,64 @@ class YandexSpeechKitService
             throw new \RuntimeException('Пустой результат распознавания');
         }
 
-        return implode(' ', $texts);
+        return implode("\n", $texts);
+    }
+
+    public function formatPoem(string $text): string
+    {
+        $url = 'https://llm.api.cloud.yandex.net/foundationModels/v1/completion';
+
+        $body = json_encode([
+            'modelUri' => 'gpt://' . $this->folderId . '/yandexgpt-lite/latest',
+            'completionOptions' => [
+                'stream' => false,
+                'temperature' => 0.3,
+                'maxTokens' => "2000",
+            ],
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'text' => <<<PROMPT
+Ты — помощник поэта. Твоя задача — расставить знаки препинания и разбить текст на строки так, чтобы получилось
+красивое стихотворение. Не меняй слова, только пунктуацию и переносы строк. На вход ты получишь текст, который
+может быть уже частично разделен на строки или идти одной строкой.'
+PROMPT,
+                ],
+                [
+                    'role' => 'user',
+                    'text' => $text,
+                ],
+            ],
+        ]);
+
+        if ($body === false) {
+            return $text;
+        }
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $body,
+            CURLOPT_HTTPHEADER => [
+                'Authorization: Api-Key ' . $this->serviceApiKey,
+                'Content-Type: application/json',
+            ],
+            CURLOPT_TIMEOUT => 30,
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($response === false || $httpCode >= 400) {
+            return $text;
+        }
+
+        $data = json_decode((string) $response, true);
+        $resultText = $data['result']['alternatives'][0]['message']['text'] ?? null;
+
+        return $resultText ? trim((string) $resultText) : $text;
     }
 
     private function curlGet(string $url): ?string
@@ -220,7 +279,7 @@ class YandexSpeechKitService
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_TIMEOUT => 30,
             CURLOPT_HTTPHEADER => [
-                'Authorization: Api-Key ' . $this->speechKitApiKey,
+                'Authorization: Api-Key ' . $this->serviceApiKey,
                 'X-Folder-Id: ' . $this->folderId,
                 'Accept: application/json',
             ],
@@ -247,7 +306,7 @@ class YandexSpeechKitService
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $body,
             CURLOPT_HTTPHEADER => [
-                'Authorization: Api-Key ' . $this->speechKitApiKey,
+                'Authorization: Api-Key ' . $this->serviceApiKey,
                 'X-Folder-Id: ' . $this->folderId,
                 'Content-Type: application/json',
                 'Accept: application/json',

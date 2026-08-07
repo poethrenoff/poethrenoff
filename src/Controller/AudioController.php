@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Audio;
 use App\Repository\AudioRepository;
 use App\Service\FileUploadService;
-use App\Service\YandexSpeechKitService;
+use App\Service\YandexAIStudioService;
 use App\Trait\CsrfTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -28,7 +28,7 @@ class AudioController extends AbstractController
         private EntityManagerInterface $entityManager,
         private CsrfTokenManagerInterface $csrfTokenManager,
         private FileUploadService $fileUploadService,
-        private YandexSpeechKitService $yandexSpeechKitService,
+        private YandexAIStudioService $yandexAIStudioService,
     ) {
     }
 
@@ -176,7 +176,7 @@ class AudioController extends AbstractController
         }
 
         try {
-            $text = $this->yandexSpeechKitService->recognize($localPath);
+            $text = $this->yandexAIStudioService->recognize($localPath);
         } catch (\RuntimeException $e) {
             return $this->json(['error' => ['message' => $e->getMessage()]], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
