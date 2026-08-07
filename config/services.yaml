@@ -17,6 +17,10 @@ services:
             - '../src/Admin/'
             - '../src/Kernel.php'
 
+    App\Asset\FileVersionStrategy:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
     # Sonata Admin Service Configurations using FQCN
     # Each admin now includes the required "model_class" attribute.
 
