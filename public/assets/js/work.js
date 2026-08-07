@@ -105,21 +105,20 @@ document.addEventListener('alpine:init', () => {
                     this.newTitle = draft.title || '';
                     this.newContent = draft.content || '';
                     this.newComment = draft.comment || '';
-
-                    await this.$nextTick(() => {
-                        const refName = this.view === 'audio' ? 'newFormAudio' : 'newFormFeed';
-                        document.querySelector(`[x-ref="${refName}"] .poem-textarea`)?.focus();
-                    });
                 }
             } catch (e) {
                 this.clearDraft();
             }
+            await this.focusNewTextarea();
         },
 
         async focusNewTextarea() {
             await this.$nextTick();
             const refName = this.view === 'audio' ? 'newFormAudio' : 'newFormFeed';
-            document.querySelector(`[x-ref="${refName}"] .poem-textarea`)?.focus();
+            const el = this.$refs[refName];
+            if (el) {
+                el.querySelector('.poem-textarea')?.focus();
+            }
         },
 
         async exportPoems() {
@@ -657,11 +656,7 @@ document.addEventListener('alpine:init', () => {
                     this.newTitle = '';
                     this.newComment = '';
                     this.showNew = true;
-
-                    await this.$nextTick(() => {
-                        const refName = this.view === 'audio' ? 'newFormAudio' : 'newFormFeed';
-                        document.querySelector(`[x-ref="${refName}"] .poem-textarea`)?.focus();
-                    });
+                    await this.focusNewTextarea();
                 } else if (res) {
                     this.generalError = await this.extractError(res);
                 }
