@@ -498,7 +498,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         async stopPlayback(item) {
-            if (this.isPlayingId === item.id) {
+            if (this.isPlayingId === item.id || this.pausedId === item.id) {
                 this.audioPlayer.pause();
                 this.audioPlayer.currentTime = 0;
                 this.isPlayingId = null;
