@@ -158,6 +158,7 @@ document.addEventListener('alpine:init', () => {
         async go(target) {
             if (this.view === target && location.hash === '#' + target) return;
             this.view = target;
+            this.showNew = false;
             this.poems = [];
             location.hash = '#' + target;
             await this.load();
