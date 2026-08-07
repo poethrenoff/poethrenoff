@@ -17,6 +17,7 @@ document.addEventListener('alpine:init', () => {
         isPlayingId: null,
         pausedId: null,
         rewriteId: null,
+        recognizingId: null,
         newTitle: '',
         newContent: '',
         newComment: '',
@@ -648,6 +649,33 @@ document.addEventListener('alpine:init', () => {
             if (!confirm('Перезаписать эту запись? Текущий файл будет удален.')) return;
             this.rewriteId = item.id;
             await this.startRecording();
+        },
+
+        async recognizeAudio(item) {
+            if (this.recognizingId !== null) return;
+            this.recognizingId = item.id;
+            this.generalError = '';
+
+            try {
+                const res = await this.api(`/audio/${item.id}/recognize/`, {
+                    method: 'POST',
+                    body: JSON.stringify({ _token: CSRF_TOKENS.work_audio_recognize }),
+                });
+
+                if (res && res.ok) {
+                    const data = await res.json();
+                    this.newContent = data.text || '';
+                    this.newTitle = '';
+                    this.newComment = '';
+                    this.openNew();
+                } else if (res) {
+                    this.generalError = await this.extractError(res);
+                }
+            } catch (e) {
+                this.generalError = 'Ошибка при распознавании';
+            } finally {
+                this.recognizingId = null;
+            }
         },
     }));
 });

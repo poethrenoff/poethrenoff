@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Audio;
 use App\Repository\AudioRepository;
 use App\Service\FileUploadService;
+use App\Service\YandexSpeechKitService;
 use App\Trait\CsrfTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -27,6 +28,7 @@ class AudioController extends AbstractController
         private EntityManagerInterface $entityManager,
         private CsrfTokenManagerInterface $csrfTokenManager,
         private FileUploadService $fileUploadService,
+        private YandexSpeechKitService $yandexSpeechKitService,
     ) {
     }
 
@@ -38,7 +40,7 @@ class AudioController extends AbstractController
         return $this->json($records, context: ['datetime_format' => 'd.m.Y H:i']);
     }
 
-    #[Route('/audio/{id}', name: 'work_api_audio_get', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[Route('/audio/{id}', name: 'work_api_audio_get', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function getAudio(Audio $audio): Response
     {
         $fileName = basename($audio->getFilePath());
@@ -94,7 +96,7 @@ class AudioController extends AbstractController
         return $this->json($audio, Response::HTTP_CREATED, context: ['datetime_format' => 'd.m.Y H:i']);
     }
 
-    #[Route('/audio/{id}/download', name: 'work_api_audio_download', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[Route('/audio/{id}/download', name: 'work_api_audio_download', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function download(Audio $audio): Response
     {
         $fileName = basename($audio->getFilePath());
@@ -120,7 +122,7 @@ class AudioController extends AbstractController
         return $response;
     }
 
-    #[Route('/audio/{id}/rename', name: 'work_api_audio_rename', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[Route('/audio/{id}/rename', name: 'work_api_audio_rename', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function rename(Audio $audio, Request $request): JsonResponse
     {
         if (!$this->validateCsrf($request, 'work_audio_rename')) {
@@ -140,7 +142,7 @@ class AudioController extends AbstractController
         return $this->json($audio, context: ['datetime_format' => 'd.m.Y H:i']);
     }
 
-    #[Route('/audio/{id}/rewrite', name: 'work_api_audio_rewrite', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[Route('/audio/{id}/rewrite', name: 'work_api_audio_rewrite', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function rewrite(Audio $audio, Request $request): JsonResponse
     {
         if (!$this->validateCsrf($request, 'work_audio_rewrite')) {
@@ -172,7 +174,7 @@ class AudioController extends AbstractController
         return $this->json($audio, context: ['datetime_format' => 'd.m.Y H:i']);
     }
 
-    #[Route('/audio/{id}/delete', name: 'work_api_audio_delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]
+    #[Route('/audio/{id}/delete', name: 'work_api_audio_delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]
     public function delete(Request $request, Audio $audio): JsonResponse
     {
         if (!$this->validateCsrf($request, 'work_audio_delete')) {
@@ -185,5 +187,32 @@ class AudioController extends AbstractController
         $this->entityManager->flush();
 
         return $this->json(['success' => true]);
+    }
+
+    #[Route(
+        '/audio/{id}/recognize/',
+        name: 'work_api_audio_recognize',
+        requirements: ['id' => '\d+'],
+        methods: ['POST']
+    )]
+    public function recognize(Request $request, Audio $audio): JsonResponse
+    {
+        if (!$this->validateCsrf($request, 'work_audio_recognize')) {
+            return $this->json(['error' => ['message' => 'Invalid CSRF token']], Response::HTTP_FORBIDDEN);
+        }
+
+        $localPath = $this->fileUploadService->getAudioDir() . '/' . basename($audio->getFilePath());
+
+        if (!file_exists($localPath)) {
+            return $this->json(['error' => ['message' => 'File not found']], Response::HTTP_NOT_FOUND);
+        }
+
+        try {
+            $text = $this->yandexSpeechKitService->recognize($localPath);
+        } catch (\RuntimeException $e) {
+            return $this->json(['error' => ['message' => $e->getMessage()]], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return $this->json(['text' => $text]);
     }
 }

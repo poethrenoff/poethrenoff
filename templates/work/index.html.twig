@@ -177,19 +177,30 @@
                             </div>
                         </div>
                         <div class="audio-actions">
-                            <button class="icon-btn" @click="stopPlayback(item)" title="Стоп" x-show="isPlayingId === item.id || pausedId === item.id">
+                            <button class="icon-btn" @click="stopPlayback(item)" title="Стоп" x-show="isPlayingId === item.id || pausedId === item.id" :disabled="recognizingId === item.id">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                             </button>
-                            <button class="icon-btn" @click="togglePlay(item)" title="Пауза" x-show="isPlayingId === item.id">
+                            <button class="icon-btn" @click="togglePlay(item)" title="Пауза" x-show="isPlayingId === item.id" :disabled="recognizingId === item.id">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
                             </button>
-                            <button class="icon-btn" @click="togglePlay(item)" title="Прослушать" x-show="pausedId === item.id || (isPlayingId !== item.id && pausedId !== item.id)">
+                            <button class="icon-btn" @click="togglePlay(item)" title="Прослушать" x-show="pausedId === item.id || (isPlayingId !== item.id && pausedId !== item.id)" :disabled="recognizingId === item.id">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
                             </button>
-                            <button class="icon-btn" @click="startRewriting(item)" title="Переписать">
+                            <button class="icon-btn" @click="startRewriting(item)" title="Переписать" :disabled="recognizingId === item.id">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/></svg>
                             </button>
-                            <button class="icon-btn" @click="deleteAudio(item)" title="Удалить">
+                            <template x-if="recognizingId !== item.id">
+                                <button class="icon-btn" @click="recognizeAudio(item)" title="Распознать речь">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                        <line x1="12" y1="19" x2="12" y2="23"></line>
+                                        <line x1="8" y1="23" x2="16" y2="23"></line>
+                                    </svg>
+                                </button>
+                            </template>
+                            <span x-show="recognizingId === item.id" class="loading">Распознавание…</span>
+                            <button class="icon-btn" @click="deleteAudio(item)" title="Удалить" :disabled="recognizingId === item.id">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                             </button>
                         </div>
@@ -258,6 +269,7 @@
             work_audio_rename: '{{ csrf_token('work_audio_rename') }}',
             work_audio_rewrite: '{{ csrf_token('work_audio_rewrite') }}',
             work_audio_delete: '{{ csrf_token('work_audio_delete') }}',
+            work_audio_recognize: '{{ csrf_token('work_audio_recognize') }}',
         };
     </script>
     <script src="{{ asset('assets/js/work.js') }}"></script>
