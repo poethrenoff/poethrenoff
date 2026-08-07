@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Audio;
+use Random\RandomException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -34,6 +35,10 @@ class FileUploadService
         return $this->audioDir;
     }
 
+    /**
+     * @throws \InvalidArgumentException
+     * @throws RandomException
+     */
     public function uploadFile(UploadedFile $file): string
     {
         $extension = strtolower($file->guessExtension() ?? '');
