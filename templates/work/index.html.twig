@@ -167,6 +167,7 @@
                                        x-model="item.title"
                                        @keydown.enter="saveAudioRename(item)"
                                        @keydown.escape="cancelAudioRename(item)"
+                                       @blur="cancelAudioRename(item)"
                                        class="inline-edit-input"
                                        :id="'audio-input-' + item.id">
                             </div>
