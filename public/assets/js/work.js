@@ -109,16 +109,6 @@ document.addEventListener('alpine:init', () => {
             } catch (e) {
                 this.clearDraft();
             }
-            await this.focusNewTextarea();
-        },
-
-        async focusNewTextarea() {
-            await new Promise(r => setTimeout(r, 0));
-            const refName = this.view === 'audio' ? 'newFormAudio' : 'newFormFeed';
-            const el = this.$refs[refName];
-            if (el) {
-                el.querySelector('.poem-textarea')?.focus();
-            }
         },
 
         async exportPoems() {
@@ -657,7 +647,6 @@ document.addEventListener('alpine:init', () => {
                     this.newTitle = '';
                     this.newComment = '';
                     this.showNew = true;
-                    await this.focusNewTextarea();
                 } else if (res) {
                     this.generalError = await this.extractError(res);
                 }
