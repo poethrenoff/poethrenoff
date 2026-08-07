@@ -11,8 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: BlogCommentRepository::class)]
-#[ORM\Index(columns: ['post_id', 'created_at'], name: 'idx_blog_comment_post_date')]
-#[ORM\Index(columns: ['parent_id'], name: 'idx_blog_comment_parent')]
+#[ORM\Index(name: 'idx_blog_comment_post_date', columns: ['post_id', 'created_at'])]
+#[ORM\Index(name: 'idx_blog_comment_parent', columns: ['parent_id'])]
 class BlogComment
 {
     use CommentFieldsTrait;

@@ -1,5 +1,9 @@
 <?php
 
+/** @noinspection ALL */
+
+/** @noinspection ALL */
+
 namespace App\Entity;
 
 use App\Repository\WorkCommentRepository;

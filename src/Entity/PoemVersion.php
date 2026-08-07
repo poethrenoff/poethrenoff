@@ -1,5 +1,7 @@
 <?php
 
+/** @noinspection PhpNamedArgumentsWithChangedOrderInspection */
+
 namespace App\Entity;
 
 use App\Entity\Poem;

@@ -1,5 +1,7 @@
 <?php
 
+/** @noinspection ALL */
+
 namespace App\Entity;
 
 use App\Repository\WorkGroupRepository;

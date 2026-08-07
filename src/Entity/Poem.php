@@ -1,5 +1,9 @@
 <?php
 
+/** @noinspection PhpNamedArgumentsWithChangedOrderInspection */
+
+/** @noinspection PhpNamedArgumentsWithChangedOrderInspection */
+
 namespace App\Entity;
 
 use App\Enum\PoemStatus;
