@@ -113,13 +113,11 @@ document.addEventListener('alpine:init', () => {
         },
 
         async focusNewTextarea() {
-            await this.$nextTick();
+            await new Promise(r => setTimeout(r, 0));
             const refName = this.view === 'audio' ? 'newFormAudio' : 'newFormFeed';
             const el = this.$refs[refName];
             if (el) {
-                setTimeout(() => {
-                    el.querySelector('.poem-textarea')?.focus();
-                }, 0);
+                el.querySelector('.poem-textarea')?.focus();
             }
         },
 
