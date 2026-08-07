@@ -16,7 +16,6 @@ document.addEventListener('alpine:init', () => {
         audioPlayer: new Audio(),
         isPlayingId: null,
         pausedId: null,
-        rewriteId: null,
         recognizingId: null,
         newTitle: '',
         newContent: '',
@@ -613,49 +612,32 @@ document.addEventListener('alpine:init', () => {
                 clearInterval(this.recordingInterval);
                 this.audioChunks = [];
                 this.recordingTime = 0;
-                this.rewriteId = null;
             }
         },
 
         async saveRecording(blob, duration) {
-            let title = '';
-            if (this.rewriteId) {
-                const item = this.audio.find(a => a.id === this.rewriteId);
-                title = item ? item.title : 'Запись';
-            } else {
-                title = prompt('Введите название записи:', 'Запись от ' + new Date().toLocaleString('ru-RU'));
-                if (title === null) {
-                    this.rewriteId = null;
-                    return;
-                }
-                if (!title.trim()) title = 'Новая запись';
+            let title = prompt('Введите название записи:', 'Запись от ' + new Date().toLocaleString('ru-RU'));
+            if (title === null) {
+                return;
             }
+            if (!title.trim()) title = 'Новая запись';
 
             const formData = new FormData();
             formData.append('audio', blob, 'recording.webm');
             formData.append('title', title);
             formData.append('duration', duration);
-            formData.append('_token', this.rewriteId ? CSRF_TOKENS.work_audio_rewrite : CSRF_TOKENS.work_audio_create);
+            formData.append('_token', CSRF_TOKENS.work_audio_create);
 
-            const url = this.rewriteId ? `/audio/${this.rewriteId}/rewrite` : '/audio/';
-            const res = await this.api(url, {
+            const res = await this.api('/audio/', {
                 method: 'POST',
                 body: formData
             });
 
             if (res && res.ok) {
                 await this.load();
-                this.rewriteId = null;
             } else if (res) {
                 this.generalError = await this.extractError(res);
-                this.rewriteId = null;
             }
-        },
-
-        async startRewriting(item) {
-            if (!confirm('Перезаписать эту запись? Текущий файл будет удален.')) return;
-            this.rewriteId = item.id;
-            await this.startRecording();
         },
 
         async recognizeAudio(item) {

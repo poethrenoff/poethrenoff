@@ -142,38 +142,6 @@ class AudioController extends AbstractController
         return $this->json($audio, context: ['datetime_format' => 'd.m.Y H:i']);
     }
 
-    #[Route('/audio/{id}/rewrite', name: 'work_api_audio_rewrite', requirements: ['id' => '\d+'], methods: ['POST'])]
-    public function rewrite(Audio $audio, Request $request): JsonResponse
-    {
-        if (!$this->validateCsrf($request, 'work_audio_rewrite')) {
-            return $this->json(['error' => ['message' => 'Invalid CSRF token']], Response::HTTP_FORBIDDEN);
-        }
-
-        $file = $request->files->get('audio') ?? $request->files->get('file');
-        if (!$file instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
-            return $this->json(['error' => ['message' => 'Файл не получен']], Response::HTTP_BAD_REQUEST);
-        }
-
-        try {
-            $fileName = $this->fileUploadService->replaceFile($audio, $file);
-        } catch (\InvalidArgumentException $e) {
-            return $this->json([
-                'error' => ['message' => $e->getMessage()],
-            ], Response::HTTP_BAD_REQUEST);
-        }
-
-        $audio->setFilePath('/upload/audio/' . $fileName);
-
-        $duration = (int) $request->request->get('duration');
-        if ($duration > 0) {
-            $audio->setDuration($duration);
-        }
-
-        $this->entityManager->flush();
-
-        return $this->json($audio, context: ['datetime_format' => 'd.m.Y H:i']);
-    }
-
     #[Route('/audio/{id}/delete', name: 'work_api_audio_delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]
     public function delete(Request $request, Audio $audio): JsonResponse
     {
