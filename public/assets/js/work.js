@@ -275,6 +275,7 @@ document.addEventListener('alpine:init', () => {
             this.sortable = Sortable.create(this.$refs.list, {
                 animation: 150,
                 handle: '.drag-handle',
+                fallbackOnBody: false,
                 onStart: (evt) => {
                     this._sortableMovedEl = evt.item;
                     this._sortableMovedNext = evt.item.nextSibling;
@@ -287,14 +288,6 @@ document.addEventListener('alpine:init', () => {
             const oldIndex = evt.oldIndex;
             const newIndex = evt.newIndex;
             if (newIndex === oldIndex) return;
-
-            if (this._sortableMovedEl && this._sortableMovedNext) {
-                this.$refs.list.insertBefore(this._sortableMovedEl, this._sortableMovedNext);
-            } else if (this._sortableMovedEl) {
-                this.$refs.list.appendChild(this._sortableMovedEl);
-            }
-            this._sortableMovedEl = null;
-            this._sortableMovedNext = null;
 
             const moved = this.poems[oldIndex];
             const newPoems = [...this.poems];
