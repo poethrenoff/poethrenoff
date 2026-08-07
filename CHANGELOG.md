@@ -5,6 +5,7 @@
 
 ## 2026-08-07
 
+- Исправлены ошибки PHPStan level 8: изменён тип свойства `$password` в `User` с `string` на `?string` (null по умолчанию несовместим со string); добавлен `@throws \InvalidArgumentException` в docblock `FileUploadService::uploadFile()` для корректного определения выбрасываемых исключений в `AudioController`.
 - Исправлена критическая ошибка в `YandexGPTService.php` (удален отладочный код `var_dump`, вызывавший синтаксическую ошибку).
 - Интегрирована постобработка распознанного текста через YandexGPT: добавлен `YandexGPTService`, который форматирует текст как стихотворение (расстановка знаков препинания и переносов строк на основе ритма и смысла).
 - Исправлены названия полей в запросе к Yandex SpeechKit STT v3: добавлены суффиксы `Options` (`textNormalizationOptions`, `punctuationOptions`, `speakerLabelingOptions`) для соответствия официальной документации.
