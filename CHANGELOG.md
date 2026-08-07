@@ -3,6 +3,11 @@
 > Подробная история всех изменений, исправлений и улучшений, внесённых в проект.
 > Актуальные инструкции для агента — в [`AGENTS.md`](AGENTS.md).
 
+## 2026-08-07
+
+- Исправлена ошибка Alpine.js `poem is not defined` при перетаскивании стихов в ленте: в `public/assets/js/work.js` добавлена опция `fallbackOnBody: false` в Sortable (элемент не выносится за пределы контейнера во время drag) и удалено ручное восстановление DOM через `insertBefore` в `onReorder` (Alpine сам синхронизирует DOM при обновлении массива `poems`).
+- Добавлено версионирование статических ассетов по `mtime` файла (`src/Asset/FileVersionStrategy.php`, `config/services.yaml`, `config/packages/framework.yaml`): к URL CSS/JS добавляется query-параметр `?v=<timestamp>`, что предотвращает устаревшее кеширование браузером при обновлении файлов без изменения настроек сервера.
+
 ## 2026-08-06
 
 - Добавлена кнопка «Download» в список действий админ-панели `AudioAdmin`: при нажатии начинается скачивание аудиофайла с заголовком `Content-Disposition: attachment`, а не воспроизведение в браузере. Для этого в `AudioController` добавлен маршрут `/audio/{id}/download` и Twig-шаблон `admin/audio/download.html.twig`.
