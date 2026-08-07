@@ -14,6 +14,8 @@
 - Исправлена ошибка: результаты нового распознавания речи не появлялись в форме, если форма уже была открыта от предыдущего распознавания. В `recognizeAudio()` убран вызов `openNew()`, который перезаписывал свежие данные из `localStorage`. Теперь `recognizeAudio()` напрямую устанавливает `showNew = true` и фокусирует textarea.
 - Устранено дублирование `x-ref="newForm"` в `templates/work/index.html.twig`: форма в ленте использует `x-ref="newFormFeed"`, в записях — `x-ref="newFormAudio"`. Соответственно обновлён JS: `openNew()` и `recognizeAudio()` обращаются к ref'у через `this.view`.
 
+- Удалён хелпер автофокуса `focusNewTextarea` из `public/assets/js/work.js` вместе с вызовами: при открытии формы создания стиха и после распознавания речи фокус на textarea теперь не принудительно устанавливается.
+
 - Исправлена ошибка Alpine.js `poem is not defined` при перетаскивании стихов в ленте: в `public/assets/js/work.js` добавлена опция `fallbackOnBody: false` в Sortable (элемент не выносится за пределы контейнера во время drag) и удалено ручное восстановление DOM через `insertBefore` в `onReorder` (Alpine сам синхронизирует DOM при обновлении массива `poems`).
 - Добавлен `@blur` на инпут редактирования названия аудиозаписи (`templates/work/index.html.twig`): при потере фокуса срабатывает `cancelAudioRename(item)`, отменяя переименование.
 - Добавлено версионирование статических ассетов по `mtime` файла (`src/Asset/FileVersionStrategy.php`, `config/services.yaml`, `config/packages/framework.yaml`): к URL CSS/JS добавляется query-параметр `?v=<timestamp>`, что предотвращает устаревшее кеширование браузером при обновлении файлов без изменения настроек сервера.
