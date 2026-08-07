@@ -13,7 +13,7 @@ class FileVersionStrategy implements VersionStrategyInterface
 
     public function getVersion(string $path): string
     {
-        $file = $this->projectDir.'/public/'.$path;
+        $file = $this->projectDir . '/public/' . $path;
 
         return is_file($file) ? (string) filemtime($file) : '';
     }
@@ -22,6 +22,6 @@ class FileVersionStrategy implements VersionStrategyInterface
     {
         $version = $this->getVersion($path);
 
-        return '' === $version ? $path : $path.'?v='.$version;
+        return '' === $version ? $path : $path . '?v=' . $version;
     }
 }
