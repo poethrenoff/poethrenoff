@@ -106,14 +106,21 @@ document.addEventListener('alpine:init', () => {
                     this.newTitle = draft.title || '';
                     this.newContent = draft.content || '';
                     this.newComment = draft.comment || '';
+
+                    await this.$nextTick(() => {
+                        const refName = this.view === 'audio' ? 'newFormAudio' : 'newFormFeed';
+                        document.querySelector(`[x-ref="${refName}"] .poem-textarea`)?.focus();
+                    });
                 }
             } catch (e) {
                 this.clearDraft();
             }
-            await this.$nextTick(() => {
-                const el = this.$refs.newForm.querySelector('.poem-textarea');
-                if (el) el.focus();
-            });
+        },
+
+        async focusNewTextarea() {
+            await this.$nextTick();
+            const refName = this.view === 'audio' ? 'newFormAudio' : 'newFormFeed';
+            document.querySelector(`[x-ref="${refName}"] .poem-textarea`)?.focus();
         },
 
         async exportPoems() {
@@ -667,7 +674,12 @@ document.addEventListener('alpine:init', () => {
                     this.newContent = data.text || '';
                     this.newTitle = '';
                     this.newComment = '';
-                    this.openNew();
+                    this.showNew = true;
+
+                    await this.$nextTick(() => {
+                        const refName = this.view === 'audio' ? 'newFormAudio' : 'newFormFeed';
+                        document.querySelector(`[x-ref="${refName}"] .poem-textarea`)?.focus();
+                    });
                 } else if (res) {
                     this.generalError = await this.extractError(res);
                 }
