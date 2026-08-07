@@ -117,7 +117,9 @@ document.addEventListener('alpine:init', () => {
             const refName = this.view === 'audio' ? 'newFormAudio' : 'newFormFeed';
             const el = this.$refs[refName];
             if (el) {
-                el.querySelector('.poem-textarea')?.focus();
+                setTimeout(() => {
+                    el.querySelector('.poem-textarea')?.focus();
+                }, 0);
             }
         },
 
