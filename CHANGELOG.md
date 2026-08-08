@@ -3,6 +3,19 @@
 > Подробная история всех изменений, исправлений и улучшений, внесённых в проект.
 > Актуальные инструкции для агента — в [`AGENTS.md`](AGENTS.md).
 
+## 2026-08-08
+
+- Реализован асинхронный распознавание речи через state machine без фоновых воркеров:
+  - Создана сущность `RecognizeTask` с полями: id, audio, status, resultText, errorMessage, stepData (JSON), createdAt, updatedAt (NOT NULL, lifecycle callbacks `onPrePersist`/`onPreUpdate`).
+  - Создан enum `RecognizeTaskStatus`: pending, uploaded, recognizing, recognized, formatting, completed, error.
+  - Создан `RecognizeService` с state machine, продвигающей задачу на один шаг за poll-запрос.
+  - `YandexService`: `uploadToS3()`, `startRecognition()`, `checkRecognition()`, `getRecognitionResult()`, `formatPoem()` (через общий `curlPost()`), `cleanupS3()`.
+  - В `AudioController` заменён блокирующий `recognize()` на `POST /audio/{id}/recognize/` (создание задачи) и `GET /audio/{id}/recognize/{uuid}` (poll).
+  - Фронтенд (`work.js`): polling через `setInterval` 1с, интервал очищается при `completed`/`error`.
+  - S3 cleanup в `finally` на каждом шаге, локальный файл не копируется.
+- Downgrade `doctrine/orm` 3.6.8 → 3.6.7: в 3.6.8 `GenerateSchemaEventArgs::setSchema()` требует DBAL 4.5+, который ещё не стабилен; на 3.6.7 `doctrine:migrations:diff` работает корректно через fallback в Symfony bridge.
+- Переименован сервис `YandexAIStudioService` → `YandexService`.
+
 ## 2026-08-07
 
 - Исправлены ошибки PHPStan level 8: изменён тип свойства `$password` в `User` с `string` на `?string` (null по умолчанию несовместим со string); добавлен `@throws \InvalidArgumentException` в docblock `FileUploadService::uploadFile()` для корректного определения выбрасываемых исключений в `AudioController`.

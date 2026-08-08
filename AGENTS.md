@@ -36,7 +36,8 @@
 - `SearchService` — поиск работ и блог-записей
 - `CommentService` — санитизация комментариев, автолинкинг, построение деревьев, валидация автора
 - `WorkService` — версионирование стихов, переупорядочивание, парсинг дат, trash/restore/delete
-- `YandexAIStudioService` — распознавание речи (асинхронное через STT v3) и постобработка текста с помощью YandexGPT (модель `yandexgpt-lite`) для расстановки знаков препинания и формирования структуры стихотворения. Требует роли `ai.speechkit-stt.user`, `ai.languageModels.user` и доступа к S3 (`storage.uploader`, `storage.viewer`).
+- `RecognizeService` — state machine для асинхронного распознавания речи: создание задач, пошаговое выполнение через poll, обработка ошибок
+- `YandexService` — распознавание речи (асинхронное через STT v3) и постобработка текста с помощью YandexGPT (модель `yandexgpt-lite`) для расстановки знаков препинания и формирования структуры стихотворения. Требует роли `ai.speechkit-stt.user`, `ai.languageModels.user` и доступа к S3 (`storage.uploader`, `storage.viewer`).
 
 Контроллеры делегируют бизнес-логику сервисам и отвечают только за HTTP-обработку.
 
