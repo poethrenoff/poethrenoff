@@ -17,6 +17,7 @@ document.addEventListener('alpine:init', () => {
         isPlayingId: null,
         pausedId: null,
         recognizingId: null,
+        recognizingStatus: '',
         newTitle: '',
         newContent: '',
         newComment: '',
@@ -633,6 +634,7 @@ document.addEventListener('alpine:init', () => {
         async recognizeAudio(item) {
             if (this.recognizingId !== null) return;
             this.recognizingId = item.id;
+            this.recognizingStatus = 'Загрузка файла…';
             this.generalError = '';
 
             try {
@@ -641,20 +643,85 @@ document.addEventListener('alpine:init', () => {
                     body: JSON.stringify({ _token: CSRF_TOKENS.work_audio_recognize }),
                 });
 
-                if (res && res.ok) {
-                    const data = await res.json();
-                    this.newContent = data.text || '';
-                    this.newTitle = '';
-                    this.newComment = '';
-                    this.showNew = true;
-                } else if (res) {
+                if (!res || !res.ok) {
                     this.generalError = await this.extractError(res);
+                    return;
                 }
+
+                const data = await res.json();
+                const taskId = data.task_id;
+
+                if (!taskId) {
+                    this.generalError = 'Задача не создана';
+                    return;
+                }
+
+                await this.pollTask(taskId, item.id);
             } catch (e) {
                 this.generalError = 'Ошибка при распознавании';
             } finally {
                 this.recognizingId = null;
+                this.recognizingStatus = '';
             }
+        },
+
+        async pollTask(taskId, audioId) {
+            const pollInterval = 1000;
+            const statusLabels = {
+                pending: 'Создание задачи…',
+                uploaded: 'Загрузка файла…',
+                recognizing: 'Распознавание речи…',
+                recognized: 'Получение результата…',
+                formatting: 'Обработка текста…',
+            };
+
+            const poll = async () => {
+                if (this.recognizingId === null) return;
+
+                const res = await this.api(`/audio/${audioId}/recognize/${taskId}`);
+                if (!res) {
+                    this.generalError = 'Ошибка при проверке статуса';
+                    this.recognizingId = null;
+                    this.recognizingStatus = '';
+                    return;
+                }
+
+                if (!res.ok) {
+                    this.generalError = await this.extractError(res);
+                    this.recognizingId = null;
+                    this.recognizingStatus = '';
+                    return;
+                }
+
+                const data = await res.json();
+                const status = data.status;
+
+                if (statusLabels[status]) {
+                    this.recognizingStatus = statusLabels[status];
+                }
+
+                if (status === 'completed') {
+                    this.newContent = data.text || '';
+                    this.newTitle = '';
+                    this.newComment = '';
+                    this.showNew = true;
+                    this.recognizingId = null;
+                    this.recognizingStatus = '';
+                    return;
+                }
+
+                if (status === 'error') {
+                    this.generalError = data.error || 'Ошибка распознавания';
+                    this.recognizingId = null;
+                    this.recognizingStatus = '';
+                    return;
+                }
+
+                await new Promise(resolve => setTimeout(resolve, pollInterval));
+                return poll();
+            };
+
+            await poll();
         },
     }));
 });

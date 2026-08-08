@@ -5,7 +5,7 @@ namespace App\Service;
 use Aws\S3\S3Client;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
-class YandexAIStudioService
+class YandexService
 {
     public function __construct(
         #[Autowire(env: 'YANDEX_CLOUD_S3_KEY')] private string $s3Key,
@@ -19,7 +19,7 @@ class YandexAIStudioService
     ) {
     }
 
-    public function recognize(string $localFilePath): string
+    public function uploadToS3(string $localFilePath, string $fileHash): string
     {
         $s3Client = new S3Client([
             'version' => 'latest',
@@ -32,18 +32,15 @@ class YandexAIStudioService
             ],
         ]);
 
-        $s3Key = ltrim($this->s3Prefix, '/') . '/' . uniqid() . '-' . basename($localFilePath);
+        $stream = fopen($localFilePath, 'rb');
+        if ($stream === false) {
+            throw new \RuntimeException('Не удалось открыть файл для чтения');
+        }
 
+        $contentType = mime_content_type($localFilePath) ?: 'application/octet-stream';
+
+        $s3Key = $this->buildS3Key($fileHash);
         try {
-            $stream = fopen($localFilePath, 'rb');
-            if ($stream === false) {
-                throw new \RuntimeException(
-                    'Не удалось открыть файл для чтения'
-                );
-            }
-
-            $contentType = mime_content_type($localFilePath) ?: 'application/octet-stream';
-
             $s3Client->putObject([
                 'Bucket' => $this->s3Bucket,
                 'Key' => $s3Key,
@@ -51,27 +48,14 @@ class YandexAIStudioService
                 'ACL' => 'public-read',
                 'ContentType' => $contentType,
             ]);
-            fclose($stream);
-
-            $audioUrl = trim($this->s3Endpoint, '/') . '/' . $this->s3Bucket . '/' . trim($s3Key, '/');
-
-            $operationId = $this->startRecognition($audioUrl);
-
-            $text = $this->pollForResult($operationId);
-
-            return $this->formatPoem($text);
         } finally {
-            try {
-                $s3Client->deleteObject([
-                    'Bucket' => $this->s3Bucket,
-                    'Key' => $s3Key,
-                ]);
-            } catch (\Throwable $e) {
-            }
+            fclose($stream);
         }
+
+        return $s3Client->getObjectUrl($this->s3Bucket, $s3Key);
     }
 
-    private function startRecognition(string $audioUrl): string
+    public function startRecognition(string $audioUrl): string
     {
         $url = 'https://stt.api.cloud.yandex.net/stt/v3/recognizeFileAsync';
         $body = json_encode([
@@ -100,79 +84,56 @@ class YandexAIStudioService
         ]);
 
         if ($body === false) {
-            throw new \RuntimeException(
-                'Ошибка сериализации запроса распознавания'
-            );
+            throw new \RuntimeException('Ошибка сериализации запроса распознавания');
         }
 
         $response = $this->curlPost($url, $body);
         if ($response === null) {
-            throw new \RuntimeException(
-                'Ошибка при запуске распознавания'
-            );
+            throw new \RuntimeException('Ошибка при запуске распознавания');
         }
 
         $data = json_decode($response, true);
         if (!is_array($data) || empty($data['id'])) {
-            throw new \RuntimeException(
-                'Некорректный ответ сервиса распознавания'
-            );
+            throw new \RuntimeException('Некорректный ответ сервиса распознавания');
         }
 
         return (string) $data['id'];
     }
 
-    private function pollForResult(string $operationId): string
+    public function checkRecognition(string $operationId): bool
     {
-        $startTime = time();
-        $maxTimeout = 15;
-
-        while (true) {
-            $elapsed = time() - $startTime;
-            if ($elapsed >= $maxTimeout) {
-                throw new \RuntimeException('Таймаут распознавания');
-            }
-
-            $url = 'https://operation.api.cloud.yandex.net/operations/' . urlencode($operationId);
-            $response = $this->curlGet($url);
-            if ($response === null) {
-                throw new \RuntimeException(
-                    'Ошибка при проверке статуса распознавания'
-                );
-            }
-
-            $data = json_decode($response, true);
-            if (!is_array($data)) {
-                throw new \RuntimeException(
-                    'Некорректный ответ сервиса распознавания'
-                );
-            }
-
-            if (!empty($data['done'])) {
-                if (!empty($data['error'])) {
-                    $errorMessage = is_array($data['error'])
-                        ? ($data['error']['message']
-                            ?? 'Ошибка распознавания')
-                        : (string) $data['error'];
-                    throw new \RuntimeException($errorMessage);
-                }
-
-                return $this->getRecognitionResult($operationId);
-            }
-
-            sleep(1);
+        $url = 'https://operation.api.cloud.yandex.net/operations/' . urlencode($operationId);
+        $response = $this->curlGet($url);
+        if ($response === null) {
+            throw new \RuntimeException('Ошибка при проверке статуса распознавания');
         }
+
+        $data = json_decode($response, true);
+        if (!is_array($data)) {
+            throw new \RuntimeException('Некорректный ответ сервиса распознавания');
+        }
+
+        if (!empty($data['done'])) {
+            if (!empty($data['error'])) {
+                $errorMessage = is_array($data['error'])
+                    ? ($data['error']['message'] ?? 'Ошибка распознавания')
+                    : (string) $data['error'];
+                throw new \RuntimeException($errorMessage);
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
-    private function getRecognitionResult(string $operationId): string
+    public function getRecognitionResult(string $operationId): string
     {
         $url = 'https://stt.api.cloud.yandex.net/stt/v3'
             . '/getRecognition?operation_id=' . urlencode($operationId);
         $response = $this->curlGet($url);
         if ($response === null) {
-            throw new \RuntimeException(
-                'Ошибка при получении результата распознавания'
-            );
+            throw new \RuntimeException('Ошибка при получении результата распознавания');
         }
 
         $texts = [];
@@ -229,9 +190,9 @@ class YandexAIStudioService
                 [
                     'role' => 'system',
                     'text' => <<<PROMPT
-Ты — помощник поэта. Твоя задача — расставить знаки препинания и разбить текст на строки так, чтобы получилось
-красивое стихотворение. Не меняй слова, только пунктуацию и переносы строк. На вход ты получишь текст, который
-может быть уже частично разделен на строки или идти одной строкой.'
+Ты — помощник поэта. На вход ты получишь текст, который может быть уже частично разделен на строки или
+идти одной строкой. Твоя задача — расставить знаки препинания и разбить текст на строки и строфы так,
+чтобы получилось красивое стихотворение. Не меняй слова, только пунктуацию и переносы строк.'
 PROMPT,
                 ],
                 [
@@ -245,30 +206,43 @@ PROMPT,
             return $text;
         }
 
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $body,
-            CURLOPT_HTTPHEADER => [
-                'Authorization: Api-Key ' . $this->serviceApiKey,
-                'Content-Type: application/json',
-            ],
-            CURLOPT_TIMEOUT => 30,
-        ]);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($response === false || $httpCode >= 400) {
+        $response = $this->curlPost($url, $body);
+        if ($response === null) {
             return $text;
         }
 
-        $data = json_decode((string) $response, true);
+        $data = json_decode($response, true);
         $resultText = $data['result']['alternatives'][0]['message']['text'] ?? null;
 
         return $resultText ? trim((string) $resultText) : $text;
+    }
+
+    public function cleanupS3(string $fileHash): void
+    {
+        $s3Client = new S3Client([
+            'version' => 'latest',
+            'region' => $this->s3Region,
+            'endpoint' => $this->s3Endpoint,
+            'use_path_style_endpoint' => true,
+            'credentials' => [
+                'key' => $this->s3Key,
+                'secret' => $this->s3Secret,
+            ],
+        ]);
+
+        $s3Key = $this->buildS3Key($fileHash);
+        try {
+            $s3Client->deleteObject([
+                'Bucket' => $this->s3Bucket,
+                'Key' => $s3Key,
+            ]);
+        } catch (\Throwable $e) {
+        }
+    }
+
+    private function buildS3Key(string $fileHash): string
+    {
+        return trim($this->s3Prefix, '/') . '/' . $fileHash;
     }
 
     private function curlGet(string $url): ?string

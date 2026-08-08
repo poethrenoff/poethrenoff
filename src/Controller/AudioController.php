@@ -3,12 +3,15 @@
 namespace App\Controller;
 
 use App\Entity\Audio;
+use App\Enum\RecognizeTaskStatus;
 use App\Repository\AudioRepository;
+use App\Repository\RecognizeTaskRepository;
 use App\Service\FileUploadService;
-use App\Service\YandexAIStudioService;
+use App\Service\RecognizeService;
 use App\Trait\CsrfTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,7 +31,8 @@ class AudioController extends AbstractController
         private EntityManagerInterface $entityManager,
         private CsrfTokenManagerInterface $csrfTokenManager,
         private FileUploadService $fileUploadService,
-        private YandexAIStudioService $yandexAIStudioService,
+        private RecognizeService $recognizeService,
+        private RecognizeTaskRepository $recognizeTaskRepository,
     ) {
     }
 
@@ -44,16 +48,16 @@ class AudioController extends AbstractController
     public function getAudio(Audio $audio): Response
     {
         $fileName = basename($audio->getFilePath());
-        $path = $this->fileUploadService->getAudioDir() . '/' . $fileName;
+        $localPath = $this->fileUploadService->getAudioDir() . '/' . $fileName;
 
-        if (!file_exists($path)) {
-            return new Response('File not found', Response::HTTP_NOT_FOUND);
+        if (!file_exists($localPath)) {
+            return $this->json(['error' => ['message' => 'Файл не найден']], Response::HTTP_NOT_FOUND);
         }
 
         $response = new Response();
         $response->headers->set('X-Accel-Redirect', $audio->getFilePath());
-        $response->headers->set('Content-Type', mime_content_type($path) ?: 'application/octet-stream');
-        $response->headers->set('Content-Length', (string) filesize($path));
+        $response->headers->set('Content-Type', mime_content_type($localPath) ?: 'application/octet-stream');
+        $response->headers->set('Content-Length', (string) filesize($localPath));
         $response->headers->set('Cache-Control', 'public, max-age=31536000');
 
         return $response;
@@ -67,7 +71,7 @@ class AudioController extends AbstractController
         }
 
         $file = $request->files->get('audio') ?? $request->files->get('file');
-        if (!$file instanceof \Symfony\Component\HttpFoundation\File\UploadedFile) {
+        if (!$file instanceof UploadedFile) {
             return $this->json(['error' => ['message' => 'Файл не получен']], Response::HTTP_BAD_REQUEST);
         }
 
@@ -100,18 +104,18 @@ class AudioController extends AbstractController
     public function download(Audio $audio): Response
     {
         $fileName = basename($audio->getFilePath());
-        $path = $this->fileUploadService->getAudioDir() . '/' . $fileName;
+        $localPath = $this->fileUploadService->getAudioDir() . '/' . $fileName;
 
-        if (!file_exists($path)) {
-            return new Response('File not found', Response::HTTP_NOT_FOUND);
+        if (!file_exists($localPath)) {
+            return $this->json(['error' => ['message' => 'Файл не найден']], Response::HTTP_NOT_FOUND);
         }
 
         $downloadName = $audio->getTitle() . '.' . pathinfo($fileName, PATHINFO_EXTENSION);
 
         $response = new Response();
         $response->headers->set('X-Accel-Redirect', $audio->getFilePath());
-        $response->headers->set('Content-Type', mime_content_type($path) ?: 'application/octet-stream');
-        $response->headers->set('Content-Length', (string) filesize($path));
+        $response->headers->set('Content-Type', mime_content_type($localPath) ?: 'application/octet-stream');
+        $response->headers->set('Content-Length', (string) filesize($localPath));
         $response->headers->set('Cache-Control', 'public, max-age=31536000');
         $response->headers->set('Content-Disposition', HeaderUtils::makeDisposition(
             'attachment',
@@ -169,18 +173,48 @@ class AudioController extends AbstractController
             return $this->json(['error' => ['message' => 'Invalid CSRF token']], Response::HTTP_FORBIDDEN);
         }
 
-        $localPath = $this->fileUploadService->getAudioDir() . '/' . basename($audio->getFilePath());
+        $task = $this->recognizeService->createTask($audio);
+        $status = $this->recognizeService->advanceTask($task);
 
-        if (!file_exists($localPath)) {
-            return $this->json(['error' => ['message' => 'File not found']], Response::HTTP_NOT_FOUND);
+        if ($status === RecognizeTaskStatus::Error) {
+            return $this->json([
+                'error' => ['message' => $task->getErrorMessage()],
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
-        try {
-            $text = $this->yandexAIStudioService->recognize($localPath);
-        } catch (\RuntimeException $e) {
-            return $this->json(['error' => ['message' => $e->getMessage()]], Response::HTTP_INTERNAL_SERVER_ERROR);
+        return $this->json([
+            'task_id' => $task->getId(),
+            'status' => $status,
+        ], Response::HTTP_CREATED);
+    }
+
+    #[Route(
+        '/audio/{id}/recognize/{uuid}',
+        name: 'work_api_audio_recognize_poll',
+        requirements: ['id' => '\d+', 'uuid' => '[0-9a-f]+'],
+        methods: ['GET']
+    )]
+    public function recognizePoll(string $uuid, Audio $audio): JsonResponse
+    {
+        $task = $this->recognizeTaskRepository->find($uuid);
+        if (!$task || $task->getAudio()->getId() !== $audio->getId()) {
+            return $this->json(['error' => ['message' => 'Задача не найдена']], Response::HTTP_NOT_FOUND);
         }
 
-        return $this->json(['text' => $text]);
+        $status = $this->recognizeService->advanceTask($task);
+
+        return match ($status) {
+            RecognizeTaskStatus::Completed => $this->json([
+                'status' => 'completed',
+                'text' => $task->getResultText(),
+            ]),
+            RecognizeTaskStatus::Error => $this->json([
+                'status' => 'error',
+                'error' => $task->getErrorMessage(),
+            ]),
+            default => $this->json([
+                'status' => $status,
+            ]),
+        };
     }
 }
