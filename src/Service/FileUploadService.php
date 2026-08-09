@@ -6,6 +6,8 @@ use App\Entity\Audio;
 use Random\RandomException;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\HeaderUtils;
+use Symfony\Component\HttpFoundation\Response;
 
 class FileUploadService
 {
@@ -79,5 +81,32 @@ class FileUploadService
     public function deleteAudioFile(Audio $audio): void
     {
         $this->deleteFile($audio->getFilePath());
+    }
+
+    public function buildAccelRedirectResponse(Audio $audio, bool $download = false): ?Response
+    {
+        $fileName = basename($audio->getFilePath());
+        $localPath = $this->audioDir . '/' . $fileName;
+
+        if (!file_exists($localPath)) {
+            return null;
+        }
+
+        $response = new Response();
+        $response->headers->set('X-Accel-Redirect', $audio->getFilePath());
+        $response->headers->set('Content-Type', mime_content_type($localPath) ?: 'application/octet-stream');
+        $response->headers->set('Content-Length', (string) filesize($localPath));
+        $response->headers->set('Cache-Control', 'public, max-age=31536000');
+
+        if ($download) {
+            $downloadName = $audio->getTitle() . '.' . pathinfo($fileName, PATHINFO_EXTENSION);
+            $response->headers->set('Content-Disposition', HeaderUtils::makeDisposition(
+                'attachment',
+                $downloadName,
+                $fileName,
+            ));
+        }
+
+        return $response;
     }
 }

@@ -1,7 +1,5 @@
 <?php
 
-/** @noinspection ALL */
-
 namespace App\Entity;
 
 use App\Repository\WorkGroupRepository;
@@ -12,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: WorkGroupRepository::class)]
-#[ORM\Index(columns: ['parent_id', 'position'], name: 'idx_group_parent_position')]
+#[ORM\Index(name: 'idx_group_parent_position', columns: ['parent_id', 'position'])]
 class WorkGroup
 {
     #[ORM\Id]

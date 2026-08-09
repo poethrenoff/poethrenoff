@@ -1,9 +1,5 @@
 <?php
 
-/** @noinspection PhpNamedArgumentsWithChangedOrderInspection */
-
-/** @noinspection PhpNamedArgumentsWithChangedOrderInspection */
-
 namespace App\Entity;
 
 use App\Enum\PoemStatus;
@@ -17,8 +13,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PoemRepository::class)]
-#[ORM\Index(columns: ['status', 'deleted_at'], name: 'idx_poem_status_deleted')]
-#[ORM\Index(columns: ['position'], name: 'idx_poem_position')]
+#[ORM\Index(name: 'idx_poem_status_deleted', columns: ['status', 'deleted_at'])]
+#[ORM\Index(name: 'idx_poem_position', columns: ['position'])]
 #[ORM\HasLifecycleCallbacks]
 class Poem
 {

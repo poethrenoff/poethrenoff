@@ -5,6 +5,9 @@
 
 ## 2026-08-08
 
+- По аудиту (мелкие правки): полностью удалены `@noinspection`-директивы из всех сущностей (`Poem.php`, `PoemVersion.php`, `BlogPost.php`, `Work.php`, `WorkComment.php`, `Picture.php`, `WorkGroup.php`) — PHPStan (level 8) и PHPCS проходят без ошибок; раскомментирован и задан явный `server_version: '8.4'` в `config/packages/doctrine.yaml`; в автоссылки комментариев (`CommentService::autolink`) добавлен атрибут `rel="noopener nofollow"`.
+- В `YandexService` вынесено создание `S3Client` в ленивый приватный метод `getS3Client()` (мемоизация через `??=`), устраняющий дублирование конфигурации между `uploadToS3()` и `cleanupS3()`.
+- Вынесено построение X-Accel-Redirect-ответа для аудио в `FileUploadService::buildAccelRedirectResponse()` (общий путь к файлу, заголовки Content-Type/Content-Length/Cache-Control, опциональный Content-Disposition для download). Методы `AudioController::getAudio()` и `AudioController::download()` теперь делегируют логику сервису, устраняя почти идентичный дублирующий код.
 - Реализован асинхронный распознавание речи через state machine без фоновых воркеров:
   - Создана сущность `RecognizeTask` с полями: id, audio, status, resultText, errorMessage, stepData (JSON), createdAt, updatedAt (NOT NULL, lifecycle callbacks `onPrePersist`/`onPreUpdate`).
   - Создан enum `RecognizeTaskStatus`: pending, uploaded, recognizing, recognized, formatting, completed, error.

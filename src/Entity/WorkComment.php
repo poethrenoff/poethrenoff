@@ -1,9 +1,5 @@
 <?php
 
-/** @noinspection ALL */
-
-/** @noinspection ALL */
-
 namespace App\Entity;
 
 use App\Repository\WorkCommentRepository;
@@ -15,8 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: WorkCommentRepository::class)]
-#[ORM\Index(columns: ['work_id', 'created_at'], name: 'idx_work_comment_work_date')]
-#[ORM\Index(columns: ['parent_id'], name: 'idx_work_comment_parent')]
+#[ORM\Index(name: 'idx_work_comment_work_date', columns: ['work_id', 'created_at'])]
+#[ORM\Index(name: 'idx_work_comment_parent', columns: ['parent_id'])]
 class WorkComment
 {
     use CommentFieldsTrait;

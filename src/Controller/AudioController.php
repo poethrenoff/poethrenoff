@@ -15,7 +15,6 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -47,20 +46,8 @@ class AudioController extends AbstractController
     #[Route('/audio/{id}', name: 'work_api_audio_get', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function getAudio(Audio $audio): Response
     {
-        $fileName = basename($audio->getFilePath());
-        $localPath = $this->fileUploadService->getAudioDir() . '/' . $fileName;
-
-        if (!file_exists($localPath)) {
-            return $this->json(['error' => ['message' => 'Файл не найден']], Response::HTTP_NOT_FOUND);
-        }
-
-        $response = new Response();
-        $response->headers->set('X-Accel-Redirect', $audio->getFilePath());
-        $response->headers->set('Content-Type', mime_content_type($localPath) ?: 'application/octet-stream');
-        $response->headers->set('Content-Length', (string) filesize($localPath));
-        $response->headers->set('Cache-Control', 'public, max-age=31536000');
-
-        return $response;
+        return $this->fileUploadService->buildAccelRedirectResponse($audio)
+            ?? $this->json(['error' => ['message' => 'Файл не найден']], Response::HTTP_NOT_FOUND);
     }
 
     #[Route('/audio/', name: 'work_api_audio_create', methods: ['POST'])]
@@ -103,27 +90,8 @@ class AudioController extends AbstractController
     #[Route('/audio/{id}/download', name: 'work_api_audio_download', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function download(Audio $audio): Response
     {
-        $fileName = basename($audio->getFilePath());
-        $localPath = $this->fileUploadService->getAudioDir() . '/' . $fileName;
-
-        if (!file_exists($localPath)) {
-            return $this->json(['error' => ['message' => 'Файл не найден']], Response::HTTP_NOT_FOUND);
-        }
-
-        $downloadName = $audio->getTitle() . '.' . pathinfo($fileName, PATHINFO_EXTENSION);
-
-        $response = new Response();
-        $response->headers->set('X-Accel-Redirect', $audio->getFilePath());
-        $response->headers->set('Content-Type', mime_content_type($localPath) ?: 'application/octet-stream');
-        $response->headers->set('Content-Length', (string) filesize($localPath));
-        $response->headers->set('Cache-Control', 'public, max-age=31536000');
-        $response->headers->set('Content-Disposition', HeaderUtils::makeDisposition(
-            'attachment',
-            $downloadName,
-            $fileName,
-        ));
-
-        return $response;
+        return $this->fileUploadService->buildAccelRedirectResponse($audio, download: true)
+            ?? $this->json(['error' => ['message' => 'Файл не найден']], Response::HTTP_NOT_FOUND);
     }
 
     #[Route('/audio/{id}/rename', name: 'work_api_audio_rename', requirements: ['id' => '\d+'], methods: ['POST'])]

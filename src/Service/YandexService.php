@@ -7,6 +7,8 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 class YandexService
 {
+    private ?S3Client $s3Client = null;
+
     public function __construct(
         #[Autowire(env: 'YANDEX_CLOUD_S3_KEY')] private string $s3Key,
         #[Autowire(env: 'YANDEX_CLOUD_S3_SECRET')] private string $s3Secret,
@@ -21,16 +23,7 @@ class YandexService
 
     public function uploadToS3(string $localFilePath, string $fileHash): string
     {
-        $s3Client = new S3Client([
-            'version' => 'latest',
-            'region' => $this->s3Region,
-            'endpoint' => $this->s3Endpoint,
-            'use_path_style_endpoint' => true,
-            'credentials' => [
-                'key' => $this->s3Key,
-                'secret' => $this->s3Secret,
-            ],
-        ]);
+        $s3Client = $this->getS3Client();
 
         $stream = fopen($localFilePath, 'rb');
         if ($stream === false) {
@@ -219,16 +212,7 @@ PROMPT,
 
     public function cleanupS3(string $fileHash): void
     {
-        $s3Client = new S3Client([
-            'version' => 'latest',
-            'region' => $this->s3Region,
-            'endpoint' => $this->s3Endpoint,
-            'use_path_style_endpoint' => true,
-            'credentials' => [
-                'key' => $this->s3Key,
-                'secret' => $this->s3Secret,
-            ],
-        ]);
+        $s3Client = $this->getS3Client();
 
         $s3Key = $this->buildS3Key($fileHash);
         try {
@@ -238,6 +222,20 @@ PROMPT,
             ]);
         } catch (\Throwable $e) {
         }
+    }
+
+    private function getS3Client(): S3Client
+    {
+        return $this->s3Client ??= new S3Client([
+            'version' => 'latest',
+            'region' => $this->s3Region,
+            'endpoint' => $this->s3Endpoint,
+            'use_path_style_endpoint' => true,
+            'credentials' => [
+                'key' => $this->s3Key,
+                'secret' => $this->s3Secret,
+            ],
+        ]);
     }
 
     private function buildS3Key(string $fileHash): string
@@ -251,7 +249,7 @@ PROMPT,
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_TIMEOUT => 30,
+            CURLOPT_TIMEOUT => 10,
             CURLOPT_HTTPHEADER => [
                 'Authorization: Api-Key ' . $this->serviceApiKey,
                 'X-Folder-Id: ' . $this->folderId,
@@ -276,7 +274,7 @@ PROMPT,
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_TIMEOUT => 30,
+            CURLOPT_TIMEOUT => 10,
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $body,
             CURLOPT_HTTPHEADER => [

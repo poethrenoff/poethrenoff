@@ -1,7 +1,5 @@
 <?php
 
-/** @noinspection ALL */
-
 namespace App\Entity;
 
 use App\Repository\PictureRepository;
@@ -10,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PictureRepository::class)]
-#[ORM\Index(columns: ['date', 'position'], name: 'idx_picture_date_position')]
+#[ORM\Index(name: 'idx_picture_date_position', columns: ['date', 'position'])]
 class Picture
 {
     #[ORM\Id]

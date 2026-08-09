@@ -1,14 +1,5 @@
 <?php
 
-/** @noinspection ALL */
-
-/** @noinspection ALL */
-/** @noinspection ALL */
-/** @noinspection ALL */
-/** @noinspection ALL */
-
-/** @noinspection ALL */
-
 namespace App\Controller;
 
 use App\Entity\Poem;

@@ -66,7 +66,7 @@ class CommentService
                     return $matches[2];
                 }
                 $url = $matches[3];
-                return '<a href="' . $url . '">' . $url . '</a>';
+                return '<a href="' . $url . '" rel="noopener nofollow">' . $url . '</a>';
             },
             $html
         ) ?? '';

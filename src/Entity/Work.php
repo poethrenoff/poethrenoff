@@ -1,9 +1,5 @@
 <?php
 
-/** @noinspection ALL */
-
-/** @noinspection ALL */
-
 namespace App\Entity;
 
 use App\Repository\WorkRepository;
@@ -15,8 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: WorkRepository::class)]
-#[ORM\Index(columns: ['group_id', 'position'], name: 'idx_work_group_position')]
-#[ORM\Index(columns: ['is_active'], name: 'idx_work_active')]
+#[ORM\Index(name: 'idx_work_group_position', columns: ['group_id', 'position'])]
+#[ORM\Index(name: 'idx_work_active', columns: ['is_active'])]
 class Work
 {
     use HasDefaultTitleTrait;

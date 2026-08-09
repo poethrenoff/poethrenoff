@@ -1,9 +1,5 @@
 <?php
 
-/** @noinspection ALL */
-
-/** @noinspection ALL */
-
 namespace App\Entity;
 
 use App\Repository\BlogPostRepository;
@@ -14,8 +10,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: BlogPostRepository::class)]
-#[ORM\Index(columns: ['published_at'], name: 'idx_blog_post_date')]
-#[ORM\Index(columns: ['is_active'], name: 'idx_blog_post_active')]
+#[ORM\Index(name: 'idx_blog_post_date', columns: ['published_at'])]
+#[ORM\Index(name: 'idx_blog_post_active', columns: ['is_active'])]
 class BlogPost
 {
     #[ORM\Id]

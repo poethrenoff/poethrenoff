@@ -1,7 +1,5 @@
 <?php
 
-/** @noinspection PhpNamedArgumentsWithChangedOrderInspection */
-
 namespace App\Entity;
 
 use App\Entity\Poem;
@@ -11,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PoemVersionRepository::class)]
-#[ORM\Index(columns: ['poem_id', 'created_at'], name: 'idx_poem_version_poem_date')]
+#[ORM\Index(name: 'idx_poem_version_poem_date', columns: ['poem_id', 'created_at'])]
 class PoemVersion
 {
     #[ORM\Id]
