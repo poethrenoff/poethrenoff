@@ -1,0 +1,15 @@
+[Unit]
+Description=Telegram bridge daemon for PoetHrenoff
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/telegram-bridge.env
+ExecStart=/usr/local/bin/telegram-bridge.py
+Restart=always
+RestartSec=5
+User=telegram-bridge
+
+[Install]
+WantedBy=multi-user.target

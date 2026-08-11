@@ -62,7 +62,6 @@ class WorkRepository extends ServiceEntityRepository
 
         $qb = $this->createQueryBuilder('w');
 
-        // Find Previous Work
         $prevQb = clone $qb;
         $prevQb
             ->andWhere('w.group = :group')
@@ -74,7 +73,6 @@ class WorkRepository extends ServiceEntityRepository
             ->orderBy('w.position', 'DESC')
             ->setMaxResults(1);
 
-        // Find Next Work
         $nextQb = clone $qb;
         $nextQb
             ->andWhere('w.group = :group')
@@ -101,26 +99,31 @@ class WorkRepository extends ServiceEntityRepository
      * @param int $limit Items per page.
      * @return PaginationInterface<int, Work>
      */
-    public function search(string $query, int $page = 1, int $limit = 10): PaginationInterface
-    {
-        // Basic keyword splitting for AND logic.
-        // A more robust solution would handle phrases, stemming, etc.
+    public function search(
+        string $query,
+        int $page = 1,
+        int $limit = 10,
+        bool $favoritesOnly = false,
+    ): PaginationInterface {
         $words = explode(' ', $query);
-        $words = array_filter($words); // Remove empty elements
+        $words = array_filter($words);
 
         $qb = $this->createQueryBuilder('w')
-            ->leftJoin('w.group', 'g') // Join with group to get group title and potentially filter by active groups
-            ->andWhere('w.isActive = :active') // Ensure we only search active works
+            ->leftJoin('w.group', 'g')
+            ->andWhere('w.isActive = :active')
             ->setParameter('active', true);
 
-        $qb->addSelect('g'); // Select the group to avoid separate query later
+        if ($favoritesOnly) {
+            $qb->andWhere('g.isFavorite = :favorite')
+                ->setParameter('favorite', true);
+        }
 
-        $firstWord = true;
+        $qb->addSelect('g');
+
         $parameterIndex = 0;
         $likeConditions = [];
 
         foreach ($words as $word) {
-            // Build LIKE conditions for title and text
             $titleParam = 'word_' . $parameterIndex . '_title';
             $textParam = 'word_' . $parameterIndex . '_text';
 
@@ -133,31 +136,12 @@ class WorkRepository extends ServiceEntityRepository
         }
 
         if (!empty($likeConditions)) {
-            // Combine all LIKE conditions with AND
             $qb->andWhere(implode(' AND ', $likeConditions));
         } else {
-            // If no words, return empty results or handle as needed
-             $qb->andWhere('1 = 0'); // No results if query is empty
+             $qb->andWhere('1 = 0');
         }
 
-        // Order by position within the group for consistency, or by relevance if possible
-        // For simplicity, ordering by position and then group title.
-        // A real full-text search would order by relevance score.
         $qb->orderBy('w.position', 'ASC');
-
-        // Add snippet generation logic here if possible or handle in the controller.
-        // Doctrine ORM doesn't directly support generating highlighted snippets like SQL's
-        // FTS functions. This typically needs to be done in PHP after fetching results,
-        // or by using a database-specific FTS extension and a custom DQL function.
-
-        // For now, we'll return the paginated results and handle snippet generation in controller.
-        // The controller will need to re-implement the search logic to generate snippets.
-        // Or, we can add a placeholder and refine later.
-
-        // Let's add an example of how one might structure the SELECT for potential snippet generation
-        // but this is complex without database FTS support.
-        // Example: Add fields needed for snippet generation:
-        // $qb->addSelect('w.title', 'w.text');
 
         /** @var PaginationInterface<int, Work> $pagination */
         $pagination = $this->paginator->paginate(

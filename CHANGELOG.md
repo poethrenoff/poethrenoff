@@ -3,6 +3,57 @@
 > Подробная история всех изменений, исправлений и улучшений, внесённых в проект.
 > Актуальные инструкции для агента — в [`AGENTS.md`](AGENTS.md).
 
+## 2026-08-11
+
+- Telegram в России считается навсегда недоступным — сайт общается с Telegram **только** через AWS-мост. Удалён весь прямой код/зависимости общения с Telegram:
+  - Удалена зависимость `irazasyed/telegram-bot-sdk` (и связанные `illuminate/*`, `nesbot/carbon` и др.) из `composer.json`/`composer.lock`.
+  - `TelegramService` переписан без SDK: `computeReplies(Update): list<string>` → `computeReplies(array $update): list<string>` (работает с сырым массивом апдейта). Удалены `getUpdates()`, `deleteWebhook()`, `sendMessage()`, `handleUpdate()`, `$telegram`/`Api` и инжект `TELEGRAM_API_TOKEN`. Остались чистое вычисление ответов и `formatWork()`.
+  - `BotController` (`POST /bot`, контекст `www`) больше не использует `Update`-объект: декодирует JSON тела и передаёт массив в `computeReplies()`. Маршрут переименован `telegram_webhook` → `telegram_gateway`.
+  - Удалена тестовая команда `app:telegram:poll` (`TelegramPollCommand`) и цель `bot` из `Makefile`.
+  - Из `.env`/`.env.local` удалён `TELEGRAM_API_TOKEN` (токен живёт только в `/etc/telegram-bridge.env` на AWS; на сайте не используется).
+  - Обновлены `AGENTS.md` (схема «демон ↔ шлюз», удалены инструкции по webhook и локальному поллингу) и `CHANGELOG.md`.
+- `TelegramBridgeClient` объединён с `TelegramService` и удалён: метод `publish(int|string $chatId, string $text): bool` перенесён в `TelegramService` (POST на `TELEGRAM_BRIDGE_URL` с заголовком `X-Bot-Secret`), в конструктор добавлены `TELEGRAM_BRIDGE_URL`, `TELEGRAM_BOT_SECRET` и `HttpClientInterface`. Обновлены `AGENTS.md` и `telegram-bridge/telegram-bridge.md`.
+- Добавлена консольная команда `app:telegram:send <chatId> <text>` — отправка текстового сообщения в Telegram через AWS-мост (`TelegramService::publish()`).
+- Приведён `AGENTS.md` к актуальному состоянию: исправлены пути к файлам бриджа (`.data/` → `telegram-bridge/`), убрано дублирование описания `TelegramService::publish()`, добавлена команда `app:telegram:send`, удалено упоминание нереализованной точки публикации.
+
+## 2026-08-10
+
+- Telegram-бот переведён на схему «демон ↔ шлюз» (план `.data/PLAN-telegram-aws-bridge.md`), потому что на проде хостинг блокирует и исходящие к Telegram, и входящие webhook-запросы от Telegram. Теперь постоянный Python-демон на AWS EC2 (имеющем доступ и к Telegram, и к poethrenoff.ru) получает обновления через long-polling `getUpdates` и форвардит их на сайт:
+  - `TelegramService` разделён на вычисление и отправку: добавлен чистый метод `computeReplies(Update): list<string>` (без вызовов Telegram); `handleUpdate()` переписан как `computeReplies()` + `sendMessage()` для каждого ответа (оставлен для локального `app:telegram:poll`). `handleSearch()`/`formatWork()` стали чистыми и возвращают `list<string>`. `sendMessage`, `getUpdates`, `deleteWebhook`, `getWebhookUpdate` не изменены.
+  - `BotController::webhook` (`POST /bot`, контекст `www`) превращён в шлюз для демона: проверяет заголовок `X-Bot-Secret` против `TELEGRAM_BOT_SECRET` (иначе `403`), декодирует JSON тела в `new Update($data)` и возвращает `{"replies": [...]}` (`JsonResponse`). Секрет инжектится через `#[Autowire(env: 'TELEGRAM_BOT_SECRET')]`.
+  - В `.env`/`.env.local` добавлена переменная `TELEGRAM_BOT_SECRET` (пустая, значение задаётся в проде).
+  - Добавлен Python-демон `.data/telegram-bridge.py` (библиотека `requests`): цикл `getUpdates(offset, timeout=30, limit=100)` → POST на сайт с заголовком `X-Bot-Secret` → извлечение `chat_id` из `update.message.chat.id` → `sendMessage(chat_id, text, HTML)` → после успеха `offset = update_id + 1`. Есть backoff при сетевых ошибках, логирование в stdout (journald). env: `TELEGRAM_API_TOKEN`, `SITE_URL` (по умолчанию `https://poethrenoff.ru/bot`), `BOT_SECRET`.
+  - Добавлен systemd-юнит `.data/telegram-bridge.service` (`Type=simple`, `Restart=always`, `RestartSec=5`, `EnvironmentFile=/etc/telegram-bridge.env`, `WantedBy=multi-user.target`).
+  - Нюанс: в новой схеме все ответы уходят с `parse_mode=HTML` (в т.ч. `/start`/`/help`, раньше — `''`); для обычного текста без тегов безопасно. Webhook на стороне Telegram должен оставаться удалённым (демон использует `getUpdates`).
+- Схема «демон ↔ шлюз» сделана двунаправленной — добавлен событийный канал «сайт → AWS → Telegram» для публикации стихов в Telegram по инициативе сервера (без поллинга, задержка ≤1с):
+  - Демон `.data/telegram-bridge.py` получил встроенный HTTP-слушатель `POST /push` (поток в том же процессе): проверяет `X-Bot-Secret` (иначе `403`), принимает JSON `{"chat_id": ..., "text": ...}` и шлёт `sendMessage(chat_id, text, HTML)`. Бинд/порт из env `PUSH_HOST` (по умолчанию `0.0.0.0`) и `PUSH_PORT` (по умолчанию `8080`); слушатель запускается отдельным потоком в `main()`.
+  - На сайте добавлен сервис `TelegramBridgeClient::publish(int|string $chatId, string $text): bool` — POST на `TELEGRAM_BRIDGE_URL` с заголовком `X-Bot-Secret` (переиспользует `TELEGRAM_BOT_SECRET`), через `symfony/http-client` по образцу `YandexService`. `chat_id` универсален (канал `@username`/id или ЛС).
+  - В `.env`/`.env.local` добавлена `TELEGRAM_BRIDGE_URL` (адрес AWS `POST /push`).
+  - Конкретный сервис публикации/точка вызова намеренно отложены — сейчас реализована только базовая возможность пуша.
+  - Добавлена подробная инструкция по установке/настройке демона на AWS: `.data/telegram-bridge.md` (создание пользователя, env, юнит, открытие портов, проверки, логи, устранение неполадок).
+
+## 2026-08-09
+
+- Установлен `irazasyed/telegram-bot-sdk` (v3.16); `TelegramService` и `TelegramPollCommand` переведены на него (вместо прямых HTTP-вызовов):
+  - `Api` создаётся в сервисе с токеном из `TELEGRAM_API_TOKEN`; низкоуровневые `request()`/`botUrl()`/`HttpClientInterface` удалены.
+  - `getWebhookUpdate()` возвращает `Telegram\Bot\Objects\Update`, `getUpdates()` — `array<int, Update>`, `deleteWebhook()`, `sendMessage()` — `Message`. `handleUpdate(Update)` использует объектный доступ (`->message`, `->chat`, `->id`, `->text`).
+  - `TelegramPollCommand` читает `update_id` через `$update['update_id']` и поля входящего сообщения через объектные `?->`-аксессоры.
+- Установлен `symfony/http-client`; на него переведены HTTP-вызовы `YandexService`, ранее использовавшие curl: приватные `curlGet()`/`curlPost()` переименованы в `httpGet()`/`httpPost()`, затем объединены в единый `request(string $method, string $url, ?string $body = null)` (таймаут 10с, редиректы обрабатываются клиентом автоматически, `Content-Type`/`body` добавляются только для POST). Заголовки `Authorization`/`X-Folder-Id` сохранены.
+- Ранее в тот же день `TelegramService::request()` был переведён на `HttpClientInterface` (единая сигнатура `request(string $method, string $url, ?string $body = null)` с хелпером `botUrl()`), однако от этого перевода отказались в пользу `irazasyed/telegram-bot-sdk` (см. запись выше).
+- Перенесён Telegram-бот со старого сайта на новый Symfony-проект (функциональность из `.data/BotModule.php`):
+  - Создан сервис `TelegramService` (`src/Service/`): чтение webhook-обновлений, `sendMessage` через Bot API (`https://api.telegram.org/bot<token>/sendMessage`, `parse_mode=HTML`), форматирование стихотворения для ответа. Использует `#[Autowire(env: 'TELEGRAM_API_TOKEN')]` (уже был объявлен в `.env`) и cURL по образцу `YandexService`.
+  - Создан контроллер `BotController` с маршрутом `POST /bot`, привязанным к контексту `www` (`config/routes.yaml`). Обрабатывает `/start` и `/help` (приветствие с описанием функций), `/random` (случайный стих из избранного через `WorkRepository::findRandomActiveFromFavorites()`), любой другой текст — поиск по стихам (`WorkRepository::search`) и выдача случайного из найденных; если ничего не найдено — сообщение об отсутствии результатов.
+  - Поиск по фразе в боте тоже ограничен «Избранным»: в `WorkRepository::search()` добавлен опциональный флаг `$favoritesOnly` (по умолчанию `false`, сайт-поиск не затронут), бот передаёт его значением `true`.
+  - Логика обработки сообщений бота вынесена из контроллера в `TelegramService::handleUpdate()`, чтобы её разделяли webhook и режим прослушивания. `BotController` стал тонким обёрткой (читает webhook-update и вызывает `handleUpdate()`).
+  - Добавлена команда `app:telegram:poll` — локальный режим long-polling (`getUpdates`) для тестирования без webhook/воркеров. `TelegramService` получил методы `getUpdates()` и `deleteWebhook()` (общий HTTP-хелпер `request()`); команда имеет опцию `--delete-webhook` для снятия активного webhook перед прослушиванием.
+  - Команда `app:telegram:poll` теперь выводит в консоль входящие сообщения и отправляемые ботом ответы: `handleUpdate()` возвращает список отправленных текстов (`list<string>`), команда логирует каждое входящее сообщение (`Incoming [chat_id]: текст`) и каждый ответ (`Reply: ...`).
+  - `TelegramService::formatWork()`: заголовок стиха не выводится в ответе бота, если он равен `* * *`.
+  - Исправлен вывод ответов в `app:telegram:poll`: тексты стихов из БД могут содержать `\r\n` (Windows-переносы), из-за которых терминал затирал начало строки. Теперь в логе ответа все переносы строк (`\r\n`/`\r`/`\n`) заменяются пробелами, а повторные пробелы схлопываются (метод `flatten()`).
+  - Из `app:telegram:poll` убран `pcntl` (расширения нет ни на виртуальном хостинге, ни локально в докере — окружение стараемся держать одинаковым). Команда теперь просто крутит бесконечный цикл `while (true)` (подавления для PHPStan: `while.alwaysTrue` и `deadCode.unreachable`); остановка — обычным `Ctrl+C`/SIGINT.
+  - `make bot` больше не выводит «Ошибка 130» при остановке по `Ctrl+C`: рецепт цели `bot` в `Makefile` заканчивается на `|| true`, из-за чего код возврата прерванной команды игнорируется (не требует `pcntl`).
+- Обновлены инструкции по настройке webhook-хуков для Telegram-бота в `AGENTS.md`.
+  - В `AGENTS.md` добавлена диагностика случая, когда webhook установлен, но бот не отвечает: при `last_error_message: "Connection timed out"` в `getWebhookInfo` (при рабочем ручном `POST /bot`) хостинг блокирует входящие соединения с IP Telegram — требуется добавить IP-сети Telegram в белый список на порт 443.
+
 ## 2026-08-08
 
 - По аудиту (мелкие правки): полностью удалены `@noinspection`-директивы из всех сущностей (`Poem.php`, `PoemVersion.php`, `BlogPost.php`, `Work.php`, `WorkComment.php`, `Picture.php`, `WorkGroup.php`) — PHPStan (level 8) и PHPCS проходят без ошибок; раскомментирован и задан явный `server_version: '8.4'` в `config/packages/doctrine.yaml`; в автоссылки комментариев (`CommentService::autolink`) добавлен атрибут `rel="noopener nofollow"`.

@@ -4,6 +4,7 @@ namespace App\Service;
 
 use Aws\S3\S3Client;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class YandexService
 {
@@ -18,6 +19,7 @@ class YandexService
         #[Autowire(env: 'YANDEX_CLOUD_S3_ENDPOINT')] private string $s3Endpoint,
         #[Autowire(env: 'YANDEX_CLOUD_FOLDER_ID')] private string $folderId,
         #[Autowire(env: 'YANDEX_SERVICE_API_KEY')] private string $serviceApiKey,
+        private HttpClientInterface $httpClient,
     ) {
     }
 
@@ -80,7 +82,7 @@ class YandexService
             throw new \RuntimeException('Ошибка сериализации запроса распознавания');
         }
 
-        $response = $this->curlPost($url, $body);
+        $response = $this->request('POST', $url, $body);
         if ($response === null) {
             throw new \RuntimeException('Ошибка при запуске распознавания');
         }
@@ -96,7 +98,7 @@ class YandexService
     public function checkRecognition(string $operationId): bool
     {
         $url = 'https://operation.api.cloud.yandex.net/operations/' . urlencode($operationId);
-        $response = $this->curlGet($url);
+        $response = $this->request('GET', $url);
         if ($response === null) {
             throw new \RuntimeException('Ошибка при проверке статуса распознавания');
         }
@@ -124,7 +126,7 @@ class YandexService
     {
         $url = 'https://stt.api.cloud.yandex.net/stt/v3'
             . '/getRecognition?operation_id=' . urlencode($operationId);
-        $response = $this->curlGet($url);
+        $response = $this->request('GET', $url);
         if ($response === null) {
             throw new \RuntimeException('Ошибка при получении результата распознавания');
         }
@@ -199,7 +201,7 @@ PROMPT,
             return $text;
         }
 
-        $response = $this->curlPost($url, $body);
+        $response = $this->request('POST', $url, $body);
         if ($response === null) {
             return $text;
         }
@@ -243,56 +245,37 @@ PROMPT,
         return trim($this->s3Prefix, '/') . '/' . $fileHash;
     }
 
-    private function curlGet(string $url): ?string
+    /**
+     * @param string $method
+     * @param string $url
+     * @param string|null $body
+     * @return string|null
+     */
+    private function request(string $method, string $url, ?string $body = null): ?string
     {
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_TIMEOUT => 10,
-            CURLOPT_HTTPHEADER => [
-                'Authorization: Api-Key ' . $this->serviceApiKey,
-                'X-Folder-Id: ' . $this->folderId,
-                'Accept: application/json',
+        $options = [
+            'timeout' => 10,
+            'headers' => [
+                'Authorization' => 'Api-Key ' . $this->serviceApiKey,
+                'X-Folder-Id' => $this->folderId,
+                'Accept' => 'application/json',
             ],
-        ]);
-
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($response === false || $httpCode >= 400) {
-            return null;
+        ];
+        if ($body !== null) {
+            $options['headers']['Content-Type'] = 'application/json';
+            $options['body'] = $body;
         }
 
-        return (string) $response;
-    }
+        try {
+            $response = $this->httpClient->request($method, $url, $options);
 
-    private function curlPost(string $url, string $body): ?string
-    {
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_TIMEOUT => 10,
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $body,
-            CURLOPT_HTTPHEADER => [
-                'Authorization: Api-Key ' . $this->serviceApiKey,
-                'X-Folder-Id: ' . $this->folderId,
-                'Content-Type: application/json',
-                'Accept: application/json',
-            ],
-        ]);
+            if ($response->getStatusCode() >= 400) {
+                return null;
+            }
 
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($response === false || $httpCode >= 400) {
+            return $response->getContent();
+        } catch (\Throwable $e) {
             return null;
         }
-
-        return (string) $response;
     }
 }

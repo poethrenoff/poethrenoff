@@ -38,6 +38,9 @@
 - `WorkService` — версионирование стихов, переупорядочивание, парсинг дат, trash/restore/delete
 - `RecognizeService` — state machine для асинхронного распознавания речи: создание задач, пошаговое выполнение через poll, обработка ошибок
 - `YandexService` — распознавание речи (асинхронное через STT v3) и постобработка текста с помощью YandexGPT (модель `yandexgpt-lite`) для расстановки знаков препинания и формирования структуры стихотворения. Требует роли `ai.speechkit-stt.user`, `ai.languageModels.user` и доступа к S3 (`storage.uploader`, `storage.viewer`).
+- `TelegramService` — общение с Telegram **только** через AWS-мост, без прямого доступа: `computeReplies(array $update): list<string>` (вычисление ответов бота на сыром массиве апдейта — `/start`, `/help`, `/random`, поиск по избранному), `formatWork(Work)`, `publish(int|string $chatId, string $text): bool` (событийный push «сайт → AWS → Telegram»). SDK `irazasyed/telegram-bot-sdk` удалён — сайт с Telegram напрямую не общается.
+- **Схема «демон ↔ шлюз»:** на проде хостинг блокирует и исходящие к Telegram, и входящие webhook — Telegram в России считается навсегда недоступным, общение только через AWS-мост. Постоянный Python-демон `telegram-bridge/telegram-bridge.py` на AWS EC2 (ставится в `/usr/local/bin/`, systemd-юнит `telegram-bridge/telegram-bridge.service`, подробная установка — `telegram-bridge/telegram-bridge.md`) получает обновления long-polling `getUpdates` и форвардит их на сайт: `POST /bot` (контекст `www`) с заголовком `X-Bot-Secret` против `TELEGRAM_BOT_SECRET`, в ответ — `{"replies": [...]}`; демон сам отправляет каждый ответ в Telegram. Секрет задаётся через `#[Autowire(env: 'TELEGRAM_BOT_SECRET')]` в `BotController`. Webhook на стороне Telegram должен быть удалён.
+- Push «сайт → AWS → Telegram»: `TelegramService::publish()` POST'ит на `TELEGRAM_BRIDGE_URL` с заголовком `X-Bot-Secret`. Слушатель на демоне — `POST /push` (`PUSH_HOST`/`PUSH_PORT`, по умолчанию `0.0.0.0:8080`), проверяет тот же секрет и шлёт `sendMessage(chat_id, text, HTML)`. `chat_id` универсален (канал `@username`/id или ЛС). Ручная отправка — консольной командой `app:telegram:send`.
 
 Контроллеры делегируют бизнес-логику сервисам и отвечают только за HTTP-обработку.
 
@@ -79,6 +82,7 @@ docker compose exec php bin/console cache:clear
 docker compose exec php bin/console debug:router
 docker compose exec php bin/console app:create-admin <email> <password>
 docker compose exec php bin/console app:migrate:legacy
+docker compose exec php bin/console app:telegram:send <chatId> <text>
 docker compose exec php bin/phpstan analyse --no-progress
 ```
 
@@ -163,6 +167,19 @@ BREAKING CHANGE: old payment API endpoints are removed
 
 Подробная история изменений вынесена в отдельный файл **[`CHANGELOG.md`](CHANGELOG.md)**.
 При необходимости сверяйся с ним для понимания контекста прошлых решений.
+
+## Telegram-бот (схема «демон ↔ шлюз»)
+
+- Бот обрабатывает `POST /bot` (контекст `www`), команды: `/start`/`/help` (описание), `/random` (случайный стих из избранного), любой другой текст — поиск по стихам из избранного и выдача случайного из найденных. Ответы вычисляет `TelegramService::computeReplies()` на сыром массиве апдейта и возвращает `{"replies": [...]}` демону; сам сайт в Telegram ничего не шлёт.
+- Переменные сайта: `TELEGRAM_BOT_SECRET` (общий секрет шлюза), `TELEGRAM_BRIDGE_URL` (адрес AWS `POST /push`). Токен бота `TELEGRAM_API_TOKEN` на сайте **не нужен** — он живёт только в `/etc/telegram-bridge.env` на AWS.
+- **Установка демона на AWS EC2:** см. подробную инструкцию `telegram-bridge/telegram-bridge.md`. Коротко: скопировать `telegram-bridge/telegram-bridge.py` в `/usr/local/bin/telegram-bridge.py`, создать `/etc/telegram-bridge.env` (`TELEGRAM_API_TOKEN`, `SITE_URL=https://poethrenoff.ru/bot`, `BOT_SECRET` — совпадает с `TELEGRAM_BOT_SECRET` на сайте; при необходимости `PUSH_HOST`/`PUSH_PORT`), положить юнит `telegram-bridge/telegram-bridge.service` в `/etc/systemd/system/`, затем `systemctl enable --now telegram-bridge`. Требуется пакет `requests`. Для приёма пуша с сайта открыть порт слушателя (по умолчанию `8080`) в security group EC2 и firewall ОС.
+- **Тестирование шлюза с сайта:** `POST /bot` с заголовком `X-Bot-Secret` и телом-апдейтом, в ответ — `{"replies": [...]}`. Ручной push — командой `app:telegram:send <chatId> <text>` (через `TelegramService::publish()`). Локальной команды прослушивания больше нет (удалена вместе с SDK).
+
+### Локальное тестирование (long-polling)
+
+Демон/шлюз на проде работает через long-polling.
+
+- **Webhook и long-polling несовместимы** — активный webhook блокирует `getUpdates` (ошибка 409). На проде webhook должен быть удалён (демон работает через `getUpdates`). Если webhook уже настроен на боте, снимите его `deleteWebhook` с токена на AWS.
 
 ## Операционные заметки
 

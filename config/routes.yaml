@@ -9,6 +9,11 @@ www:
     type: attribute
     condition: "request.server.get('APP_SITE_CONTEXT') == 'www'"
 
+bot:
+    resource: '../src/Controller/BotController.php'
+    type: attribute
+    condition: "request.server.get('APP_SITE_CONTEXT') == 'www'"
+
 blog:
     resource: '../src/Controller/BlogController.php'
     type: attribute
