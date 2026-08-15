@@ -13,6 +13,7 @@
 /.idea/
 /.junie/
 /.kilo/
+__pycache__
 
 ###> squizlabs/php_codesniffer ###
 /.phpcs-cache

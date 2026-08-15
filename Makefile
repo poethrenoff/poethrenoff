@@ -10,6 +10,9 @@ stop:
 down:
 	@docker compose -f docker-compose.yml down
 
+install:
+	@docker compose -f docker-compose.yml exec php composer install
+
 update:
 	@docker compose -f docker-compose.yml exec php composer update -W
 
