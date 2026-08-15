@@ -41,6 +41,14 @@ POLL_LIMIT = 100
 BACKOFF_START = 1
 BACKOFF_MAX = 60
 
+SITE_TIMEOUT = 20
+SITE_CONNECT_TIMEOUT = 10
+SITE_RETRIES = 3
+SITE_RETRY_BACKOFF_START = 1
+SITE_RETRY_BACKOFF_MAX = 8
+
+SESSION = None
+
 
 def api_url(method: str) -> str:
     return TELEGRAM_API_BASE.format(TOKEN) + "/" + method
@@ -51,7 +59,7 @@ def log(message: str) -> None:
 
 
 def send_message(chat_id, text: str) -> None:
-    response = requests.post(
+    response = SESSION.post(
         api_url("sendMessage"),
         json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"},
         timeout=30,
@@ -109,7 +117,7 @@ def run_push_server() -> None:
 
 
 def get_updates(offset: int) -> list:
-    response = requests.get(
+    response = SESSION.get(
         api_url("getUpdates"),
         params={"offset": offset, "limit": POLL_LIMIT, "timeout": POLL_TIMEOUT},
         timeout=POLL_TIMEOUT + 15,
@@ -122,17 +130,34 @@ def get_updates(offset: int) -> list:
 
 
 def forward_to_site(update: dict) -> list:
-    response = requests.post(
-        SITE_URL,
-        headers={"X-Bot-Secret": BOT_SECRET, "Content-Type": "application/json"},
-        data=json.dumps(update),
-        timeout=60,
-    )
-    if response.status_code != 200:
-        raise RuntimeError(
-            "site gateway error {}: {}".format(response.status_code, response.text)
-        )
-    return response.json().get("replies", [])
+    backoff = SITE_RETRY_BACKOFF_START
+    for attempt in range(SITE_RETRIES):
+        try:
+            response = SESSION.post(
+                SITE_URL,
+                headers={"X-Bot-Secret": BOT_SECRET, "Content-Type": "application/json"},
+                data=json.dumps(update),
+                timeout=(SITE_CONNECT_TIMEOUT, SITE_TIMEOUT),
+            )
+            if response.status_code != 200:
+                raise RuntimeError(
+                    "site gateway error {}: {}".format(response.status_code, response.text)
+                )
+            return response.json().get("replies", [])
+        except Exception as exc:
+            if (
+                attempt < SITE_RETRIES - 1
+                and isinstance(exc, (requests.ConnectionError, requests.Timeout))
+            ):
+                log(
+                    "site request failed (attempt {}): {}; retrying in {}s".format(
+                        attempt + 1, exc, backoff
+                    )
+                )
+                time.sleep(backoff)
+                backoff = min(backoff * 2, SITE_RETRY_BACKOFF_MAX)
+                continue
+            raise
 
 
 def extract_chat_id(update: dict):
@@ -172,7 +197,7 @@ def run() -> None:
 
 
 def main() -> None:
-    global TOKEN, SITE_URL, BOT_SECRET, PUSH_HOST, PUSH_PORT
+    global TOKEN, SITE_URL, BOT_SECRET, PUSH_HOST, PUSH_PORT, SESSION
 
     TOKEN = os.environ.get("TELEGRAM_API_TOKEN")
     SITE_URL = os.environ.get("SITE_URL", "https://poethrenoff.ru/bot")
@@ -193,6 +218,8 @@ def main() -> None:
             "Missing required environment variable(s): {}\n".format(", ".join(missing))
         )
         sys.exit(2)
+
+    SESSION = requests.Session()
 
     threading.Thread(target=run_push_server, daemon=True).start()
     run()
