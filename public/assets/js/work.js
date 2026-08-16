@@ -678,7 +678,10 @@ document.addEventListener('alpine:init', () => {
             const poll = async () => {
                 if (this.recognizingId === null) return;
 
-                const res = await this.api(`/audio/${audioId}/recognize/${taskId}`);
+                const res = await this.api(`/audio/${audioId}/recognize/${taskId}`, {
+                    method: 'POST',
+                    body: JSON.stringify({ _token: CSRF_TOKENS.work_audio_recognize_poll }),
+                });
                 if (!res) {
                     this.generalError = 'Ошибка при проверке статуса';
                     this.recognizingId = null;

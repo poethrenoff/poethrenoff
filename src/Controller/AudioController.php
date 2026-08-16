@@ -160,10 +160,14 @@ class AudioController extends AbstractController
         '/audio/{id}/recognize/{uuid}',
         name: 'work_api_audio_recognize_poll',
         requirements: ['id' => '\d+', 'uuid' => '[0-9a-f]+'],
-        methods: ['GET']
+        methods: ['POST']
     )]
-    public function recognizePoll(string $uuid, Audio $audio): JsonResponse
+    public function recognizePoll(Request $request, string $uuid, Audio $audio): JsonResponse
     {
+        if (!$this->validateCsrf($request, 'work_audio_recognize_poll')) {
+            return $this->json(['error' => ['message' => 'Invalid CSRF token']], Response::HTTP_FORBIDDEN);
+        }
+
         $task = $this->recognizeTaskRepository->find($uuid);
         if (!$task || $task->getAudio()->getId() !== $audio->getId()) {
             return $this->json(['error' => ['message' => 'Задача не найдена']], Response::HTTP_NOT_FOUND);
