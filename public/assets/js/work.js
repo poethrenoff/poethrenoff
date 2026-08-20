@@ -526,6 +526,11 @@ document.addEventListener('alpine:init', () => {
                 body: JSON.stringify({ _token: CSRF_TOKENS.work_audio_rename, title: item.title })
             });
             if (res && res.ok) {
+                const updated = await res.json();
+                if (updated.title !== undefined) {
+                    item.title = updated.title;
+                }
+                this.originalAudioTitle = item.title;
                 this.editingAudioId = null;
             } else if (res) {
                 this.generalError = await this.extractError(res);
