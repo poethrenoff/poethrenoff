@@ -36,6 +36,8 @@ sonata_admin:
                 items:
                     - App\Admin\PoemAdmin
                     - App\Admin\AudioAdmin
+                    - App\Admin\RecognizeTaskAdmin
+                    - App\Admin\PublicationLogAdmin
             site:
                 label: Произведения
                 keep_open: true

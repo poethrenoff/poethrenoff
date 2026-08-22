@@ -36,13 +36,15 @@ class TelegramSendCommand extends Command
         $chatId = $input->getArgument('chatId');
         $text = $input->getArgument('text');
 
-        if (!$this->telegramService->publish($chatId, $text)) {
+        $messageId = $this->telegramService->publish($chatId, $text);
+
+        if ($messageId === null) {
             $io->error('Failed to send message through the bridge');
 
             return Command::FAILURE;
         }
 
-        $io->success(sprintf('Message sent to %s', $chatId));
+        $io->success(sprintf('Message sent to %s (message_id=%d)', $chatId, $messageId));
 
         return Command::SUCCESS;
     }

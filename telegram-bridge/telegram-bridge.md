@@ -231,7 +231,7 @@ curl -X POST http://127.0.0.1:8080/push \
   -d '{"chat_id": <ваш_telegram_chat_id>, "text": "Тест"}'
 ```
 
-Ожидается `{"ok": true}` и приход сообщения в Telegram.
+Ожидается `{"ok": true, "message_id": <id>}` (реальный `message_id` из `sendMessage`) и приход сообщения в Telegram.
 
 Проверка без секрета (ожидается `403`):
 

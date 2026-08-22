@@ -4,9 +4,9 @@ namespace App\Trait;
 
 trait HasDefaultTitleTrait
 {
-    abstract protected function getBodyContent(): string;
+    abstract public function getBodyContent(): string;
 
-    abstract protected function getDefaultComment();
+    abstract public function getDefaultComment();
 
     public function getDefaultTitle(): string
     {
@@ -21,6 +21,11 @@ trait HasDefaultTitleTrait
         return preg_match('/\".*\.\.\.\"$/', $this->getTitle() ?? '')
             ? '* * *'
             : mb_strtoupper($this->getTitle() ?? '');
+    }
+
+    public function getDisplayComment(): string
+    {
+        return (string) $this->getComment();
     }
 
     private function ensureDefaults(): void

@@ -9,6 +9,10 @@ services:
         autowire: true
         autoconfigure: true
 
+    _instanceof:
+        App\Service\Publishing\SocialPlatformInterface:
+            tags: ['app.social_platform']
+
     App\:
         resource: '../src/'
         exclude:
@@ -79,6 +83,18 @@ services:
         public: true
         tags:
             - { name: sonata.admin, manager_type: orm, group: work, label: Записи, model_class: App\Entity\Audio }
+
+    # PublicationLogAdmin
+    App\Admin\PublicationLogAdmin:
+        public: true
+        tags:
+            - { name: sonata.admin, manager_type: orm, group: work, label: Журнал публикаций, model_class: App\Entity\PublicationLog }
+
+    # RecognizeTaskAdmin
+    App\Admin\RecognizeTaskAdmin:
+        public: true
+        tags:
+            - { name: sonata.admin, manager_type: orm, group: work, label: Задачи распознавания, model_class: App\Entity\RecognizeTask }
 
     # WorkGroupAdmin
     App\Admin\WorkGroupAdmin:

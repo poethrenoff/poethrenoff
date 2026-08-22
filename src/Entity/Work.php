@@ -76,12 +76,12 @@ class Work
         $this->ensureDefaults();
     }
 
-    protected function getBodyContent(): string
+    public function getBodyContent(): string
     {
         return $this->text;
     }
 
-    protected function getDefaultComment(): string
+    public function getDefaultComment(): string
     {
         return (new \DateTimeImmutable())->format('d.m.Y');
     }

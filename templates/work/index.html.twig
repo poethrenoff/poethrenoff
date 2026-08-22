@@ -14,7 +14,13 @@
             </div>
         </header>
 
-        <div class="dashboard-panel" x-show="stats.total !== undefined && view !== 'trash'">
+        <div class="toast-container">
+            <template x-for="(toast, index) in toasts" :key="index">
+                <div class="toast" :class="toast.type" x-text="toast.message" @click="toasts.splice(index, 1)"></div>
+            </template>
+        </div>
+
+        <div class="dashboard-panel" x-show="stats.total !== undefined && view === 'feed'">
             <div class="dash-row">
                 <div class="dash-stat">
                     <span class="dash-value" x-text="stats.total"></span>
@@ -85,6 +91,9 @@
                             </div>
                             <input class="title-input" tabindex="1" x-model="poem.title" x-show="editingId === poem.id" placeholder="Название" @keydown.enter="saveEdit(poem)" @keydown.escape="cancelEdit()" spellcheck="true" lang="ru">
                             <div class="poem-actions view-actions" x-show="editingId !== poem.id">
+                                <button class="icon-btn" @click="openPublish(poem)" title="Опубликовать">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                                </button>
                                 <button class="icon-btn copy-btn" :data-copy-id="poem.id" @click="copyPoem(poem)" title="Копировать">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                                 </button>
@@ -240,6 +249,38 @@
             </div>
         </main>
 
+        <div x-show="publishOpen" class="modal-overlay" @click.self="closePublish()" @keydown.escape.window="closePublish()">
+            <div class="modal">
+                <div class="modal-header">
+                    <span>Опубликовать стих</span>
+                    <button class="icon-btn" @click="closePublish()" title="Закрыть">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <template x-for="p in publishPlatforms" :key="p.key">
+                        <label class="publish-option"
+                               :class="{ disabled: !p.configured || p.status_for_poem === 'success', 'is-error': p.status_for_poem === 'error' }">
+                            <input type="radio" name="publish-platform" :value="p.key"
+                                   x-model="publishSelected"
+                                   :disabled="!p.configured || p.status_for_poem === 'success' || publishing">
+                            <span x-text="p.label"></span>
+                            <span x-show="p.status_for_poem === 'success'" class="status-success" title="Опубликовано">✓</span>
+                            <span x-show="p.status_for_poem === 'error'" class="status-error" title="Ошибка публикации">✕</span>
+                            <span x-show="!p.configured" class="status-hint">не настроено</span>
+                        </label>
+                    </template>
+                    <template x-if="publishPlatforms.length === 0">
+                        <p class="empty">Платформы не настроены.</p>
+                    </template>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn" @click="confirmPublish()" :disabled="!publishSelected || publishing">ОК</button>
+                    <button class="btn secondary" @click="closePublish()">Отмена</button>
+                </div>
+            </div>
+        </div>
+
         <button class="scroll-top-btn" @click="scrollToTop()" title="Наверх">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
         </button>
@@ -264,6 +305,7 @@
             work_audio_delete: '{{ csrf_token('work_audio_delete') }}',
             work_audio_recognize: '{{ csrf_token('work_audio_recognize') }}',
             work_audio_recognize_poll: '{{ csrf_token('work_audio_recognize_poll') }}',
+            work_publish: '{{ csrf_token('work_publish') }}',
         };
     </script>
     <script src="{{ asset('assets/js/work.js') }}"></script>

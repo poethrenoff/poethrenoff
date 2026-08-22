@@ -20,7 +20,8 @@ Environment variables:
 
 The daemon also exposes a small HTTP endpoint, POST /push, so the site can
 publish messages to Telegram on its own initiative. Body: {"chat_id": ...,
-"text": "..."} plus the X-Bot-Secret header.
+"text": "..."} plus the X-Bot-Secret header. On success it replies
+{"ok": true, "message_id": <id>} with the message id from sendMessage.
 
 Run as a systemd service (see telegram-bridge.service). Logs to stdout/journald.
 """
@@ -58,7 +59,7 @@ def log(message: str) -> None:
     print(message, flush=True)
 
 
-def send_message(chat_id, text: str) -> None:
+def send_message(chat_id, text: str) -> int:
     response = SESSION.post(
         api_url("sendMessage"),
         json={"chat_id": chat_id, "text": text, "parse_mode": "HTML"},
@@ -68,6 +69,7 @@ def send_message(chat_id, text: str) -> None:
     payload = response.json()
     if not payload.get("ok"):
         raise RuntimeError("sendMessage error: {}".format(payload))
+    return payload["result"]["message_id"]
 
 
 class PushHandler(BaseHTTPRequestHandler):
@@ -89,14 +91,14 @@ class PushHandler(BaseHTTPRequestHandler):
             if chat_id is None or not isinstance(text, str) or not text:
                 self._reply(400, {"error": "chat_id and text are required"})
                 return
-            send_message(chat_id, text)
+            message_id = send_message(chat_id, text)
         except Exception as exc:  # noqa: BLE001
             log("push error: {}".format(exc))
             self._reply(500, {"error": "Internal error"})
             return
 
         log("push to chat {}: {}".format(chat_id, text))
-        self._reply(200, {"ok": True})
+        self._reply(200, {"ok": True, "message_id": message_id})
 
     def _reply(self, status: int, payload: dict) -> None:
         body = json.dumps(payload).encode("utf-8")
@@ -135,19 +137,23 @@ def forward_to_site(update: dict) -> list:
         try:
             response = SESSION.post(
                 SITE_URL,
-                headers={"X-Bot-Secret": BOT_SECRET, "Content-Type": "application/json"},
+                headers={
+                    "X-Bot-Secret": BOT_SECRET,
+                    "Content-Type": "application/json",
+                },
                 data=json.dumps(update),
                 timeout=(SITE_CONNECT_TIMEOUT, SITE_TIMEOUT),
             )
             if response.status_code != 200:
                 raise RuntimeError(
-                    "site gateway error {}: {}".format(response.status_code, response.text)
+                    "site gateway error {}: {}".format(
+                        response.status_code, response.text
+                    )
                 )
             return response.json().get("replies", [])
         except Exception as exc:
-            if (
-                attempt < SITE_RETRIES - 1
-                and isinstance(exc, (requests.ConnectionError, requests.Timeout))
+            if attempt < SITE_RETRIES - 1 and isinstance(
+                exc, (requests.ConnectionError, requests.Timeout)
             ):
                 log(
                     "site request failed (attempt {}): {}; retrying in {}s".format(

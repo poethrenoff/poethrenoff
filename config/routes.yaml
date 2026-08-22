@@ -28,3 +28,8 @@ audio:
     resource: '../src/Controller/AudioController.php'
     type: attribute
     condition: "request.server.get('APP_SITE_CONTEXT') == 'work'"
+
+publish:
+    resource: '../src/Controller/PublishController.php'
+    type: attribute
+    condition: "request.server.get('APP_SITE_CONTEXT') == 'work'"

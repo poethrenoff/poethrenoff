@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Poem;
 use App\Entity\Work;
 use App\Repository\WorkRepository;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
@@ -23,9 +24,7 @@ class TelegramService
     }
 
     /**
-     * Compute bot replies for an update without any direct Telegram access.
-     *
-     * @param array<string, mixed> $update raw Telegram update payload
+     * @param array<string, mixed> $update
      *
      * @return list<string>
      */
@@ -68,11 +67,15 @@ class TelegramService
         return [$this->formatWork($works[array_rand($works)])];
     }
 
-    public function formatWork(Work $work): string
+    /**
+     * @param Work|Poem $work
+     * @return string
+     */
+    public function formatWork(Work|Poem $work): string
     {
         $title = htmlspecialchars($work->getDisplayTitle(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-        $text = htmlspecialchars($work->getText(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
-        $comment = htmlspecialchars($work->getComment() ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $text = htmlspecialchars($work->getBodyContent(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $comment = htmlspecialchars($work->getDisplayComment(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
         $lines = [];
         if ($title !== '* * *') {
@@ -88,12 +91,18 @@ class TelegramService
         return implode("\n", $lines);
     }
 
+    public function isConfigured(): bool
+    {
+        return $this->bridgeUrl !== '';
+    }
+
     /**
-     * Push a message to Telegram through the AWS bridge daemon.
+     * @param int|string $chatId
+     * @param string $text
+     * @return int|null
      *
-     * @param int|string $chatId Telegram chat or channel id (@username or numeric id)
      */
-    public function publish(int|string $chatId, string $text): bool
+    public function publish(int|string $chatId, string $text): ?int
     {
         $options = [
             'timeout' => 15,
@@ -110,9 +119,17 @@ class TelegramService
         try {
             $response = $this->httpClient->request('POST', $this->bridgeUrl, $options);
 
-            return $response->getStatusCode() < 400;
+            if ($response->getStatusCode() >= 400) {
+                return null;
+            }
+
+            $data = json_decode($response->getContent(false), true);
+
+            return is_array($data) && isset($data['message_id']) && is_int($data['message_id'])
+                ? $data['message_id']
+                : null;
         } catch (\Throwable $e) {
-            return false;
+            return null;
         }
     }
 }

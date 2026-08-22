@@ -29,6 +29,12 @@ document.addEventListener('alpine:init', () => {
         draftKey: 'newPoemDraft',
         stats: { total: 0, trash: 0, streak: 0, max_streak: 0 },
         toc: [],
+        publishOpen: false,
+        publishPoem: null,
+        publishSelected: '',
+        publishPlatforms: [],
+        publishing: false,
+        toasts: [],
 
         async api(url, options = {}) {
             options.headers = options.headers || {};
@@ -210,7 +216,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         async loadStats() {
-            if (this.view === 'trash') return;
+            if (this.view !== 'feed') return;
             const res = await this.api('/poems/stats/');
             if (res && res.ok) {
                 const data = await res.json();
@@ -730,6 +736,64 @@ document.addEventListener('alpine:init', () => {
             };
 
             await poll();
+        },
+
+        pushToast(message, type = 'info') {
+            this.toasts.push({ message, type });
+            setTimeout(() => { this.toasts.shift(); }, 4000);
+        },
+
+        async openPublish(poem) {
+            this.generalError = '';
+            this.publishPoem = poem;
+            this.publishSelected = '';
+            const res = await this.api(`/publish/${poem.id}/platforms/`);
+            if (res && res.ok) {
+                this.publishPlatforms = await res.json();
+                this.publishOpen = true;
+            } else if (res) {
+                this.generalError = await this.extractError(res);
+            }
+        },
+
+        closePublish() {
+            this.publishOpen = false;
+            this.publishPoem = null;
+            this.publishSelected = '';
+            this.publishing = false;
+        },
+
+        async confirmPublish() {
+            if (!this.publishSelected || !this.publishPoem || this.publishing) return;
+            this.generalError = '';
+            const platform = this.publishPlatforms.find(p => p.key === this.publishSelected);
+            const label = platform ? platform.label : this.publishSelected;
+
+            this.publishing = true;
+            const res = await this.api('/publish/', {
+                method: 'POST',
+                body: JSON.stringify({
+                    _token: CSRF_TOKENS.work_publish,
+                    poem_id: this.publishPoem.id,
+                    platform: this.publishSelected,
+                }),
+            });
+            this.publishing = false;
+
+            if (!res) {
+                this.generalError = 'Ошибка сети';
+                return;
+            }
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                this.pushToast(data.error?.message || 'Ошибка публикации', 'error');
+                return;
+            }
+
+            this.pushToast(`Опубликовано в ${label}`, 'success');
+            this.closePublish();
         },
     }));
 });

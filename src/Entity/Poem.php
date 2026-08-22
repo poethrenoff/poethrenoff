@@ -90,14 +90,19 @@ class Poem
         $this->ensureDefaults();
     }
 
-    protected function getBodyContent(): string
+    public function getBodyContent(): string
     {
         return $this->content;
     }
 
-    protected function getDefaultComment(): ?\DateTimeImmutable
+    public function getDefaultComment(): ?\DateTimeImmutable
     {
         return new \DateTimeImmutable('today');
+    }
+
+    public function getDisplayComment(): string
+    {
+        return $this->getComment()?->format('d.m.Y') ?? '';
     }
 
     public function getId(): ?int

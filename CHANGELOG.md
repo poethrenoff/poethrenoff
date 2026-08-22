@@ -3,295 +3,614 @@
 > Подробная история всех изменений, исправлений и улучшений, внесённых в проект.
 > Актуальные инструкции для агента — в [`AGENTS.md`](AGENTS.md).
 
+## 2026-08-22
+
+- Реализована публикация стихов из «Мастерской» в соцсети (план
+  `.data/PLAN-social-publishing.md`): синхронная публикация за один шаг.
+  Реализован эталонный адаптер Telegram; LiveJournal и VK — в плане.
+  - Сущность `PublicationLog` (журнал + дедуп через unique
+    `(poem_id, platform)`) и её репозиторий; enum `PublishPlatform`,
+    `PublicationStatus`.
+  - Абстракция `SocialPlatformInterface::publish(Poem): PublicationResult`
+    + реестр `SocialPlatformRegistry` (автотег `app.social_platform`)
+    + DTO `PublicationResult` (success/error, external id/url).
+  - Адаптер `TelegramPlatform`: публикует через `TelegramService::publish()`
+    (AWS-мост `POST /push`); `isConfigured` = заданы мост и `TELEGRAM_CHAT_ID`.
+  - Оркестратор `PublishService::publish()` выполняет публикацию и пишет
+    `PublicationLog` (success/error); `hasSuccess()` для дедупа.
+  - Контроллер `PublishController` (контекст `work`):
+    `GET /publish/{id}/platforms/` (статус для стиха) и `POST /publish/`
+    (публикация, CSRF `work_publish`). Маршруты подключены
+    в `config/routes.yaml` с условием контекста.
+  - Миграция `Version20260822090000` — таблица `publication_log`.
+- `TelegramService::formatWork()` теперь принимает `Work|Poem` (общий контракт
+  `getDisplayTitle()`/`getBodyContent()`/`getDisplayComment()`; метод расширен
+  до `public` в `HasDefaultTitleTrait`/`Work`/`Poem`). Трейт нельзя использовать
+  как тип параметра в PHP, поэтому применён union-тип.
+- В публикации сохраняется реальный `message_id`: мост `telegram-bridge.py`
+  возвращает `{"ok": true, "message_id": <id>}` на `POST /push`;
+  `TelegramService::publish()` возвращает `?int` (message_id или null); адаптер
+  кладёт его в `externalPostId` и строит ссылку в `externalUrl`.
+  `app:telegram:send` выводит `message_id`. Требует редеплоя демона на AWS.
+- Sonata-админ публикаций в группе `work`: `PublicationLogAdmin`
+  (чтение/удаление).
+- Добавлена админка `RecognizeTaskAdmin` (read-only: show/delete, фильтры
+  id/audio/status, enum `RecognizeTaskStatus`). Поля `resultText` (показывается
+  полностью) и `stepData` (pretty JSON) — кастомными шаблонами.
+- Фронтенд «Мастерской»: кнопка «Опубликовать» с share-иконкой, модалка
+  с одиночным выбором платформы (успех — зелёная галочка, ошибка — красный
+  крестик, не настроено — disabled), закрытие по Esc и клику мимо; тосты
+  (непрозрачные, поверх панели статистики); статусы учитывают `status_for_poem`
+  (`null` нормализуется в `'none'`). Панель статистики видна только на вкладке
+  «Лента».
+
 ## 2026-08-16
 
-- `AudioController::recognizePoll` (опрос статуса задачи распознавания речи) переведён с GET на POST и защищён CSRF-токеном (`work_audio_recognize_poll`). Раньше GET-запрос вызывал `RecognizeService::advanceTask()`, мутируя состояние задачи и триггеря дорогие платные вызовы Yandex API (S3 upload, STT, GPT); кэширование/prefetch браузерами могли порождать лишние вызовы. Теперь опрос использует POST с CSRF-валидацией, как и остальные мутирующие эндпоинты.
+- `AudioController::recognizePoll` (опрос статуса задачи распознавания речи) переведён с GET на POST и защищён
+  CSRF-токеном (`work_audio_recognize_poll`). Раньше GET-запрос вызывал `RecognizeService::advanceTask()`, мутируя
+  состояние задачи и триггеря дорогие платные вызовы Yandex API (S3 upload, STT, GPT); кэширование/prefetch браузерами
+  могли порождать лишние вызовы. Теперь опрос использует POST с CSRF-валидацией, как и остальные мутирующие эндпоинты.
 
 ## 2026-08-11
 
-- Telegram в России считается навсегда недоступным — сайт общается с Telegram **только** через AWS-мост. Удалён весь прямой код/зависимости общения с Telegram:
-  - Удалена зависимость `irazasyed/telegram-bot-sdk` (и связанные `illuminate/*`, `nesbot/carbon` и др.) из `composer.json`/`composer.lock`.
-  - `TelegramService` переписан без SDK: `computeReplies(Update): list<string>` → `computeReplies(array $update): list<string>` (работает с сырым массивом апдейта). Удалены `getUpdates()`, `deleteWebhook()`, `sendMessage()`, `handleUpdate()`, `$telegram`/`Api` и инжект `TELEGRAM_API_TOKEN`. Остались чистое вычисление ответов и `formatWork()`.
-  - `BotController` (`POST /bot`, контекст `www`) больше не использует `Update`-объект: декодирует JSON тела и передаёт массив в `computeReplies()`. Маршрут переименован `telegram_webhook` → `telegram_gateway`.
+- Telegram в России считается навсегда недоступным — сайт общается с Telegram **только** через AWS-мост. Удалён весь
+  прямой код/зависимости общения с Telegram:
+  - Удалена зависимость `irazasyed/telegram-bot-sdk` (и связанные `illuminate/*`, `nesbot/carbon` и др.) из
+    `composer.json`/`composer.lock`.
+  - `TelegramService` переписан без SDK: `computeReplies(Update): list<string>` → `computeReplies(array $update):
+    list<string>` (работает с сырым массивом апдейта). Удалены `getUpdates()`, `deleteWebhook()`, `sendMessage()`,
+    `handleUpdate()`, `$telegram`/`Api` и инжект `TELEGRAM_API_TOKEN`. Остались чистое вычисление ответов и
+    `formatWork()`.
+  - `BotController` (`POST /bot`, контекст `www`) больше не использует `Update`-объект: декодирует JSON тела и передаёт
+    массив в `computeReplies()`. Маршрут переименован `telegram_webhook` → `telegram_gateway`.
   - Удалена тестовая команда `app:telegram:poll` (`TelegramPollCommand`) и цель `bot` из `Makefile`.
-  - Из `.env`/`.env.local` удалён `TELEGRAM_API_TOKEN` (токен живёт только в `/etc/telegram-bridge.env` на AWS; на сайте не используется).
+  - Из `.env`/`.env.local` удалён `TELEGRAM_API_TOKEN` (токен живёт только в `/etc/telegram-bridge.env` на AWS; на сайте
+    не используется).
   - Обновлены `AGENTS.md` (схема «демон ↔ шлюз», удалены инструкции по webhook и локальному поллингу) и `CHANGELOG.md`.
-- `TelegramBridgeClient` объединён с `TelegramService` и удалён: метод `publish(int|string $chatId, string $text): bool` перенесён в `TelegramService` (POST на `TELEGRAM_BRIDGE_URL` с заголовком `X-Bot-Secret`), в конструктор добавлены `TELEGRAM_BRIDGE_URL`, `TELEGRAM_BOT_SECRET` и `HttpClientInterface`. Обновлены `AGENTS.md` и `telegram-bridge/telegram-bridge.md`.
-- Добавлена консольная команда `app:telegram:send <chatId> <text>` — отправка текстового сообщения в Telegram через AWS-мост (`TelegramService::publish()`).
-- Приведён `AGENTS.md` к актуальному состоянию: исправлены пути к файлам бриджа (`.data/` → `telegram-bridge/`), убрано дублирование описания `TelegramService::publish()`, добавлена команда `app:telegram:send`, удалено упоминание нереализованной точки публикации.
+- `TelegramBridgeClient` объединён с `TelegramService` и удалён: метод `publish(int|string $chatId, string $text): bool`
+  перенесён в `TelegramService` (POST на `TELEGRAM_BRIDGE_URL` с заголовком `X-Bot-Secret`), в конструктор добавлены
+  `TELEGRAM_BRIDGE_URL`, `TELEGRAM_BOT_SECRET` и `HttpClientInterface`. Обновлены `AGENTS.md` и
+  `telegram-bridge/telegram-bridge.md`.
+- Добавлена консольная команда `app:telegram:send <chatId> <text>` — отправка текстового сообщения в Telegram через
+  AWS-мост (`TelegramService::publish()`).
+- Приведён `AGENTS.md` к актуальному состоянию: исправлены пути к файлам бриджа (`.data/` → `telegram-bridge/`), убрано
+  дублирование описания `TelegramService::publish()`, добавлена команда `app:telegram:send`, удалено упоминание
+  нереализованной точки публикации.
 
 ## 2026-08-10
 
-- Telegram-бот переведён на схему «демон ↔ шлюз» (план `.data/PLAN-telegram-aws-bridge.md`), потому что на проде хостинг блокирует и исходящие к Telegram, и входящие webhook-запросы от Telegram. Теперь постоянный Python-демон на AWS EC2 (имеющем доступ и к Telegram, и к poethrenoff.ru) получает обновления через long-polling `getUpdates` и форвардит их на сайт:
-  - `TelegramService` разделён на вычисление и отправку: добавлен чистый метод `computeReplies(Update): list<string>` (без вызовов Telegram); `handleUpdate()` переписан как `computeReplies()` + `sendMessage()` для каждого ответа (оставлен для локального `app:telegram:poll`). `handleSearch()`/`formatWork()` стали чистыми и возвращают `list<string>`. `sendMessage`, `getUpdates`, `deleteWebhook`, `getWebhookUpdate` не изменены.
-  - `BotController::webhook` (`POST /bot`, контекст `www`) превращён в шлюз для демона: проверяет заголовок `X-Bot-Secret` против `TELEGRAM_BOT_SECRET` (иначе `403`), декодирует JSON тела в `new Update($data)` и возвращает `{"replies": [...]}` (`JsonResponse`). Секрет инжектится через `#[Autowire(env: 'TELEGRAM_BOT_SECRET')]`.
+- Telegram-бот переведён на схему «демон ↔ шлюз» (план `.data/PLAN-telegram-aws-bridge.md`), потому что на проде хостинг
+  блокирует и исходящие к Telegram, и входящие webhook-запросы от Telegram. Теперь постоянный Python-демон на AWS EC2
+  (имеющем доступ и к Telegram, и к poethrenoff.ru) получает обновления через long-polling `getUpdates` и форвардит их
+  на сайт:
+  - `TelegramService` разделён на вычисление и отправку: добавлен чистый метод `computeReplies(Update): list<string>`
+    (без вызовов Telegram); `handleUpdate()` переписан как `computeReplies()` + `sendMessage()` для каждого ответа
+    (оставлен для локального `app:telegram:poll`). `handleSearch()`/`formatWork()` стали чистыми и возвращают
+    `list<string>`. `sendMessage`, `getUpdates`, `deleteWebhook`, `getWebhookUpdate` не изменены.
+  - `BotController::webhook` (`POST /bot`, контекст `www`) превращён в шлюз для демона: проверяет заголовок
+    `X-Bot-Secret` против `TELEGRAM_BOT_SECRET` (иначе `403`), декодирует JSON тела в `new Update($data)` и возвращает
+    `{"replies": [...]}` (`JsonResponse`). Секрет инжектится через `#[Autowire(env: 'TELEGRAM_BOT_SECRET')]`.
   - В `.env`/`.env.local` добавлена переменная `TELEGRAM_BOT_SECRET` (пустая, значение задаётся в проде).
-  - Добавлен Python-демон `.data/telegram-bridge.py` (библиотека `requests`): цикл `getUpdates(offset, timeout=30, limit=100)` → POST на сайт с заголовком `X-Bot-Secret` → извлечение `chat_id` из `update.message.chat.id` → `sendMessage(chat_id, text, HTML)` → после успеха `offset = update_id + 1`. Есть backoff при сетевых ошибках, логирование в stdout (journald). env: `TELEGRAM_API_TOKEN`, `SITE_URL` (по умолчанию `https://poethrenoff.ru/bot`), `BOT_SECRET`.
-  - Добавлен systemd-юнит `.data/telegram-bridge.service` (`Type=simple`, `Restart=always`, `RestartSec=5`, `EnvironmentFile=/etc/telegram-bridge.env`, `WantedBy=multi-user.target`).
-  - Нюанс: в новой схеме все ответы уходят с `parse_mode=HTML` (в т.ч. `/start`/`/help`, раньше — `''`); для обычного текста без тегов безопасно. Webhook на стороне Telegram должен оставаться удалённым (демон использует `getUpdates`).
-- Схема «демон ↔ шлюз» сделана двунаправленной — добавлен событийный канал «сайт → AWS → Telegram» для публикации стихов в Telegram по инициативе сервера (без поллинга, задержка ≤1с):
-  - Демон `.data/telegram-bridge.py` получил встроенный HTTP-слушатель `POST /push` (поток в том же процессе): проверяет `X-Bot-Secret` (иначе `403`), принимает JSON `{"chat_id": ..., "text": ...}` и шлёт `sendMessage(chat_id, text, HTML)`. Бинд/порт из env `PUSH_HOST` (по умолчанию `0.0.0.0`) и `PUSH_PORT` (по умолчанию `8080`); слушатель запускается отдельным потоком в `main()`.
-  - На сайте добавлен сервис `TelegramBridgeClient::publish(int|string $chatId, string $text): bool` — POST на `TELEGRAM_BRIDGE_URL` с заголовком `X-Bot-Secret` (переиспользует `TELEGRAM_BOT_SECRET`), через `symfony/http-client` по образцу `YandexService`. `chat_id` универсален (канал `@username`/id или ЛС).
+  - Добавлен Python-демон `.data/telegram-bridge.py` (библиотека `requests`): цикл `getUpdates(offset, timeout=30,
+    limit=100)` → POST на сайт с заголовком `X-Bot-Secret` → извлечение `chat_id` из `update.message.chat.id` →
+    `sendMessage(chat_id, text, HTML)` → после успеха `offset = update_id + 1`. Есть backoff при сетевых ошибках,
+    логирование в stdout (journald). env: `TELEGRAM_API_TOKEN`, `SITE_URL` (по умолчанию `https://poethrenoff.ru/bot`),
+    `BOT_SECRET`.
+  - Добавлен systemd-юнит `.data/telegram-bridge.service` (`Type=simple`, `Restart=always`, `RestartSec=5`,
+    `EnvironmentFile=/etc/telegram-bridge.env`, `WantedBy=multi-user.target`).
+  - Нюанс: в новой схеме все ответы уходят с `parse_mode=HTML` (в т.ч. `/start`/`/help`, раньше — `''`); для обычного
+    текста без тегов безопасно. Webhook на стороне Telegram должен оставаться удалённым (демон использует `getUpdates`).
+- Схема «демон ↔ шлюз» сделана двунаправленной — добавлен событийный канал «сайт → AWS → Telegram» для публикации стихов
+  в Telegram по инициативе сервера (без поллинга, задержка ≤1с):
+  - Демон `.data/telegram-bridge.py` получил встроенный HTTP-слушатель `POST /push` (поток в том же процессе): проверяет
+    `X-Bot-Secret` (иначе `403`), принимает JSON `{"chat_id": ..., "text": ...}` и шлёт `sendMessage(chat_id, text,
+    HTML)`. Бинд/порт из env `PUSH_HOST` (по умолчанию `0.0.0.0`) и `PUSH_PORT` (по умолчанию `8080`); слушатель
+    запускается отдельным потоком в `main()`.
+  - На сайте добавлен сервис `TelegramBridgeClient::publish(int|string $chatId, string $text): bool` — POST на
+    `TELEGRAM_BRIDGE_URL` с заголовком `X-Bot-Secret` (переиспользует `TELEGRAM_BOT_SECRET`), через
+    `symfony/http-client` по образцу `YandexService`. `chat_id` универсален (канал `@username`/id или ЛС).
   - В `.env`/`.env.local` добавлена `TELEGRAM_BRIDGE_URL` (адрес AWS `POST /push`).
   - Конкретный сервис публикации/точка вызова намеренно отложены — сейчас реализована только базовая возможность пуша.
-  - Добавлена подробная инструкция по установке/настройке демона на AWS: `.data/telegram-bridge.md` (создание пользователя, env, юнит, открытие портов, проверки, логи, устранение неполадок).
+  - Добавлена подробная инструкция по установке/настройке демона на AWS: `.data/telegram-bridge.md` (создание
+    пользователя, env, юнит, открытие портов, проверки, логи, устранение неполадок).
 
 ## 2026-08-09
 
-- Установлен `irazasyed/telegram-bot-sdk` (v3.16); `TelegramService` и `TelegramPollCommand` переведены на него (вместо прямых HTTP-вызовов):
-  - `Api` создаётся в сервисе с токеном из `TELEGRAM_API_TOKEN`; низкоуровневые `request()`/`botUrl()`/`HttpClientInterface` удалены.
-  - `getWebhookUpdate()` возвращает `Telegram\Bot\Objects\Update`, `getUpdates()` — `array<int, Update>`, `deleteWebhook()`, `sendMessage()` — `Message`. `handleUpdate(Update)` использует объектный доступ (`->message`, `->chat`, `->id`, `->text`).
-  - `TelegramPollCommand` читает `update_id` через `$update['update_id']` и поля входящего сообщения через объектные `?->`-аксессоры.
-- Установлен `symfony/http-client`; на него переведены HTTP-вызовы `YandexService`, ранее использовавшие curl: приватные `curlGet()`/`curlPost()` переименованы в `httpGet()`/`httpPost()`, затем объединены в единый `request(string $method, string $url, ?string $body = null)` (таймаут 10с, редиректы обрабатываются клиентом автоматически, `Content-Type`/`body` добавляются только для POST). Заголовки `Authorization`/`X-Folder-Id` сохранены.
-- Ранее в тот же день `TelegramService::request()` был переведён на `HttpClientInterface` (единая сигнатура `request(string $method, string $url, ?string $body = null)` с хелпером `botUrl()`), однако от этого перевода отказались в пользу `irazasyed/telegram-bot-sdk` (см. запись выше).
+- Установлен `irazasyed/telegram-bot-sdk` (v3.16); `TelegramService` и `TelegramPollCommand` переведены на него (вместо
+  прямых HTTP-вызовов):
+  - `Api` создаётся в сервисе с токеном из `TELEGRAM_API_TOKEN`; низкоуровневые
+    `request()`/`botUrl()`/`HttpClientInterface` удалены.
+  - `getWebhookUpdate()` возвращает `Telegram\Bot\Objects\Update`, `getUpdates()` — `array<int, Update>`,
+    `deleteWebhook()`, `sendMessage()` — `Message`. `handleUpdate(Update)` использует объектный доступ (`->message`,
+    `->chat`, `->id`, `->text`).
+  - `TelegramPollCommand` читает `update_id` через `$update['update_id']` и поля входящего сообщения через объектные
+    `?->`-аксессоры.
+- Установлен `symfony/http-client`; на него переведены HTTP-вызовы `YandexService`, ранее использовавшие curl: приватные
+  `curlGet()`/`curlPost()` переименованы в `httpGet()`/`httpPost()`, затем объединены в единый `request(string $method,
+  string $url, ?string $body = null)` (таймаут 10с, редиректы обрабатываются клиентом автоматически,
+  `Content-Type`/`body` добавляются только для POST). Заголовки `Authorization`/`X-Folder-Id` сохранены.
+- Ранее в тот же день `TelegramService::request()` был переведён на `HttpClientInterface` (единая сигнатура
+  `request(string $method, string $url, ?string $body = null)` с хелпером `botUrl()`), однако от этого перевода
+  отказались в пользу `irazasyed/telegram-bot-sdk` (см. запись выше).
 - Перенесён Telegram-бот со старого сайта на новый Symfony-проект (функциональность из `.data/BotModule.php`):
-  - Создан сервис `TelegramService` (`src/Service/`): чтение webhook-обновлений, `sendMessage` через Bot API (`https://api.telegram.org/bot<token>/sendMessage`, `parse_mode=HTML`), форматирование стихотворения для ответа. Использует `#[Autowire(env: 'TELEGRAM_API_TOKEN')]` (уже был объявлен в `.env`) и cURL по образцу `YandexService`.
-  - Создан контроллер `BotController` с маршрутом `POST /bot`, привязанным к контексту `www` (`config/routes.yaml`). Обрабатывает `/start` и `/help` (приветствие с описанием функций), `/random` (случайный стих из избранного через `WorkRepository::findRandomActiveFromFavorites()`), любой другой текст — поиск по стихам (`WorkRepository::search`) и выдача случайного из найденных; если ничего не найдено — сообщение об отсутствии результатов.
-  - Поиск по фразе в боте тоже ограничен «Избранным»: в `WorkRepository::search()` добавлен опциональный флаг `$favoritesOnly` (по умолчанию `false`, сайт-поиск не затронут), бот передаёт его значением `true`.
-  - Логика обработки сообщений бота вынесена из контроллера в `TelegramService::handleUpdate()`, чтобы её разделяли webhook и режим прослушивания. `BotController` стал тонким обёрткой (читает webhook-update и вызывает `handleUpdate()`).
-  - Добавлена команда `app:telegram:poll` — локальный режим long-polling (`getUpdates`) для тестирования без webhook/воркеров. `TelegramService` получил методы `getUpdates()` и `deleteWebhook()` (общий HTTP-хелпер `request()`); команда имеет опцию `--delete-webhook` для снятия активного webhook перед прослушиванием.
-  - Команда `app:telegram:poll` теперь выводит в консоль входящие сообщения и отправляемые ботом ответы: `handleUpdate()` возвращает список отправленных текстов (`list<string>`), команда логирует каждое входящее сообщение (`Incoming [chat_id]: текст`) и каждый ответ (`Reply: ...`).
+  - Создан сервис `TelegramService` (`src/Service/`): чтение webhook-обновлений, `sendMessage` через Bot API
+    (`https://api.telegram.org/bot<token>/sendMessage`, `parse_mode=HTML`), форматирование стихотворения для ответа.
+    Использует `#[Autowire(env: 'TELEGRAM_API_TOKEN')]` (уже был объявлен в `.env`) и cURL по образцу `YandexService`.
+  - Создан контроллер `BotController` с маршрутом `POST /bot`, привязанным к контексту `www` (`config/routes.yaml`).
+    Обрабатывает `/start` и `/help` (приветствие с описанием функций), `/random` (случайный стих из избранного через
+    `WorkRepository::findRandomActiveFromFavorites()`), любой другой текст — поиск по стихам (`WorkRepository::search`)
+    и выдача случайного из найденных; если ничего не найдено — сообщение об отсутствии результатов.
+  - Поиск по фразе в боте тоже ограничен «Избранным»: в `WorkRepository::search()` добавлен опциональный флаг
+    `$favoritesOnly` (по умолчанию `false`, сайт-поиск не затронут), бот передаёт его значением `true`.
+  - Логика обработки сообщений бота вынесена из контроллера в `TelegramService::handleUpdate()`, чтобы её разделяли
+    webhook и режим прослушивания. `BotController` стал тонким обёрткой (читает webhook-update и вызывает
+    `handleUpdate()`).
+  - Добавлена команда `app:telegram:poll` — локальный режим long-polling (`getUpdates`) для тестирования без
+    webhook/воркеров. `TelegramService` получил методы `getUpdates()` и `deleteWebhook()` (общий HTTP-хелпер
+    `request()`); команда имеет опцию `--delete-webhook` для снятия активного webhook перед прослушиванием.
+  - Команда `app:telegram:poll` теперь выводит в консоль входящие сообщения и отправляемые ботом ответы:
+    `handleUpdate()` возвращает список отправленных текстов (`list<string>`), команда логирует каждое входящее сообщение
+    (`Incoming [chat_id]: текст`) и каждый ответ (`Reply: ...`).
   - `TelegramService::formatWork()`: заголовок стиха не выводится в ответе бота, если он равен `* * *`.
-  - Исправлен вывод ответов в `app:telegram:poll`: тексты стихов из БД могут содержать `\r\n` (Windows-переносы), из-за которых терминал затирал начало строки. Теперь в логе ответа все переносы строк (`\r\n`/`\r`/`\n`) заменяются пробелами, а повторные пробелы схлопываются (метод `flatten()`).
-  - Из `app:telegram:poll` убран `pcntl` (расширения нет ни на виртуальном хостинге, ни локально в докере — окружение стараемся держать одинаковым). Команда теперь просто крутит бесконечный цикл `while (true)` (подавления для PHPStan: `while.alwaysTrue` и `deadCode.unreachable`); остановка — обычным `Ctrl+C`/SIGINT.
-  - `make bot` больше не выводит «Ошибка 130» при остановке по `Ctrl+C`: рецепт цели `bot` в `Makefile` заканчивается на `|| true`, из-за чего код возврата прерванной команды игнорируется (не требует `pcntl`).
+  - Исправлен вывод ответов в `app:telegram:poll`: тексты стихов из БД могут содержать `\r\n` (Windows-переносы), из-за
+    которых терминал затирал начало строки. Теперь в логе ответа все переносы строк (`\r\n`/`\r`/`\n`) заменяются
+    пробелами, а повторные пробелы схлопываются (метод `flatten()`).
+  - Из `app:telegram:poll` убран `pcntl` (расширения нет ни на виртуальном хостинге, ни локально в докере — окружение
+    стараемся держать одинаковым). Команда теперь просто крутит бесконечный цикл `while (true)` (подавления для PHPStan:
+    `while.alwaysTrue` и `deadCode.unreachable`); остановка — обычным `Ctrl+C`/SIGINT.
+  - `make bot` больше не выводит «Ошибка 130» при остановке по `Ctrl+C`: рецепт цели `bot` в `Makefile` заканчивается на
+    `|| true`, из-за чего код возврата прерванной команды игнорируется (не требует `pcntl`).
 - Обновлены инструкции по настройке webhook-хуков для Telegram-бота в `AGENTS.md`.
-  - В `AGENTS.md` добавлена диагностика случая, когда webhook установлен, но бот не отвечает: при `last_error_message: "Connection timed out"` в `getWebhookInfo` (при рабочем ручном `POST /bot`) хостинг блокирует входящие соединения с IP Telegram — требуется добавить IP-сети Telegram в белый список на порт 443.
+  - В `AGENTS.md` добавлена диагностика случая, когда webhook установлен, но бот не отвечает: при `last_error_message:
+    "Connection timed out"` в `getWebhookInfo` (при рабочем ручном `POST /bot`) хостинг блокирует входящие соединения с
+    IP Telegram — требуется добавить IP-сети Telegram в белый список на порт 443.
 
 ## 2026-08-08
 
-- По аудиту (мелкие правки): полностью удалены `@noinspection`-директивы из всех сущностей (`Poem.php`, `PoemVersion.php`, `BlogPost.php`, `Work.php`, `WorkComment.php`, `Picture.php`, `WorkGroup.php`) — PHPStan (level 8) и PHPCS проходят без ошибок; раскомментирован и задан явный `server_version: '8.4'` в `config/packages/doctrine.yaml`; в автоссылки комментариев (`CommentService::autolink`) добавлен атрибут `rel="noopener nofollow"`.
-- В `YandexService` вынесено создание `S3Client` в ленивый приватный метод `getS3Client()` (мемоизация через `??=`), устраняющий дублирование конфигурации между `uploadToS3()` и `cleanupS3()`.
-- Вынесено построение X-Accel-Redirect-ответа для аудио в `FileUploadService::buildAccelRedirectResponse()` (общий путь к файлу, заголовки Content-Type/Content-Length/Cache-Control, опциональный Content-Disposition для download). Методы `AudioController::getAudio()` и `AudioController::download()` теперь делегируют логику сервису, устраняя почти идентичный дублирующий код.
+- По аудиту (мелкие правки): полностью удалены `@noinspection`-директивы из всех сущностей (`Poem.php`,
+  `PoemVersion.php`, `BlogPost.php`, `Work.php`, `WorkComment.php`, `Picture.php`, `WorkGroup.php`) — PHPStan (level 8)
+  и PHPCS проходят без ошибок; раскомментирован и задан явный `server_version: '8.4'` в `config/packages/doctrine.yaml`;
+  в автоссылки комментариев (`CommentService::autolink`) добавлен атрибут `rel="noopener nofollow"`.
+- В `YandexService` вынесено создание `S3Client` в ленивый приватный метод `getS3Client()` (мемоизация через `??=`),
+  устраняющий дублирование конфигурации между `uploadToS3()` и `cleanupS3()`.
+- Вынесено построение X-Accel-Redirect-ответа для аудио в `FileUploadService::buildAccelRedirectResponse()` (общий путь
+  к файлу, заголовки Content-Type/Content-Length/Cache-Control, опциональный Content-Disposition для download). Методы
+  `AudioController::getAudio()` и `AudioController::download()` теперь делегируют логику сервису, устраняя почти
+  идентичный дублирующий код.
 - Реализован асинхронный распознавание речи через state machine без фоновых воркеров:
-  - Создана сущность `RecognizeTask` с полями: id, audio, status, resultText, errorMessage, stepData (JSON), createdAt, updatedAt (NOT NULL, lifecycle callbacks `onPrePersist`/`onPreUpdate`).
+  - Создана сущность `RecognizeTask` с полями: id, audio, status, resultText, errorMessage, stepData (JSON), createdAt,
+    updatedAt (NOT NULL, lifecycle callbacks `onPrePersist`/`onPreUpdate`).
   - Создан enum `RecognizeTaskStatus`: pending, uploaded, recognizing, recognized, formatting, completed, error.
   - Создан `RecognizeService` с state machine, продвигающей задачу на один шаг за poll-запрос.
-  - `YandexService`: `uploadToS3()`, `startRecognition()`, `checkRecognition()`, `getRecognitionResult()`, `formatPoem()` (через общий `curlPost()`), `cleanupS3()`.
-  - В `AudioController` заменён блокирующий `recognize()` на `POST /audio/{id}/recognize/` (создание задачи) и `GET /audio/{id}/recognize/{uuid}` (poll).
+  - `YandexService`: `uploadToS3()`, `startRecognition()`, `checkRecognition()`, `getRecognitionResult()`,
+    `formatPoem()` (через общий `curlPost()`), `cleanupS3()`.
+  - В `AudioController` заменён блокирующий `recognize()` на `POST /audio/{id}/recognize/` (создание задачи) и `GET
+    /audio/{id}/recognize/{uuid}` (poll).
   - Фронтенд (`work.js`): polling через `setInterval` 1с, интервал очищается при `completed`/`error`.
   - S3 cleanup в `finally` на каждом шаге, локальный файл не копируется.
-- Downgrade `doctrine/orm` 3.6.8 → 3.6.7: в 3.6.8 `GenerateSchemaEventArgs::setSchema()` требует DBAL 4.5+, который ещё не стабилен; на 3.6.7 `doctrine:migrations:diff` работает корректно через fallback в Symfony bridge.
+- Downgrade `doctrine/orm` 3.6.8 → 3.6.7: в 3.6.8 `GenerateSchemaEventArgs::setSchema()` требует DBAL 4.5+, который ещё
+  не стабилен; на 3.6.7 `doctrine:migrations:diff` работает корректно через fallback в Symfony bridge.
 - Переименован сервис `YandexAIStudioService` → `YandexService`.
 
 ## 2026-08-07
 
-- Исправлены ошибки PHPStan level 8: изменён тип свойства `$password` в `User` с `string` на `?string` (null по умолчанию несовместим со string); добавлен `@throws \InvalidArgumentException` в docblock `FileUploadService::uploadFile()` для корректного определения выбрасываемых исключений в `AudioController`.
-- Исправлена критическая ошибка в `YandexGPTService.php` (удален отладочный код `var_dump`, вызывавший синтаксическую ошибку).
-- Интегрирована постобработка распознанного текста через YandexGPT: добавлен `YandexGPTService`, который форматирует текст как стихотворение (расстановка знаков препинания и переносов строк на основе ритма и смысла).
-- Исправлены названия полей в запросе к Yandex SpeechKit STT v3: добавлены суффиксы `Options` (`textNormalizationOptions`, `punctuationOptions`, `speakerLabelingOptions`) для соответствия официальной документации.
-- Улучшено распознавание стихов через Yandex SpeechKit: в `YandexSpeechKitService` включена автоматическая пунктуация и нормализация текста. Логика обработки результатов изменена: теперь для каждого фрагмента берется только лучшая альтернатива, первая буква капитализируется, а фрагменты объединяются переносом строки (`\n`), что обеспечивает структуру стихотворения при распознавании.
+- Исправлены ошибки PHPStan level 8: изменён тип свойства `$password` в `User` с `string` на `?string` (null по
+  умолчанию несовместим со string); добавлен `@throws \InvalidArgumentException` в docblock
+  `FileUploadService::uploadFile()` для корректного определения выбрасываемых исключений в `AudioController`.
+- Исправлена критическая ошибка в `YandexGPTService.php` (удален отладочный код `var_dump`, вызывавший синтаксическую
+  ошибку).
+- Интегрирована постобработка распознанного текста через YandexGPT: добавлен `YandexGPTService`, который форматирует
+  текст как стихотворение (расстановка знаков препинания и переносов строк на основе ритма и смысла).
+- Исправлены названия полей в запросе к Yandex SpeechKit STT v3: добавлены суффиксы `Options`
+  (`textNormalizationOptions`, `punctuationOptions`, `speakerLabelingOptions`) для соответствия официальной
+  документации.
+- Улучшено распознавание стихов через Yandex SpeechKit: в `YandexSpeechKitService` включена автоматическая пунктуация и
+  нормализация текста. Логика обработки результатов изменена: теперь для каждого фрагмента берется только лучшая
+  альтернатива, первая буква капитализируется, а фрагменты объединяются переносом строки (`\n`), что обеспечивает
+  структуру стихотворения при распознавании.
 
-- Исправлен сброс фокуса на поле контента при нажатии кнопки «Добавить» и после распознавания речи: в `openNew()` фокус теперь вызывается unconditionally, а не только при наличии черновика; в `focusNewTextarea()` вместо `$nextTick` используется `setTimeout(0)`, что даёт Alpine время обработать все DOM-обновления (включая переключение `x-show`); доступ к элементу осуществляется через Alpine `$refs` (`this.$refs[refName].querySelector('.poem-textarea')`).
-- При переключении между вкладками «Лента» и «Записи» форма добавления теперь скрывается (`showNew = false` в методе `go()`).
-- Полностью убран функционал перезаписи аудиозаписей: удалена кнопка «Переписать» из шаблона (`templates/work/index.html.twig`), удалён метод `rewrite()` из `AudioController` вместе с маршрутом `/audio/{id}/rewrite`, удалён CSRF-токен `work_audio_rewrite`. В `public/assets/js/work.js` удалены свойство `rewriteId`, метод `startRewriting()` и логика ветвления в `saveRecording()` — теперь запись всегда создаётся как новая через `POST /audio/`.
-- Исправлен баг управления аудиоплеером: после паузы кнопка «Стоп» не сбрасывала прослушивание, так как `stopPlayback()` проверял только `isPlayingId` и не срабатывал для `pausedId`. Теперь «Стоп» работает и при paused-состоянии, корректно сбрасывая `currentTime` в 0 и очищая оба состояния (`isPlayingId` и `pausedId`). (`public/assets/js/work.js`)
-- Индикатор «Распознавание…» теперь появляется в тулбаре раздела «Записи» на месте надписи «Загрузка…» (в едином `span` с условным текстом через `x-text`), а не на месте кнопки «Распознать» в строке записи. Кнопка «Распознать» больше не скрывается через `x-if` — она остаётся видимой, но блокируется `:disabled="recognizingId === item.id"` (`templates/work/index.html.twig`).
-- Исправлена ошибка: после успешного распознавания речи фокус не вставал в поле контента открывшейся формы. Причина: `this.$refs[refName]` после пересоздания `x-if`-кнопки «Распознать» возвращал `undefined` (Alpine не обновлял кэшированный proxy refs), поэтому `focus()` не вызывался. В `public/assets/js/work.js` метод `focusNewTextarea()` теперь ищет textarea напрямую через `document.querySelector('[x-ref="newFormFeed|newFormAudio"] .poem-textarea')` после `await this.$nextTick()` и фокусирует её; `recognizeAudio()` вызывает его сразу после `showNew = true`, `recognizingId` сбрасывается в `finally`.
-- Исправлена ошибка: результаты нового распознавания речи не появлялись в форме, если форма уже была открыта от предыдущего распознавания. В `recognizeAudio()` убран вызов `openNew()`, который перезаписывал свежие данные из `localStorage`. Теперь `recognizeAudio()` напрямую устанавливает `showNew = true` и фокусирует textarea.
-- Устранено дублирование `x-ref="newForm"` в `templates/work/index.html.twig`: форма в ленте использует `x-ref="newFormFeed"`, в записях — `x-ref="newFormAudio"`. Соответственно обновлён JS: `openNew()` и `recognizeAudio()` обращаются к ref'у через `this.view`.
+- Исправлен сброс фокуса на поле контента при нажатии кнопки «Добавить» и после распознавания речи: в `openNew()` фокус
+  теперь вызывается unconditionally, а не только при наличии черновика; в `focusNewTextarea()` вместо `$nextTick`
+  используется `setTimeout(0)`, что даёт Alpine время обработать все DOM-обновления (включая переключение `x-show`);
+  доступ к элементу осуществляется через Alpine `$refs` (`this.$refs[refName].querySelector('.poem-textarea')`).
+- При переключении между вкладками «Лента» и «Записи» форма добавления теперь скрывается (`showNew = false` в методе
+  `go()`).
+- Полностью убран функционал перезаписи аудиозаписей: удалена кнопка «Переписать» из шаблона
+  (`templates/work/index.html.twig`), удалён метод `rewrite()` из `AudioController` вместе с маршрутом
+  `/audio/{id}/rewrite`, удалён CSRF-токен `work_audio_rewrite`. В `public/assets/js/work.js` удалены свойство
+  `rewriteId`, метод `startRewriting()` и логика ветвления в `saveRecording()` — теперь запись всегда создаётся как
+  новая через `POST /audio/`.
+- Исправлен баг управления аудиоплеером: после паузы кнопка «Стоп» не сбрасывала прослушивание, так как `stopPlayback()`
+  проверял только `isPlayingId` и не срабатывал для `pausedId`. Теперь «Стоп» работает и при paused-состоянии, корректно
+  сбрасывая `currentTime` в 0 и очищая оба состояния (`isPlayingId` и `pausedId`). (`public/assets/js/work.js`)
+- Индикатор «Распознавание…» теперь появляется в тулбаре раздела «Записи» на месте надписи «Загрузка…» (в едином `span`
+  с условным текстом через `x-text`), а не на месте кнопки «Распознать» в строке записи. Кнопка «Распознать» больше не
+  скрывается через `x-if` — она остаётся видимой, но блокируется `:disabled="recognizingId === item.id"`
+  (`templates/work/index.html.twig`).
+- Исправлена ошибка: после успешного распознавания речи фокус не вставал в поле контента открывшейся формы. Причина:
+  `this.$refs[refName]` после пересоздания `x-if`-кнопки «Распознать» возвращал `undefined` (Alpine не обновлял
+  кэшированный proxy refs), поэтому `focus()` не вызывался. В `public/assets/js/work.js` метод `focusNewTextarea()`
+  теперь ищет textarea напрямую через `document.querySelector('[x-ref="newFormFeed|newFormAudio"] .poem-textarea')`
+  после `await this.$nextTick()` и фокусирует её; `recognizeAudio()` вызывает его сразу после `showNew = true`,
+  `recognizingId` сбрасывается в `finally`.
+- Исправлена ошибка: результаты нового распознавания речи не появлялись в форме, если форма уже была открыта от
+  предыдущего распознавания. В `recognizeAudio()` убран вызов `openNew()`, который перезаписывал свежие данные из
+  `localStorage`. Теперь `recognizeAudio()` напрямую устанавливает `showNew = true` и фокусирует textarea.
+- Устранено дублирование `x-ref="newForm"` в `templates/work/index.html.twig`: форма в ленте использует
+  `x-ref="newFormFeed"`, в записях — `x-ref="newFormAudio"`. Соответственно обновлён JS: `openNew()` и
+  `recognizeAudio()` обращаются к ref'у через `this.view`.
 
-- Удалён хелпер автофокуса `focusNewTextarea` из `public/assets/js/work.js` вместе с вызовами: при открытии формы создания стиха и после распознавания речи фокус на textarea теперь не принудительно устанавливается.
+- Удалён хелпер автофокуса `focusNewTextarea` из `public/assets/js/work.js` вместе с вызовами: при открытии формы
+  создания стиха и после распознавания речи фокус на textarea теперь не принудительно устанавливается.
 
-- Исправлена ошибка Alpine.js `poem is not defined` при перетаскивании стихов в ленте: в `public/assets/js/work.js` добавлена опция `fallbackOnBody: false` в Sortable (элемент не выносится за пределы контейнера во время drag) и удалено ручное восстановление DOM через `insertBefore` в `onReorder` (Alpine сам синхронизирует DOM при обновлении массива `poems`).
-- Добавлен `@blur` на инпут редактирования названия аудиозаписи (`templates/work/index.html.twig`): при потере фокуса срабатывает `cancelAudioRename(item)`, отменяя переименование.
-- Добавлено версионирование статических ассетов по `mtime` файла (`src/Asset/FileVersionStrategy.php`, `config/services.yaml`, `config/packages/framework.yaml`): к URL CSS/JS добавляется query-параметр `?v=<timestamp>`, что предотвращает устаревшее кеширование браузером при обновлении файлов без изменения настроек сервера.
-- Реализовано распознавание речи через Yandex SpeechKit в разделе «Записи» мастерской: добавлен сервис `YandexSpeechKitService`, который временно загружает аудиофайл в Yandex Object Storage, запускает асинхронное распознавание и опрашивает результат каждую секунду (таймаут 15 секунд). После распознавания S3-объект удаляется. В `AudioController` добавлен endpoint `POST /audio/{id}/recognize/`, на фронтенде добавлена кнопка «Распознать речь» с индикатором загрузки. При успехе распознанный текст открывается в форме создания стиха.
+- Исправлена ошибка Alpine.js `poem is not defined` при перетаскивании стихов в ленте: в `public/assets/js/work.js`
+  добавлена опция `fallbackOnBody: false` в Sortable (элемент не выносится за пределы контейнера во время drag) и
+  удалено ручное восстановление DOM через `insertBefore` в `onReorder` (Alpine сам синхронизирует DOM при обновлении
+  массива `poems`).
+- Добавлен `@blur` на инпут редактирования названия аудиозаписи (`templates/work/index.html.twig`): при потере фокуса
+  срабатывает `cancelAudioRename(item)`, отменяя переименование.
+- Добавлено версионирование статических ассетов по `mtime` файла (`src/Asset/FileVersionStrategy.php`,
+  `config/services.yaml`, `config/packages/framework.yaml`): к URL CSS/JS добавляется query-параметр `?v=<timestamp>`,
+  что предотвращает устаревшее кеширование браузером при обновлении файлов без изменения настроек сервера.
+- Реализовано распознавание речи через Yandex SpeechKit в разделе «Записи» мастерской: добавлен сервис
+  `YandexSpeechKitService`, который временно загружает аудиофайл в Yandex Object Storage, запускает асинхронное
+  распознавание и опрашивает результат каждую секунду (таймаут 15 секунд). После распознавания S3-объект удаляется. В
+  `AudioController` добавлен endpoint `POST /audio/{id}/recognize/`, на фронтенде добавлена кнопка «Распознать речь» с
+  индикатором загрузки. При успехе распознанный текст открывается в форме создания стиха.
 
 ## 2026-08-06
 
-- Добавлена кнопка «Download» в список действий админ-панели `AudioAdmin`: при нажатии начинается скачивание аудиофайла с заголовком `Content-Disposition: attachment`, а не воспроизведение в браузере. Для этого в `AudioController` добавлен маршрут `/audio/{id}/download` и Twig-шаблон `admin/audio/download.html.twig`.
-- Исправлен баг в `HasDefaultTitleTrait::getDefaultTitle()`: `rtrim` обрезал последний байт UTF-8 символов (например, `\x80` у кириллической "р"), так как работает с байтами, а не символами. В результате в заголовок попадал невалидный UTF-8, что вызывало SQL-ошибку `Incorrect string value`. Заменён на `preg_replace` с модификатором `u` для корректной обрезки на уровне Unicode-символов.
-- Исправлены ошибки PHPStan (уровень 8): в `HasDefaultTitleTrait::getDefaultTitle()` добавлен `?? ''` для результата `preg_replace()`, который теоретически может вернуть `null`. Теперь `make analyze` проходит без ошибок.
-- Кнопка «Перетащить» на странице «Лента» перемещена из левого верхнего угла в правый нижний угол карточки стиха: в `templates/work/index.html.twig` перенесён HTML-элемент кнопки в конец `.poem`, в `public/assets/work.css` изменено позиционирование `.drag-handle` с `top: 8px; left: -40px` на `bottom: 12px; right: 12px`.
-- Поле ввода комментария и кнопка «Перетащить» на странице «Лента» обёрнуты в `<div class="poem-footer">` по аналогии с `<div class="poem-header">`. Добавлены стили `.poem-footer` (flex-контейнер с `justify-content: space-between`), `.poem-footer .comment-input` получает `flex: 1`, а `.drag-handle` больше не использует абсолютное позиционирование.
+- Добавлена кнопка «Download» в список действий админ-панели `AudioAdmin`: при нажатии начинается скачивание аудиофайла
+  с заголовком `Content-Disposition: attachment`, а не воспроизведение в браузере. Для этого в `AudioController`
+  добавлен маршрут `/audio/{id}/download` и Twig-шаблон `admin/audio/download.html.twig`.
+- Исправлен баг в `HasDefaultTitleTrait::getDefaultTitle()`: `rtrim` обрезал последний байт UTF-8 символов (например,
+  `\x80` у кириллической "р"), так как работает с байтами, а не символами. В результате в заголовок попадал невалидный
+  UTF-8, что вызывало SQL-ошибку `Incorrect string value`. Заменён на `preg_replace` с модификатором `u` для корректной
+  обрезки на уровне Unicode-символов.
+- Исправлены ошибки PHPStan (уровень 8): в `HasDefaultTitleTrait::getDefaultTitle()` добавлен `?? ''` для результата
+  `preg_replace()`, который теоретически может вернуть `null`. Теперь `make analyze` проходит без ошибок.
+- Кнопка «Перетащить» на странице «Лента» перемещена из левого верхнего угла в правый нижний угол карточки стиха: в
+  `templates/work/index.html.twig` перенесён HTML-элемент кнопки в конец `.poem`, в `public/assets/work.css` изменено
+  позиционирование `.drag-handle` с `top: 8px; left: -40px` на `bottom: 12px; right: 12px`.
+- Поле ввода комментария и кнопка «Перетащить» на странице «Лента» обёрнуты в `<div class="poem-footer">` по аналогии с
+  `<div class="poem-header">`. Добавлены стили `.poem-footer` (flex-контейнер с `justify-content: space-between`),
+  `.poem-footer .comment-input` получает `flex: 1`, а `.drag-handle` больше не использует абсолютное позиционирование.
 - Кнопка «Перетащить» скрывается при переходе стиха в режим редактирования: добавлен `x-show="editingId !== poem.id"`.
-- Исправлен метод экспорта в `public/assets/js/work.js`: URL изменён с `/poem/export/` на `/poems/export/`, `location.href` заменён на программный клик по временному `<a>` с `download`, а имя метода переименовано с `export()` на `exportPoems()` из-за конфликта с зарезервированным словом `export` в Alpine.js.
+- Исправлен метод экспорта в `public/assets/js/work.js`: URL изменён с `/poem/export/` на `/poems/export/`,
+  `location.href` заменён на программный клик по временному `<a>` с `download`, а имя метода переименовано с `export()`
+  на `exportPoems()` из-за конфликта с зарезервированным словом `export` в Alpine.js.
 
 ## 2026-08-02
 
-- Добавлена форма создания стихов во вкладку «Записи» (`templates/work/index.html.twig`): кнопка «Новый стих» в toolbar, форма с полями заголовка, текста и комментария, использующая те же `x-model`-привязки (`showNew`, `newTitle`, `newContent`, `newComment`), что и вкладка «Лента». Позволяет набирать текст стиха в той же вкладке, где проигрывается аудио.
-- Исправлен `togglePlay` в `public/assets/js/work.js`: при клике на уже выбранный аудио-элемент теперь проверяется `audioPlayer.paused` для переключения между паузой и воспроизведением, без сброса `isPlayingId`. Воспроизведение возобновляется с места паузы, а не с начала, так как `src` не переустанавливается при тоггле паузы/воспроизведения на том же элементе.
-- Исправлена ошибка валидации «File Path* This value should not be blank» при загрузке новой аудиозаписи в админке: удалён `#[Assert\NotBlank]` с свойства `filePath` в `Audio` entity, так как путь к файлу устанавливается программно в `prePersist`/`preUpdate` через `processFileUpload()`, а не через форму. Формовая валидация (`required => $isNew`) уже обеспечивает обязательность файла для новых записей.
-- Исправлена аналогичная ошибка валидации «Image Path* This value should not be blank» при загрузке новой картинки в админке: удалён `#[Assert\NotBlank]` с свойства `imagePath` в `Picture` entity по той же причине — путь устанавливается программно в `processFileUpload()`, а не через форму.
+- Добавлена форма создания стихов во вкладку «Записи» (`templates/work/index.html.twig`): кнопка «Новый стих» в toolbar,
+  форма с полями заголовка, текста и комментария, использующая те же `x-model`-привязки (`showNew`, `newTitle`,
+  `newContent`, `newComment`), что и вкладка «Лента». Позволяет набирать текст стиха в той же вкладке, где проигрывается
+  аудио.
+- Исправлен `togglePlay` в `public/assets/js/work.js`: при клике на уже выбранный аудио-элемент теперь проверяется
+  `audioPlayer.paused` для переключения между паузой и воспроизведением, без сброса `isPlayingId`. Воспроизведение
+  возобновляется с места паузы, а не с начала, так как `src` не переустанавливается при тоггле паузы/воспроизведения на
+  том же элементе.
+- Исправлена ошибка валидации «File Path* This value should not be blank» при загрузке новой аудиозаписи в админке:
+  удалён `#[Assert\NotBlank]` с свойства `filePath` в `Audio` entity, так как путь к файлу устанавливается программно в
+  `prePersist`/`preUpdate` через `processFileUpload()`, а не через форму. Формовая валидация (`required => $isNew`) уже
+  обеспечивает обязательность файла для новых записей.
+- Исправлена аналогичная ошибка валидации «Image Path* This value should not be blank» при загрузке новой картинки в
+  админке: удалён `#[Assert\NotBlank]` с свойства `imagePath` в `Picture` entity по той же причине — путь
+  устанавливается программно в `processFileUpload()`, а не через форму.
 - Переработан механизм управления воспроизведением аудио в разделе «Записи»:
   - Введено состояние `pausedId` для отслеживания паузированной записи.
   - При нажатии «Прослушать» во вкладке «Записи» появляется кнопка «Пауза» и кнопка «Стоп» (крестик) слева от неё.
-  - При нажатии «Пауза» воспроизведение ставится на паузу, кнопка меняется на «Прослушать», кнопка «Стоп» остаётся видимой — это индикатор того, что при повторном нажатии «Прослушать» воспроизведение продолжится с места паузы, а не с начала.
-  - При нажатии «Стоп» воспроизведение останавливается и сбрасывается в начало, кнопка «Стоп» исчезает, кнопка «Пауза» меняется на «Прослушать»; при нажатии воспроизведение начинается с начала.
+  - При нажатии «Пауза» воспроизведение ставится на паузу, кнопка меняется на «Прослушать», кнопка «Стоп» остаётся
+    видимой — это индикатор того, что при повторном нажатии «Прослушать» воспроизведение продолжится с места паузы, а не
+    с начала.
+  - При нажатии «Стоп» воспроизведение останавливается и сбрасывается в начало, кнопка «Стоп» исчезает, кнопка «Пауза»
+    меняется на «Прослушать»; при нажатии воспроизведение начинается с начала.
   - Форма создания стиха остаётся открытой при всех операциях с аудио.
-  - Исправлен рендеринг кнопок: вместо `<template x-if>` используются `x-show` на каждой кнопке, так как Alpine.js 3 некорректно обрабатывает несколько дочерних элементов внутри `<template x-if>` в цикле `x-for`.
+  - Исправлен рендеринг кнопок: вместо `<template x-if>` используются `x-show` на каждой кнопке, так как Alpine.js 3
+    некорректно обрабатывает несколько дочерних элементов внутри `<template x-if>` в цикле `x-for`.
 
 ## 2026-07-31
 
 - Полностью убран функционал подсветки результатов поиска:
     - Удалён `SafeHighlightExtension` (Twig-фильтр `safe_highlight`) и все его использования в шаблонах.
-    - `blog/search.html.twig` — содержимое поста выводится в raw-формате (`post.content|raw`), как на странице поста и в ленте.
+    - `blog/search.html.twig` — содержимое поста выводится в raw-формате (`post.content|raw`), как на странице поста и в
+      ленте.
     - `site/search.html.twig` — сниппет выводится без подсветки (текст и так проходит `strip_tags()` в `SearchService`).
-- Исправлена ошибка рендеринга `blog/search.html.twig` при поиске по тегу: фильтр `safe_highlight` получал `null` вместо строки (`searchText` не задан при поиске по `tag`), добавлен `|default('')`.
+- Исправлена ошибка рендеринга `blog/search.html.twig` при поиске по тегу: фильтр `safe_highlight` получал `null` вместо
+  строки (`searchText` не задан при поиске по `tag`), добавлен `|default('')`.
 - Исправлены все 125 ошибок PHPStan (уровень 8): `make analyze` теперь проходит без ошибок:
-    - Sonata-админы: добавлены `@extends AbstractAdmin<Entity>` и недостающие `use App\Entity\*`; убраны тернарники с `getSubject()` (всегда истинны) и проверки `instanceof` (тип уже известен из дженерика); `UserAdmin::updatePassword()` проверяет `instanceof User` и тип строки перед хешированием.
-    - Сущности: добавлены docblock-типы для коллекций (`Collection<int, Entity>`), методы `setId()` для сущностей без него (тип `?int` иначе никогда не получал `int`), `Poem` — подключён ранее импортированный, но не использованный `HasDefaultTitleTrait` (чинит крах `ensureDefaults()` в lifecycle-колбэках), `User::getUserIdentifier()` приведён к контракту `non-empty-string`, `WorkVote::__toString()` безопасен при null-связи.
-    - Пагинация: `getPaginationData()` (не входит в `PaginationInterface`) заменён на расчёт по методам интерфейса в общем `SearchService::buildPagination()`; репозитории возвращают `PaginationInterface<int, Entity>`.
-    - Репозитории: типизированы возвраты (`list<Entity>`, shape-массивы `prev`/`next`), в `@method` для `findBy`/`findOneBy` добавлены типы значений (`mixed[]`), из `WorkRepository::findActiveByGroup()` убраны несуществующие `@param $page`/`$limit`, `getSingleScalarResult()` приведён к `int`.
-    - Прочее: `MigrateLegacyCommand` — убран мёртвый `is_array()`, `preg_replace()` с `?? $content`, `@param class-string`/`array<string, mixed>`; `CacheClearListener` — проверка `FrameworkApplication` перед `getKernel()`; `SiteController` — параметр `app.vote_salt` проверяется на `is_string`; `CommentService::autolink()` — удалён недостижимый код в callback; удалён неиспользуемый `Kernel::getAllowedEnvs()`.
-- Устранены XSS-уязвимости в результатах поиска (`SearchService::highlight()` и шаблоны `site/search.html.twig`, `blog/search.html.twig`):
-    - Удалён небезопасный метод `SearchService::highlight()`, который оборачивал совпадения в `<b>` через `preg_replace` на исходном HTML-контенте. Далее выводя результат через `|raw`, это позволяло исполнить вредоносный ввод пользователя.
-    - Создан Twig-фильтр `safe_highlight` (`App\Twig\SafeHighlightExtension`), который выполняет `htmlspecialchars()` на исходном тексте (с предварительным `strip_tags()`) и только потом подсвечивает совпадения тегом `<b>`. Фильтр помечен как `is_safe: ['html']`, чтобы Twig не экранировал теги подсветки повторно.
-    - В `SearchService::searchWorks()` убрана ручная подсветка сниппета; подсветка теперь происходит в шаблоне `site/search.html.twig` через новый фильтр.
-    - В `SearchService::searchBlogPostsByText()` добавлен `strip_tags()` для содержимого поста (ранее контент передавался без очистки, что делало уязвимость в блоге критической) и удалена ручная подсветка; подсветка теперь происходит в шаблоне `blog/search.html.twig` через новый фильтр.
+    - Sonata-админы: добавлены `@extends AbstractAdmin<Entity>` и недостающие `use App\Entity\*`; убраны тернарники с
+      `getSubject()` (всегда истинны) и проверки `instanceof` (тип уже известен из дженерика);
+      `UserAdmin::updatePassword()` проверяет `instanceof User` и тип строки перед хешированием.
+    - Сущности: добавлены docblock-типы для коллекций (`Collection<int, Entity>`), методы `setId()` для сущностей без
+      него (тип `?int` иначе никогда не получал `int`), `Poem` — подключён ранее импортированный, но не использованный
+      `HasDefaultTitleTrait` (чинит крах `ensureDefaults()` в lifecycle-колбэках), `User::getUserIdentifier()` приведён
+      к контракту `non-empty-string`, `WorkVote::__toString()` безопасен при null-связи.
+    - Пагинация: `getPaginationData()` (не входит в `PaginationInterface`) заменён на расчёт по методам интерфейса в
+      общем `SearchService::buildPagination()`; репозитории возвращают `PaginationInterface<int, Entity>`.
+    - Репозитории: типизированы возвраты (`list<Entity>`, shape-массивы `prev`/`next`), в `@method` для
+      `findBy`/`findOneBy` добавлены типы значений (`mixed[]`), из `WorkRepository::findActiveByGroup()` убраны
+      несуществующие `@param $page`/`$limit`, `getSingleScalarResult()` приведён к `int`.
+    - Прочее: `MigrateLegacyCommand` — убран мёртвый `is_array()`, `preg_replace()` с `?? $content`, `@param
+      class-string`/`array<string, mixed>`; `CacheClearListener` — проверка `FrameworkApplication` перед `getKernel()`;
+      `SiteController` — параметр `app.vote_salt` проверяется на `is_string`; `CommentService::autolink()` — удалён
+      недостижимый код в callback; удалён неиспользуемый `Kernel::getAllowedEnvs()`.
+- Устранены XSS-уязвимости в результатах поиска (`SearchService::highlight()` и шаблоны `site/search.html.twig`,
+  `blog/search.html.twig`):
+    - Удалён небезопасный метод `SearchService::highlight()`, который оборачивал совпадения в `<b>` через `preg_replace`
+      на исходном HTML-контенте. Далее выводя результат через `|raw`, это позволяло исполнить вредоносный ввод
+      пользователя.
+    - Создан Twig-фильтр `safe_highlight` (`App\Twig\SafeHighlightExtension`), который выполняет `htmlspecialchars()` на
+      исходном тексте (с предварительным `strip_tags()`) и только потом подсвечивает совпадения тегом `<b>`. Фильтр
+      помечен как `is_safe: ['html']`, чтобы Twig не экранировал теги подсветки повторно.
+    - В `SearchService::searchWorks()` убрана ручная подсветка сниппета; подсветка теперь происходит в шаблоне
+      `site/search.html.twig` через новый фильтр.
+    - В `SearchService::searchBlogPostsByText()` добавлен `strip_tags()` для содержимого поста (ранее контент
+      передавался без очистки, что делало уязвимость в блоге критической) и удалена ручная подсветка; подсветка теперь
+      происходит в шаблоне `blog/search.html.twig` через новый фильтр.
     - В обоих шаблонах заменён `|raw` на `|safe_highlight(query)` / `|safe_highlight(searchText)`.
 - Исправлены N+1 запросы в репозиториях:
-    - `BlogPostRepository::findActivePaginated`, `searchByText`, `findActiveByTagPaginated`, `findOneActiveById` — добавлен `leftJoin('p.tags', 't')->addSelect('t')` для жадной загрузки тегов, используемых в шаблонах `blog/index.html.twig` и `blog/search.html.twig`.
-    - `BlogCommentRepository::findActiveByPost` и `WorkCommentRepository::findActiveByWork` — эager-загрузка дочерних комментариев не требуется: `CommentService::buildCommentTree()` уже строит дерево комментариев на плоском списке и инициализирует коллекции `children` перед передачей в шаблон, что предотвращает N+1 запросы при рекурсивном рендеринге в `common/comments/tree.html.twig`.
+    - `BlogPostRepository::findActivePaginated`, `searchByText`, `findActiveByTagPaginated`, `findOneActiveById` —
+      добавлен `leftJoin('p.tags', 't')->addSelect('t')` для жадной загрузки тегов, используемых в шаблонах
+      `blog/index.html.twig` и `blog/search.html.twig`.
+    - `BlogCommentRepository::findActiveByPost` и `WorkCommentRepository::findActiveByWork` — эager-загрузка дочерних
+      комментариев не требуется: `CommentService::buildCommentTree()` уже строит дерево комментариев на плоском списке и
+      инициализирует коллекции `children` перед передачей в шаблон, что предотвращает N+1 запросы при рекурсивном
+      рендеринге в `common/comments/tree.html.twig`.
 
-- Исправлена ошибка, при которой аутентифицированный пользователь (залогиненный через «Запомнить меня») перенаправлялся на `/admin/login` при заходе на `lo.work.poethrenoff.ru`. Причина: `WorkController` и `AudioController` требовали `IS_AUTHENTICATED_FULLY`, но после истечения сессии `RememberMeAuthenticator` создаёт `RememberMeToken` (не `UsernamePasswordToken`), который не проходит проверку `IS_AUTHENTICATED_FULLY` (см. `AuthenticationTrustResolver::isFullFledged()`). `ExceptionListener` в этом случае перенаправляет на страницу логина вместо возврата 403. Исправлено: заменено `IS_AUTHENTICATED_FULLY` на `IS_AUTHENTICATED_REMEMBERED`, что позволяет пользователям, прошедшим аутентификацию через «Запомнить меня», получать доступ к контроллерам мастерской.
-- Добавлен PHPStan (уровень 8) для статического анализа PHP-кода. Конфигурация в `phpstan.neon`, baseline в `phpstan-baseline.neon`, запуск через `make analyze`
-- Добавлена секция `remember_me` в firewall `main` для функционала «Запомнить меня» при авторизации в админ-панели. Cookie хранится 7 дней.
+- Исправлена ошибка, при которой аутентифицированный пользователь (залогиненный через «Запомнить меня») перенаправлялся
+  на `/admin/login` при заходе на `lo.work.poethrenoff.ru`. Причина: `WorkController` и `AudioController` требовали
+  `IS_AUTHENTICATED_FULLY`, но после истечения сессии `RememberMeAuthenticator` создаёт `RememberMeToken` (не
+  `UsernamePasswordToken`), который не проходит проверку `IS_AUTHENTICATED_FULLY` (см.
+  `AuthenticationTrustResolver::isFullFledged()`). `ExceptionListener` в этом случае перенаправляет на страницу логина
+  вместо возврата 403. Исправлено: заменено `IS_AUTHENTICATED_FULLY` на `IS_AUTHENTICATED_REMEMBERED`, что позволяет
+  пользователям, прошедшим аутентификацию через «Запомнить меня», получать доступ к контроллерам мастерской.
+- Добавлен PHPStan (уровень 8) для статического анализа PHP-кода. Конфигурация в `phpstan.neon`, baseline в
+  `phpstan-baseline.neon`, запуск через `make analyze`
+- Добавлена секция `remember_me` в firewall `main` для функционала «Запомнить меня» при авторизации в админ-панели.
+  Cookie хранится 7 дней.
 - Уменьшено время жизни сессии до 1 часа (`cookie_lifetime: 3600`) в `config/packages/framework.yaml`.
 - Добавлена галочка «Запомнить меня» на форму входа в админ-панель (`templates/security/login.html.twig`).
-- Установлен домен куки `remember_me` на `.%env(BASE_DOMAIN)%`, чтобы cookie была доступна на всех поддоменах (как и у сессии).
-- Добавлен уникальный индекс на поле `login` сущности `Monster` (`#[ORM\Column(type: Types::STRING, length: 255, unique: true)]`) для предотвращения дублирования записей. Индекс уже существовал в БД, поэтому миграция помечена как выполненная.
+- Установлен домен куки `remember_me` на `.%env(BASE_DOMAIN)%`, чтобы cookie была доступна на всех поддоменах (как и у
+  сессии).
+- Добавлен уникальный индекс на поле `login` сущности `Monster` (`#[ORM\Column(type: Types::STRING, length: 255, unique:
+  true)]`) для предотвращения дублирования записей. Индекс уже существовал в БД, поэтому миграция помечена как
+  выполненная.
 - Выделен сервисный слой (`src/Service/`) для устранения нарушения принципа единственной ответственности в контроллерах:
     - `FileUploadService` — управление загрузкой, заменой и удалением аудиофайлов (вынесено из `AudioController`)
-    - `SearchService` — логика поиска и подсветки результатов для работ и блог-записей (вынесено из `SiteController`, `BlogController`)
-    - `CommentService` — санитизация комментариев, автолинкинг, построение деревьев комментариев, валидация автора (вынесено из `SiteController`, `BlogController`)
-    - `WorkService` — версионирование стихов, переупорядочивание, парсинг дат, перемещение в корзину/восстановление/удаление (вынесено из `WorkController`)
+    - `SearchService` — логика поиска и подсветки результатов для работ и блог-записей (вынесено из `SiteController`,
+      `BlogController`)
+    - `CommentService` — санитизация комментариев, автолинкинг, построение деревьев комментариев, валидация автора
+      (вынесено из `SiteController`, `BlogController`)
+    - `WorkService` — версионирование стихов, переупорядочивание, парсинг дат, перемещение в
+      корзину/восстановление/удаление (вынесено из `WorkController`)
 - Удалён `CommentUtilsTrait` — методы `autolink()` и `buildCommentTree()` перенесены в `CommentService`
-- Контроллеры `AudioController`, `WorkController`, `SiteController`, `BlogController` обновлены для использования новых сервисов
+- Контроллеры `AudioController`, `WorkController`, `SiteController`, `BlogController` обновлены для использования новых
+  сервисов
 - Обновлён SRI-хеш (`integrity`) для `trumbowyg.table.min.css` в `templates/admin/layout.html.twig`.
 
 - Устранено дублирование кода между доменами blog и work:
-    - Создан `App\Trait\HasDefaultTitleTrait` с общей логикой заголовков (`getDefaultTitle`, `getDisplayTitle`, `ensureDefaults`) для сущностей `Poem` и `Work`.
+    - Создан `App\Trait\HasDefaultTitleTrait` с общей логикой заголовков (`getDefaultTitle`, `getDisplayTitle`,
+      `ensureDefaults`) для сущностей `Poem` и `Work`.
     - Создан `App\Trait\CommentFieldsTrait` с общими полями и методами для сущностей `BlogComment` и `WorkComment`.
     - Конкретные сущности обновлены для использования этих трейтов.
 
 ## 2026-07-30
 
-- Исправлено: панель оглавления (TOC) больше не отображается на странице «Записи» — добавлено условие `view !== 'audio'` в `x-show` компонента в `templates/work/index.html.twig`.
-- JS-код Alpine.js-компонента мастерской вынесен из `templates/work/index.html.twig` (~630 строк) в отдельный файл `public/assets/js/work.js`. Инлайн остался только блок с CSRF-токенами (Twig-генерация). Шаблон сокращён с 879 до 244 строк.
-- Маршрутизация унифицирована: `#[Route(condition: ...)]` перенесён из контроллеров в `config/routes.yaml`. Каждый импорт контроллера содержит `condition` по `APP_SITE_CONTEXT`. SecurityController импортируется без условия (доступен на всех сайтах). Бандловые маршруты загружаются из `config/routes/` через `MicroKernelTrait`.
-- Оптимизация отдачи аудиофайлов: `AudioController::getAudio()` теперь использует `X-Accel-Redirect` вместо `$this->file()`. PHP отдаёт заголовки (Content-Type, Content-Length, Cache-Control), а файл发送ляется nginx напрямую — PHP-воркер не занят чтением файла. В nginx добавлен `internal` location `/upload/` для блока `lo.work.poethrenoff.ru`.
-- Обновлены Symfony-зависимости до актуальных patch-версий (v8.1.2–v8.1.3). Добавлено платформенное требование `ext-fileinfo`. Синхронизированы типы конфигурации в `config/reference.php` с новыми версиями пакетов.
-- Добавлен файл `config/reference.php` — конфигуратор ссылки Symfony DI для type-safe конфигурации сервисов. (`/poems/stats/`) через `cache.app` на 5 минут (TTL 300с). Кэш инвалидируется при создании, обновлении, удалении, перемещении в корзину и восстановлении стихов.
-- Добавлена валидация длины имени комментария (макс. 100 символов) в `BlogController` и `SiteController` — предотвращает SQL-ошибку 500 при слишком длинном `author`.
+- Исправлено: панель оглавления (TOC) больше не отображается на странице «Записи» — добавлено условие `view !== 'audio'`
+  в `x-show` компонента в `templates/work/index.html.twig`.
+- JS-код Alpine.js-компонента мастерской вынесен из `templates/work/index.html.twig` (~630 строк) в отдельный файл
+  `public/assets/js/work.js`. Инлайн остался только блок с CSRF-токенами (Twig-генерация). Шаблон сокращён с 879 до 244
+  строк.
+- Маршрутизация унифицирована: `#[Route(condition: ...)]` перенесён из контроллеров в `config/routes.yaml`. Каждый
+  импорт контроллера содержит `condition` по `APP_SITE_CONTEXT`. SecurityController импортируется без условия (доступен
+  на всех сайтах). Бандловые маршруты загружаются из `config/routes/` через `MicroKernelTrait`.
+- Оптимизация отдачи аудиофайлов: `AudioController::getAudio()` теперь использует `X-Accel-Redirect` вместо
+  `$this->file()`. PHP отдаёт заголовки (Content-Type, Content-Length, Cache-Control), а файл发送ляется nginx напрямую —
+  PHP-воркер не занят чтением файла. В nginx добавлен `internal` location `/upload/` для блока `lo.work.poethrenoff.ru`.
+- Обновлены Symfony-зависимости до актуальных patch-версий (v8.1.2–v8.1.3). Добавлено платформенное требование
+  `ext-fileinfo`. Синхронизированы типы конфигурации в `config/reference.php` с новыми версиями пакетов.
+- Добавлен файл `config/reference.php` — конфигуратор ссылки Symfony DI для type-safe конфигурации сервисов.
+  (`/poems/stats/`) через `cache.app` на 5 минут (TTL 300с). Кэш инвалидируется при создании, обновлении, удалении,
+  перемещении в корзину и восстановлении стихов.
+- Добавлена валидация длины имени комментария (макс. 100 символов) в `BlogController` и `SiteController` — предотвращает
+  SQL-ошибку 500 при слишком длинном `author`.
 - Добавлена CSRF-защита API-эндпоинтов мастерской (`WorkController`, `AudioController`):
     - Создан `CsrfTrait` с методом `validateCsrf()` для единообразной проверки CSRF-токена во всех контроллерах.
-    - Исправлена ошибка, при которой `validateCsrf()` в `WorkController` дописывал `'1'` к значению токена, из-за чего все CSRF-проверки всегда проваливались.
-    - Убраны `stateless_token_ids` из `csrf.yaml`, из-за которых `SameOriginCsrfTokenManager` возвращал заглушку `'csrf-token'` вместо реального токена.
-    - Шаблон мастерской переведён на использование `csrf_token()` Twig-функции (как на публичных сайтах) вместо токенов, генерируемых контроллером.
-    - Добавлен `_token` во все мутирующие API-запросы фронтенда мастерской (create, update, trash, restore, reorder для стихов; create, rename, rewrite, delete для аудио).
-    - Добавлен `IS_AUTHENTICATED_FULLY` для `WorkController` и `AudioController`, маршрут `/audio/` добавлен в `access_control` firewall.
-- Исправлены CSRF-токены для комментариев блога и сайта: использованы разные token ID для `BlogController` и `SiteController`, чтобы не было конфликтов при использовании на одной странице.
+    - Исправлена ошибка, при которой `validateCsrf()` в `WorkController` дописывал `'1'` к значению токена, из-за чего
+      все CSRF-проверки всегда проваливались.
+    - Убраны `stateless_token_ids` из `csrf.yaml`, из-за которых `SameOriginCsrfTokenManager` возвращал заглушку
+      `'csrf-token'` вместо реального токена.
+    - Шаблон мастерской переведён на использование `csrf_token()` Twig-функции (как на публичных сайтах) вместо токенов,
+      генерируемых контроллером.
+    - Добавлен `_token` во все мутирующие API-запросы фронтенда мастерской (create, update, trash, restore, reorder для
+      стихов; create, rename, rewrite, delete для аудио).
+    - Добавлен `IS_AUTHENTICATED_FULLY` для `WorkController` и `AudioController`, маршрут `/audio/` добавлен в
+      `access_control` firewall.
+- Исправлены CSRF-токены для комментариев блога и сайта: использованы разные token ID для `BlogController` и
+  `SiteController`, чтобы не было конфликтов при использовании на одной странице.
 - Усилена безопасность загрузки аудио (`AudioController`):
     - Добавлен allowlist допустимых расширений файлов (`webm`, `mp3`, `ogg`, `wav`).
     - Заменён `uniqid()` на `bin2hex(random_bytes(16))` для генерации имён файлов (криптографически стойкий RNG).
-    - Исправлен порядок операций при перезаписи: сначала перемещение нового файла, затем удаление старого (ранее было наоборот — race condition при ошибке).
-- Исправлен `WorkController::export()`: добавлен null-safe operator (`??`) для `title`/`content`, предотвращающий `TypeError` при пустых данных. Заголовок `Content-Disposition` формируется через `HeaderUtils::makeDisposition()` с RFC 5987-корректным fallback-именем файла.
-- Добавлены SRI-хеши (integrity) для CDN-скриптов в шаблонах (`admin/layout.html.twig`, `base.html.twig`, `site/picture.html.twig`, `work/base.html.twig`).
-- В `AudioAdmin` и `PictureAdmin` заменён `getClientOriginalExtension()` на `guessExtension()` — определение расширения по Mime-Type вместо доверия клиентскому имени файла.
+    - Исправлен порядок операций при перезаписи: сначала перемещение нового файла, затем удаление старого (ранее было
+      наоборот — race condition при ошибке).
+- Исправлен `WorkController::export()`: добавлен null-safe operator (`??`) для `title`/`content`, предотвращающий
+  `TypeError` при пустых данных. Заголовок `Content-Disposition` формируется через `HeaderUtils::makeDisposition()` с
+  RFC 5987-корректным fallback-именем файла.
+- Добавлены SRI-хеши (integrity) для CDN-скриптов в шаблонах (`admin/layout.html.twig`, `base.html.twig`,
+  `site/picture.html.twig`, `work/base.html.twig`).
+- В `AudioAdmin` и `PictureAdmin` заменён `getClientOriginalExtension()` на `guessExtension()` — определение расширения
+  по Mime-Type вместо доверия клиентскому имени файла.
 - Удалены неиспользуемые импорты и serialization group `poem:sidebar` из `Poem.php` и `WorkVoteAdmin`.
-- Исправлен `CacheClearListener`: вместо зависимости от магической константы `ConsoleCommandEvent::RETURN_CODE_DISABLED` в обработчике `onConsoleTerminate` внедрён явный флаг-состояние `$commandHandled`. Это делает логику сброса exit code устойчивой к изменениям внутренней реализации Symfony Console.
+- Исправлен `CacheClearListener`: вместо зависимости от магической константы `ConsoleCommandEvent::RETURN_CODE_DISABLED`
+  в обработчике `onConsoleTerminate` внедрён явный флаг-состояние `$commandHandled`. Это делает логику сброса exit code
+  устойчивой к изменениям внутренней реализации Symfony Console.
 - Устранено использование deprecated `$this->getRequest()` в Sonata Admin:
-    - В `PictureAdmin` и `AudioAdmin` параметр `app.site_context` теперь инжектируется через `#[Autowire('%app.site_context%')]` с setter`ом, помеченным `#[Required]`.
-    - Метод `getUploadRootDir()` в обоих классах больше не обращается к `Request`, что устраняет deprecation-предупреждения и повышает совместимость с будущими версиями Sonata.
+    - В `PictureAdmin` и `AudioAdmin` параметр `app.site_context` теперь инжектируется через
+      `#[Autowire('%app.site_context%')]` с setter`ом, помеченным `#[Required]`.
+    - Метод `getUploadRootDir()` в обоих классах больше не обращается к `Request`, что устраняет
+      deprecation-предупреждения и повышает совместимость с будущими версиями Sonata.
 - Удалён мёртвый код: поле `sessionHash` сущности `WorkVote`:
     - Удалены свойство, геттер и сеттер `sessionHash` из `WorkVote.php`.
     - Удалены вычисление `$sessionId`/`$sessionHash` и вызов `setSessionHash()` из `SiteController::vote()`.
     - Удалены отображение `sessionHash` в форме и show-режиме `WorkVoteAdmin`.
     - Создана миграция `Version20260730161801` для удаления колонки `session_hash` из таблицы `work_vote`.
-- Оптимизирован `PoemRepository::getSortedDraftDays()`: вместо загрузки всех сущностей `Poem` в PHP и постобработки дат заменён на DQL-запрос с `select('p.comment')` и `distinct()` — устранена проблема N+1 при 1000+ стихах и убран полный hydrate сущностей. Корректно используется `format('Y-m-d')` вместо `getTimestamp()` для конвертации дат, чтобы избежать сдвига из-за timezone сервера.
+- Оптимизирован `PoemRepository::getSortedDraftDays()`: вместо загрузки всех сущностей `Poem` в PHP и постобработки дат
+  заменён на DQL-запрос с `select('p.comment')` и `distinct()` — устранена проблема N+1 при 1000+ стихах и убран полный
+  hydrate сущностей. Корректно используется `format('Y-m-d')` вместо `getTimestamp()` для конвертации дат, чтобы
+  избежать сдвига из-за timezone сервера.
 
 ## 2026-07-28
 
-- Исправлена ошибка `unable to find the route App\Admin\PoemAdmin|App\Admin\PoemVersionAdmin.list` на странице `/admin/app/poem/{id}/poemversion/list`:
-    - **Причина:** устаревший файл кэша маршрутов Sonata (`var/cache/dev/{context}/sonata/admin/route_*`), содержавший прежние коды админок (`admin.app.poem` / `admin.app.poemversion`), тогда как в `services.yaml` админки уже были перерегистрированы по FQCN (`App\Admin\PoemAdmin`, `App\Admin\PoemVersionAdmin`). `.meta`-файл этого кэша отслеживает только PHP-класс админки, поэтому смена идентификаторов сервисов в `services.yaml` его не инвалидирует.
-    - **Решение:** полная пересборка кэша (удаление `var/cache/dev/*/sonata` + `cache:clear`) — файлы кэша маршрутов пересоздаются с согласованными FQCN-кодами. Изменения кода не потребовались.
-    - **Важно:** запись от 2026-07-27 о явных ID сервисов (`admin.app.poem`, `admin.app.poemversion`) устарела — сейчас админки регистрируются по FQCN, вложенные роуты и ссылки («Версии», show с diff) работают корректно. При смене идентификаторов сервисов админок обязательно выполнять полный `cache:clear` (кэш маршрутов Sonata сам не инвалидируется).
+- Исправлена ошибка `unable to find the route App\Admin\PoemAdmin|App\Admin\PoemVersionAdmin.list` на странице
+  `/admin/app/poem/{id}/poemversion/list`:
+    - **Причина:** устаревший файл кэша маршрутов Sonata (`var/cache/dev/{context}/sonata/admin/route_*`), содержавший
+      прежние коды админок (`admin.app.poem` / `admin.app.poemversion`), тогда как в `services.yaml` админки уже были
+      перерегистрированы по FQCN (`App\Admin\PoemAdmin`, `App\Admin\PoemVersionAdmin`). `.meta`-файл этого кэша
+      отслеживает только PHP-класс админки, поэтому смена идентификаторов сервисов в `services.yaml` его не
+      инвалидирует.
+    - **Решение:** полная пересборка кэша (удаление `var/cache/dev/*/sonata` + `cache:clear`) — файлы кэша маршрутов
+      пересоздаются с согласованными FQCN-кодами. Изменения кода не потребовались.
+    - **Важно:** запись от 2026-07-27 о явных ID сервисов (`admin.app.poem`, `admin.app.poemversion`) устарела — сейчас
+      админки регистрируются по FQCN, вложенные роуты и ссылки («Версии», show с diff) работают корректно. При смене
+      идентификаторов сервисов админок обязательно выполнять полный `cache:clear` (кэш маршрутов Sonata сам не
+      инвалидируется).
 
 ## 2026-07-27
 
 - Реализована админ-панель для версий стихов (`PoemVersion`):
     - Создан класс `PoemVersionAdmin`, зарегистрированный как дочерний по отношению к `PoemAdmin`.
     - В список стихов добавлено действие «Версии» для перехода к истории изменений конкретного стиха.
-    - В режиме просмотра версии (`show`) реализовано визуальное сравнение (diff) с последующей версией или текущим состоянием стиха.
+    - В режиме просмотра версии (`show`) реализовано визуальное сравнение (diff) с последующей версией или текущим
+      состоянием стиха.
     - Изменения (заголовок, содержание, дата) подсвечиваются, если они отличаются от целевого состояния.
-    - Использован механизм вложенных роутов Sonata Admin: `/admin/app/poem/{id}/poemversion/list`. Для корректной генерации ссылок в `PoemAdmin` дочерняя админка зарегистрирована с явным кодом `poemversion`. Для предотвращения ошибок маршрутизации (`RouteNotFoundException`) в Sonata 4 для админок `PoemAdmin` и `PoemVersionAdmin` установлены явные ID сервисов (`admin.app.poem` и `admin.app.poemversion`), а папка `src/Admin/` исключена из автозагрузки `App\`. Это обеспечивает однозначность идентификаторов админок и их маршрутов. Исправлена ошибка `Semantical Error` в списке версий путем указания корректного поля связи с родителем (`poem`) в методе `addChild`. Дочерняя админка скрыта из основного меню для чистоты интерфейса.
-    - Исправлена ошибка доступа к свойству `diff` при просмотре версии: в сущность `PoemVersion` добавлен метод-заглушка `getDiff()`, а шаблон сравнения оптимизирован.
+    - Использован механизм вложенных роутов Sonata Admin: `/admin/app/poem/{id}/poemversion/list`. Для корректной
+      генерации ссылок в `PoemAdmin` дочерняя админка зарегистрирована с явным кодом `poemversion`. Для предотвращения
+      ошибок маршрутизации (`RouteNotFoundException`) в Sonata 4 для админок `PoemAdmin` и `PoemVersionAdmin`
+      установлены явные ID сервисов (`admin.app.poem` и `admin.app.poemversion`), а папка `src/Admin/` исключена из
+      автозагрузки `App\`. Это обеспечивает однозначность идентификаторов админок и их маршрутов. Исправлена ошибка
+      `Semantical Error` в списке версий путем указания корректного поля связи с родителем (`poem`) в методе `addChild`.
+      Дочерняя админка скрыта из основного меню для чистоты интерфейса.
+    - Исправлена ошибка доступа к свойству `diff` при просмотре версии: в сущность `PoemVersion` добавлен метод-заглушка
+      `getDiff()`, а шаблон сравнения оптимизирован.
 
 - Реализован функционал управления аудиозаписями в мастерской:
     - Добавлен раздел «Записи» в навигацию мастерской.
-    - Реализован `AudioController` с API для списка, получения, создания, переименования, перезаписи и удаления аудиозаписей.
-    - На фронтенде (Alpine.js) реализована запись с микрофона через `MediaRecorder` API, проигрывание аудио (одно одновременно), инлайн-редактирование названий и подтверждение удаления.
+    - Реализован `AudioController` с API для списка, получения, создания, переименования, перезаписи и удаления
+      аудиозаписей.
+    - На фронтенде (Alpine.js) реализована запись с микрофона через `MediaRecorder` API, проигрывание аудио (одно
+      одновременно), инлайн-редактирование названий и подтверждение удаления.
     - Добавлены соответствующие стили в `work.css`.
     - Список записей отображает название, длительность (i:s) и дату (d.m.Y H:i), отсортирован по убыванию даты.
-    - **Админ-панель:** В `AudioAdmin` добавлена операция «Прослушать» в списке записей, позволяющая воспроизводить аудио файлы прямо из интерфейса администрирования.
-    - **Оптимизация хранения:** Аудиофайлы сохраняются в `htdocs/{context}/upload/audio/`. Это обеспечивает доступ к файлам по URL `/upload/audio/...` напрямую через веб-сервер, так как `htdocs/{context}` является корнем соответствующего домена.
-    - `AudioController` переведен на динамическое определение путей на основе `app.site_context` и `%kernel.project_dir%`.
+    - **Админ-панель:** В `AudioAdmin` добавлена операция «Прослушать» в списке записей, позволяющая воспроизводить
+      аудио файлы прямо из интерфейса администрирования.
+    - **Оптимизация хранения:** Аудиофайлы сохраняются в `htdocs/{context}/upload/audio/`. Это обеспечивает доступ к
+      файлам по URL `/upload/audio/...` напрямую через веб-сервер, так как `htdocs/{context}` является корнем
+      соответствующего домена.
+    - `AudioController` переведен на динамическое определение путей на основе `app.site_context` и
+      `%kernel.project_dir%`.
 
 - Оптимизирован экспорт стихов в мастерской:
     - Маршрут экспорта `/poems/export/` в `WorkController` переведен с `POST` на `GET`.
     - В шаблоне `templates/work/index.html.twig` кнопка экспорта заменена на прямую ссылку `<a>`.
-    - Удален сложный JavaScript-метод `exportPoems` с ручной обработкой Blobs. Теперь скачивание файла и обработка его имени из заголовка `Content-Disposition` полностью делегированы браузеру, что является более изящным и надежным решением.
+    - Удален сложный JavaScript-метод `exportPoems` с ручной обработкой Blobs. Теперь скачивание файла и обработка его
+      имени из заголовка `Content-Disposition` полностью делегированы браузеру, что является более изящным и надежным
+      решением.
 
 - Стандартизировано использование перечисления `PoemStatus`:
-    - Поскольку в сущности `Poem` поле `status` настроено с `enumType: PoemStatus::class`, в репозиториях и контроллерах теперь везде используются экземпляры перечисления (например, `PoemStatus::Draft`), а не их строковые значения (`->value`). Это обеспечивает строгую типизацию и использует нативные возможности Doctrine 2.11+.
+    - Поскольку в сущности `Poem` поле `status` настроено с `enumType: PoemStatus::class`, в репозиториях и контроллерах
+      теперь везде используются экземпляры перечисления (например, `PoemStatus::Draft`), а не их строковые значения
+      (`->value`). Это обеспечивает строгую типизацию и использует нативные возможности Doctrine 2.11+.
     - В `PoemRepository` сигнатуры методов `findByStatus` и `countByStatus` обновлены для поддержки `PoemStatus|string`.
 
 - Оптимизирован и исправлен метод `WorkController::parseCommentDate`:
     - Устранено избыточное использование `checkdate()` с множественными вызовами `format()`.
-    - Внедрена строгая валидация через `DateTimeImmutable::createFromFormat('!d.m.Y', ...)` и `DateTimeImmutable::getLastErrors()`. Это исправляет баг, при котором некорректные даты (например, 29.02.2023) ошибочно принимались и переносились на следующий месяц.
-    - Использование модификатора `!` гарантирует сброс времени в 00:00:00, что обеспечивает консистентность данных для дат без временной составляющей.
+    - Внедрена строгая валидация через `DateTimeImmutable::createFromFormat('!d.m.Y', ...)` и
+      `DateTimeImmutable::getLastErrors()`. Это исправляет баг, при котором некорректные даты (например, 29.02.2023)
+      ошибочно принимались и переносились на следующий месяц.
+    - Использование модификатора `!` гарантирует сброс времени в 00:00:00, что обеспечивает консистентность данных для
+      дат без временной составляющей.
 
 - Оптимизирован метод `validateCommentDate` в `templates/work/index.html.twig`:
-    - Упрощена логика валидации: удалены избыточные проверки диапазонов, которые теперь корректно обрабатываются через сравнение компонентов объекта `Date` (overflow check).
+    - Упрощена логика валидации: удалены избыточные проверки диапазонов, которые теперь корректно обрабатываются через
+      сравнение компонентов объекта `Date` (overflow check).
     - Код переведен на использование регулярных выражений с деструктуризацией для повышения читаемости.
-    - Метод и его вызовы переведены в асинхронный режим (`async/await`) для соответствия архитектурному стилю компонента Alpine.js.
+    - Метод и его вызовы переведены в асинхронный режим (`async/await`) для соответствия архитектурному стилю компонента
+      Alpine.js.
 
 - Проведено форматирование файлов в `public/assets/js/`:
-    - `comments.js`, `navigation.js`, `vote.js` приведены к единому стилю: отступы в 4 пробела, выравнивание логических блоков и функций.
+    - `comments.js`, `navigation.js`, `vote.js` приведены к единому стилю: отступы в 4 пробела, выравнивание логических
+      блоков и функций.
 
 - Проведено форматирование файла `templates/work/index.html.twig`:
     - Установлены единообразные отступы в 4 пробела для HTML, Twig и JavaScript.
     - Выровнен и структурирован JavaScript-код внутри блока `<script>`.
     - Упорядочены пустые строки (одна пустая строка между методами Alpine.js).
     - Исправлены вложенные отступы логических блоков и HTML-тегов.
-    - Все методы Alpine.js компонента `app` переведены в асинхронный режим (`async/await`) для обеспечения единообразия и корректной обработки цепочек вызовов. Все вызовы асинхронных методов теперь сопровождаются ключевым словом `await`.
+    - Все методы Alpine.js компонента `app` переведены в асинхронный режим (`async/await`) для обеспечения единообразия
+      и корректной обработки цепочек вызовов. Все вызовы асинхронных методов теперь сопровождаются ключевым словом
+      `await`.
 
 - Реализована панель оглавления (TOC) для мастерской:
-    - Добавлен `<div class="toc-panel">` в `templates/work/index.html.twig` слева от контента, дублирующий правую панель статистики.
-    - Панель показывает список заголовков стихов как ссылки для прокрутки, отфильтрованных по текущему представлению (лента/корзина).
-    - Добавлены `:id="'poem-' + poem.id"` к элементам `<div>` стихов в обоих представлениях (лента и корзина) для scroll targeting.
+    - Добавлен `<div class="toc-panel">` в `templates/work/index.html.twig` слева от контента, дублирующий правую панель
+      статистики.
+    - Панель показывает список заголовков стихов как ссылки для прокрутки, отфильтрованных по текущему представлению
+      (лента/корзина).
+    - Добавлены `:id="'poem-' + poem.id"` к элементам `<div>` стихов в обоих представлениях (лента и корзина) для scroll
+      targeting.
     - Добавлены Alpine.js состояние `toc: []` и методы `updateToc()` и `scrollToPoem(id)` в компонент `app`.
-    - `updateToc()` вызывается в конце `load()`, после `saveEdit()`, после успешного переупорядочивания (`onReorder`), а также явно после `create()`, `trash()`, `restore()` и `remove()` для гарантированного обновления оглавления при каждом изменении списка стихов.
-    - `scrollToPoem(id)` использует `getBoundingClientRect().top + window.scrollY` вместо `offsetTop`, который ненадёжен внутри контейнеров с padding/margin (возвращал 0 для стихов в корзине). Если элемент не найден в текущем представлении (например, при просмотре корзины), переключается на ленту (`view = 'feed'`), загружает данные, и после рендеринга прокручивает страницу к нужному стиху с учётом высоты фиксированного `.site-header` (64px) и отступа (16px).
-    - Добавлены стили `.toc-panel`, `.toc-list`, `.toc-link` в `public/assets/work.css`, позиционированные слева (`left: 16px`), зеркально панели статистики.
+    - `updateToc()` вызывается в конце `load()`, после `saveEdit()`, после успешного переупорядочивания (`onReorder`), а
+      также явно после `create()`, `trash()`, `restore()` и `remove()` для гарантированного обновления оглавления при
+      каждом изменении списка стихов.
+    - `scrollToPoem(id)` использует `getBoundingClientRect().top + window.scrollY` вместо `offsetTop`, который ненадёжен
+      внутри контейнеров с padding/margin (возвращал 0 для стихов в корзине). Если элемент не найден в текущем
+      представлении (например, при просмотре корзины), переключается на ленту (`view = 'feed'`), загружает данные, и
+      после рендеринга прокручивает страницу к нужному стиху с учётом высоты фиксированного `.site-header` (64px) и
+      отступа (16px).
+    - Добавлены стили `.toc-panel`, `.toc-list`, `.toc-link` в `public/assets/work.css`, позиционированные слева (`left:
+      16px`), зеркально панели статистики.
     - Оба панели скрываются при `@media (max-width: 1600px)`.
     - Бэкенд-изменения не требуются — данные оглавления получаются из существующего эндпоинта `/poems/?status=...`.
-    - Исправлена верстка корзины: `<main x-show="view==='trash'">` получил классы `container main-content`, чтобы контент не растягивался на всю ширину экрана.
+    - Исправлена верстка корзины: `<main x-show="view==='trash'">` получил классы `container main-content`, чтобы
+      контент не растягивался на всю ширину экрана.
 
 - Оптимизированы методы расчета серий стихов в `PoemRepository`:
     - Устранено дублирование кода: логика извлечения и валидации дат вынесена в приватный метод `getSortedDraftDays()`.
-    - Повышена производительность: расчеты переведены с использования объектов `DateTimeImmutable` на целочисленные индексы дней.
-    - Оптимизированы SQL-запросы: используется `DISTINCT` и `toIterable()` для минимизации объема передаваемых данных с корректной конвертацией типов.
-    - Устаревший парсинг строк `DD.MM.YYYY` (regex, substr, checkdate) заменён на прямое использование `DateTimeImmutable`.
+    - Повышена производительность: расчеты переведены с использования объектов `DateTimeImmutable` на целочисленные
+      индексы дней.
+    - Оптимизированы SQL-запросы: используется `DISTINCT` и `toIterable()` для минимизации объема передаваемых данных с
+      корректной конвертацией типов.
+    - Устаревший парсинг строк `DD.MM.YYYY` (regex, substr, checkdate) заменён на прямое использование
+      `DateTimeImmutable`.
 
-- Поскольку поле `Poem::$comment` теперь имеет тип `DATE_IMMUTABLE` (возвращает `\DateTimeImmutable`), методы `findStreak()` и `findMaxStreak()` оптимизированы через `getSortedDraftDays()` — убран парсинг строки `DD.MM.YYYY` (regex, substr, checkdate). Теперь используется `toIterator()` с полным гидратом сущностей вместо `getSingleColumnResult()`, который не применяет конвертацию типов для DATE-колонок. `DateTimeImmutable` объекты преобразуются в день-индекс напрямую. Расчёт `$today` в `findStreak()` упрощён до `strtotime('today UTC')`.
+- Поскольку поле `Poem::$comment` теперь имеет тип `DATE_IMMUTABLE` (возвращает `\DateTimeImmutable`), методы
+  `findStreak()` и `findMaxStreak()` оптимизированы через `getSortedDraftDays()` — убран парсинг строки `DD.MM.YYYY`
+  (regex, substr, checkdate). Теперь используется `toIterator()` с полным гидратом сущностей вместо
+  `getSingleColumnResult()`, который не применяет конвертацию типов для DATE-колонок. `DateTimeImmutable` объекты
+  преобразуются в день-индекс напрямую. Расчёт `$today` в `findStreak()` упрощён до `strtotime('today UTC')`.
 
 - Дашборд мастерской дополнен статистикой «Дней подряд»:
-    - В `PoemRepository` добавлен метод `findStreak()`, который считает количество последовательных дней (начиная с сегодняшнего) с написанными стихами. Дата берется из поля `comment` (`DATE_IMMUTABLE`, `\DateTimeImmutable`), дубликаты дат уникализируются.
+    - В `PoemRepository` добавлен метод `findStreak()`, который считает количество последовательных дней (начиная с
+      сегодняшнего) с написанными стихами. Дата берется из поля `comment` (`DATE_IMMUTABLE`, `\DateTimeImmutable`),
+      дубликаты дат уникализируются.
     - API `/poems/stats/` теперь возвращает поле `streak`.
     - В шаблоне `templates/work/index.html.twig` добавлен блок `.dash-stat` для отображения streak.
 
-- В панели инструментов мастерской (`templates/work/index.html.twig`) кнопки «Новый стих» и «Экспорт» заменены на иконки в стиле `.icon-btn` (как на форме стиха). Кнопка экспорта теперь отображается как иконка загрузки файла. Кнопка экспорта скрывается при пустой ленте (`x-show="poems.length > 0"`).
-- Экспорт стихов перенесен на бэкенд: добавлен метод `WorkController::export()` (маршрут `POST /poems/export/`), который формирует текстовый файл и возвращает его как `attachment`. На фронтенде метод `exportPoems()` отправляет POST-запрос через `fetch`, получает `blob` и инициирует скачивание файла без перезагрузки страницы и смены URL.
+- В панели инструментов мастерской (`templates/work/index.html.twig`) кнопки «Новый стих» и «Экспорт» заменены на иконки
+  в стиле `.icon-btn` (как на форме стиха). Кнопка экспорта теперь отображается как иконка загрузки файла. Кнопка
+  экспорта скрывается при пустой ленте (`x-show="poems.length > 0"`).
+- Экспорт стихов перенесен на бэкенд: добавлен метод `WorkController::export()` (маршрут `POST /poems/export/`), который
+  формирует текстовый файл и возвращает его как `attachment`. На фронтенде метод `exportPoems()` отправляет POST-запрос
+  через `fetch`, получает `blob` и инициирует скачивание файла без перезагрузки страницы и смены URL.
 
 ## 2026-07-26
 
 - Усилена защита от повторного голосования (сущность `WorkVote`):
     - Добавлено поле `userAgentHash` для идентификации браузера пользователя.
-    - Изменено ограничение уникальности голоса: теперь оно базируется на комбинации `[work_id, ip_hash, user_agent_hash]`. Это предотвращает повторное голосование через режим инкогнито.
-    - Реализовано использование отдельного параметра `app.vote_salt` (задается через переменную окружения `APP_VOTE_SALT`) для хеширования IP и User-Agent, что повышает безопасность при смене `APP_SECRET`.
+    - Изменено ограничение уникальности голоса: теперь оно базируется на комбинации `[work_id, ip_hash,
+      user_agent_hash]`. Это предотвращает повторное голосование через режим инкогнито.
+    - Реализовано использование отдельного параметра `app.vote_salt` (задается через переменную окружения
+      `APP_VOTE_SALT`) для хеширования IP и User-Agent, что повышает безопасность при смене `APP_SECRET`.
     - Обновлен `WorkVoteAdmin` для отображения и редактирования нового поля.
 
 - Повышена безопасность сессий и куки:
@@ -300,38 +619,52 @@
     - Настройки проверены через `debug:config framework session`.
 
 - Усилена безопасность системы комментариев и медиа:
-    - Обновлена конфигурация `html_sanitizer.yaml` для предотвращения XSS-атак через схемы `javascript:` и `data:` в атрибутах `href` и `src`.
+    - Обновлена конфигурация `html_sanitizer.yaml` для предотвращения XSS-атак через схемы `javascript:` и `data:` в
+      атрибутах `href` и `src`.
     - Явно ограничены разрешенные схемы для ссылок (`http`, `https`, `mailto`) и медиа-контента (`http`, `https`).
-    - Проведено тестирование, подтвердившее блокировку вредоносного контента при сохранении возможности использования стандартных протоколов связи.
+    - Проведено тестирование, подтвердившее блокировку вредоносного контента при сохранении возможности использования
+      стандартных протоколов связи.
 
 ## 2026-07-25
 
 - Выполнено внедрение PHP_CodeSniffer и приведение кода к стандарту PSR-12:
     - Добавлен пакет `squizlabs/php_codesniffer` и базовая конфигурация `phpcs.xml.dist`.
-    - Проведен массовый рефакторинг PHP-файлов (админки, контроллеры, сущности) для соответствия правилам форматирования PSR-12.
+    - Проведен массовый рефакторинг PHP-файлов (админки, контроллеры, сущности) для соответствия правилам форматирования
+      PSR-12.
     - Обновлены стили полей ввода в мастерской (`public/assets/work.css`) для улучшения визуального отображения.
 
 - Реализовано автоматическое заполнение полей `title` и `comment` в сущности `Poem` при сохранении:
     - Добавлен метод жизненного цикла `#[ORM\PrePersist]` для обработки новых сущностей.
     - Обновлен метод `#[ORM\PreUpdate]` для обработки обновлений.
-    - Создан приватный метод `ensureDefaults()`, который устанавливает `title` через `getDefaultTitle()` и `comment` через `getDefaultComment()`, если соответствующие поля пусты.
+    - Создан приватный метод `ensureDefaults()`, который устанавливает `title` через `getDefaultTitle()` и `comment`
+      через `getDefaultComment()`, если соответствующие поля пусты.
 
 - Выполнена оптимизация `PictureAdmin.php`:
-    - Устранено дублирование кода при обработке загрузки файлов `imagePath` и `sourcePath` через общий метод `processFileUpload`.
-    - Улучшена безопасность: используется `guessExtension()` для определения расширения по Mime-Type, добавлен случайный хеш к именам файлов для предотвращения коллизий и перебора.
-    - Внедрена современная инъекция зависимостей через атрибуты `#[Required]` и `#[Autowire]` для получения пути к проекту.
-    - Код переведен на использование современных конструкций PHP 8.4 (атрибуты, `match`, строгие типы в сигнатурах методов).
+    - Устранено дублирование кода при обработке загрузки файлов `imagePath` и `sourcePath` через общий метод
+      `processFileUpload`.
+    - Улучшена безопасность: используется `guessExtension()` для определения расширения по Mime-Type, добавлен случайный
+      хеш к именам файлов для предотвращения коллизий и перебора.
+    - Внедрена современная инъекция зависимостей через атрибуты `#[Required]` и `#[Autowire]` для получения пути к
+      проекту.
+    - Код переведен на использование современных конструкций PHP 8.4 (атрибуты, `match`, строгие типы в сигнатурах
+      методов).
     - Улучшен интерфейс админ-панели: добавлены понятные русские метки (`label`) и вспомогательные тексты (`help`).
-    - Исправлена ошибка `The form's view data is expected to be a "File", but it is a "string"`: добавлена опция `'mapped' => false` для полей `FileType`. Это предотвращает преждевременную запись временных путей файлов (типа `/tmp/php...`) в базу данных. Загруженные файлы теперь обрабатываются вручную через форму в методе `processFileUpload`.
+    - Исправлена ошибка `The form's view data is expected to be a "File", but it is a "string"`: добавлена опция
+      `'mapped' => false` для полей `FileType`. Это предотвращает преждевременную запись временных путей файлов (типа
+      `/tmp/php...`) в базу данных. Загруженные файлы теперь обрабатываются вручную через форму в методе
+      `processFileUpload`.
     - Установлен пакет `symfony/mime` для корректной работы метода `guessExtension()` при загрузке файлов.
 
 - Выполнено переименование шаблонов:
     - `templates/common/comments/_form.html.twig` -> `form.html.twig`
     - `templates/common/comments/_tree.html.twig` -> `tree.html.twig`
     - `templates/site/_group_tree.html.twig` -> `group_tree.html.twig`
-- Обновлены все ссылки на данные шаблоны в файлах `blog/post.html.twig`, `site/work.html.twig`, `site/group.html.twig` и в самих шаблонах (для рекурсии).
+- Обновлены все ссылки на данные шаблоны в файлах `blog/post.html.twig`, `site/work.html.twig`, `site/group.html.twig` и
+  в самих шаблонах (для рекурсии).
 
-- Выполнен перенос общих шаблонов: файлы `metrika.html.twig` и `pagination.html.twig` перемещены из `templates/_partials/` в `templates/common/`. Обновлены все ссылки в шаблонах блога и основного сайта. Директория `templates/_partials/` удалена.
+- Выполнен перенос общих шаблонов: файлы `metrika.html.twig` и `pagination.html.twig` перемещены из
+  `templates/_partials/` в `templates/common/`. Обновлены все ссылки в шаблонах блога и основного сайта. Директория
+  `templates/_partials/` удалена.
 
 - Реализована система комментариев для произведений (сущности `Work`, `WorkComment`):
     - Стили комментариев вынесены в `public/assets/common.css` для переиспользования между блогом и основным сайтом.
@@ -339,23 +672,31 @@
     - Созданы общие шаблоны в `templates/common/comments/` (`_form.html.twig`, `_tree.html.twig`).
     - Логика авторазметки ссылок вынесена в `App\Traits\CommentUtilsTrait`.
     - В `SiteController` добавлен эндпоинт `work_comment_save` и реализован вывод комментариев на странице произведения.
-    - Обновлены шаблоны `templates/site/work.html.twig` и `templates/blog/post.html.twig` для использования общих компонентов.
+    - Обновлены шаблоны `templates/site/work.html.twig` и `templates/blog/post.html.twig` для использования общих
+      компонентов.
 
-- Реализовано сохранение метаданных комментария: в поле `info` сущности `BlogComment` теперь записываются IP-адрес и User-Agent отправителя в формате `IP | User-Agent`. Изменения внесены в метод `saveComment` контроллера `BlogController`.
+- Реализовано сохранение метаданных комментария: в поле `info` сущности `BlogComment` теперь записываются IP-адрес и
+  User-Agent отправителя в формате `IP | User-Agent`. Изменения внесены в метод `saveComment` контроллера
+  `BlogController`.
 
 - Реализована навигация (предыдущий/следующий пост) на странице блога:
     - Добавлен метод `findPrevNext` в `BlogPostRepository` для поиска соседних постов по дате публикации.
     - Обновлен эндпоинт `blog_post` в `BlogController` для передачи данных навигации в шаблон.
-    - Общие стили для боковой навигации (стрелок) вынесены в `public/assets/common.css` (классы `.side-nav`, `.nav-arrow`, `.nav-prev`, `.nav-next`).
+    - Общие стили для боковой навигации (стрелок) вынесены в `public/assets/common.css` (классы `.side-nav`,
+      `.nav-arrow`, `.nav-prev`, `.nav-next`).
     - Из `public/assets/site.css` удалены дублирующие стили навигации.
-    - Шаблон `blog/post.html.twig` дополнен блоком навигации и JavaScript для управления с клавиатуры (стрелки влево/вправо).
+    - Шаблон `blog/post.html.twig` дополнен блоком навигации и JavaScript для управления с клавиатуры (стрелки
+      влево/вправо).
     - Шаблон `site/work.html.twig` обновлен для использования общих стилей `.side-nav` вместо `.work-nav`.
 
 - Реализована система вложенных комментариев для блога:
     - Добавлен эндпоинт `POST /post/{id}/comment` в `BlogController`.
     - Реализована автоматическое распознавание ссылок в тексте комментариев и их преобразование в теги `<a>`.
-    - Реализована санитизация HTML-контента на бэкенде с использованием Symfony HTML Sanitizer (разрешены только теги `<p> <a> <b> <i> <u> <s>`, для `<a>` разрешен атрибут `href`).
-    - Создан интерактивный интерфейс для добавления комментариев и ответов: форма присутствует на странице в единственном экземпляре и динамически перемещается в нужное место при клике на кнопки «Ответить» или «Оставить комментарий».
+    - Реализована санитизация HTML-контента на бэкенде с использованием Symfony HTML Sanitizer (разрешены только теги
+      `<p> <a> <b> <i> <u> <s>`, для `<a>` разрешен атрибут `href`).
+    - Создан интерактивный интерфейс для добавления комментариев и ответов: форма присутствует на странице в
+      единственном экземпляре и динамически перемещается в нужное место при клике на кнопки «Ответить» или «Оставить
+      комментарий».
     - Реализован кастомный тулбар редактора на JavaScript без внешних зависимостей.
     - Добавлена поддержка горячих клавиш: `Enter` для отправки, `Shift+Enter` для новой строки.
     - Имя автора запоминается в `localStorage` и автоматически подставляется в формы.
@@ -364,12 +705,19 @@
 
 ## 2026-07-24
 
-- Выполнена оптимизация стилей в файлах `site.css` и `blog.css`: все цвета вынесены в начало файлов в качестве CSS-переменных в блоке `:root`. Это обеспечивает единообразие с `work.css` и упрощает управление цветовой схемой.
-- Выполнена оптимизация стилей в шаблонах `group.html.twig`, `search.html.twig` и `work.html.twig`. Атомарные классы объединены в семантические: `.group-works-list`, `.meta-text`, `.work-stats`, `.stat-item`.
-- Из `site.css` удалены неиспользуемые более атомарные классы: `.mt-6`, `.pt-6`, `.pt-4`, `.border-t`, `.text-sm`, `.text-gray-500`, `.mr-4`, `.rounded`, `.p-4`.
-- Выполнена оптимизация стилей в шаблоне `picture.html.twig`: атомарные классы объединены в `.gallery-grid` и `.gallery-img`.
-- Из `site.css` удалены неиспользуемые более атомарные классы: `grid`, `grid-cols-2`, `md:grid-cols-4`, `lg:grid-cols-6`, `mt-8`, `w-full`, `h-full`, `object-cover`, `transition-transform`, `hover:scale-105`.
-- Выполнена очистка CSS-файлов `site.css` и `blog.css` от неиспользуемых классов. В `site.css` удалены: `grid-cols-1`, `md:grid-cols-2`, `md:grid-cols-6`, `justify-between`, `mb-8`, `overflow-hidden`, `text-blue-500`. Файл `blog.css` проверен, все стили в нем используются.
+- Выполнена оптимизация стилей в файлах `site.css` и `blog.css`: все цвета вынесены в начало файлов в качестве
+  CSS-переменных в блоке `:root`. Это обеспечивает единообразие с `work.css` и упрощает управление цветовой схемой.
+- Выполнена оптимизация стилей в шаблонах `group.html.twig`, `search.html.twig` и `work.html.twig`. Атомарные классы
+  объединены в семантические: `.group-works-list`, `.meta-text`, `.work-stats`, `.stat-item`.
+- Из `site.css` удалены неиспользуемые более атомарные классы: `.mt-6`, `.pt-6`, `.pt-4`, `.border-t`, `.text-sm`,
+  `.text-gray-500`, `.mr-4`, `.rounded`, `.p-4`.
+- Выполнена оптимизация стилей в шаблоне `picture.html.twig`: атомарные классы объединены в `.gallery-grid` и
+  `.gallery-img`.
+- Из `site.css` удалены неиспользуемые более атомарные классы: `grid`, `grid-cols-2`, `md:grid-cols-4`,
+  `lg:grid-cols-6`, `mt-8`, `w-full`, `h-full`, `object-cover`, `transition-transform`, `hover:scale-105`.
+- Выполнена очистка CSS-файлов `site.css` и `blog.css` от неиспользуемых классов. В `site.css` удалены: `grid-cols-1`,
+  `md:grid-cols-2`, `md:grid-cols-6`, `justify-between`, `mb-8`, `overflow-hidden`, `text-blue-500`. Файл `blog.css`
+  проверен, все стили в нем используются.
 - Реализован функционал лайков/дизлайков для произведений на основном сайте:
     - Создан `WorkVoteController` для обработки POST-запросов на `/work/vote/{id}`.
     - Реализована защита от повторного голосования с помощью CSRF-токена, хеша IP и хеша сессии.
@@ -377,22 +725,44 @@
     - Обновлен шаблон `templates/site/work.html.twig` и стили в `site.css` для обеспечения интерактивности через AJAX.
 - Создана и настроена кастомная страница ошибки 404:
     - Шаблон реализован в `templates/bundles/TwigBundle/Exception/error404.html.twig`.
-    - Реализована динамическая подгрузка базового макета (layout) в зависимости от контекста сайта (`www`, `blog`, `work`).
-    - Дизайн страницы адаптирован под визуальный стиль каждого домена с использованием существующих CSS-переменных и стилей.
+    - Реализована динамическая подгрузка базового макета (layout) в зависимости от контекста сайта (`www`, `blog`,
+      `work`).
+    - Дизайн страницы адаптирован под визуальный стиль каждого домена с использованием существующих CSS-переменных и
+      стилей.
 
 ## 2026-07-22
 
-- Исправлена ошибка `Unknown "stimulus_controller" function` в шаблонах Sonata Admin. Пакет `symfony/stimulus-bundle` присутствовал в `vendor`, но не был зарегистрирован. Вместо добавления в `config/bundles.php` (который загрузил бы сервисы, зависящие от `asset_mapper`), создан `config/packages/stimulus.yaml` с ручным определением `stimulus.helper` и Twig-расширения `StimulusTwigExtension`. Пакет добавлен в `composer.json` как явная зависимость.
-- Исправлена критическая ошибка `Fatal error: Allowed memory size exhausted` на сайте `lo.work.poethrenoff.ru`. Причины были в двух циклических зависимостях:
-    1. В `config/packages/stimulus.yaml` (`twig` -> `extension` -> `helper` -> `twig`). Цикл разорван путем передачи `null` вместо `@twig` в `stimulus.helper` (бандл корректно обрабатывает это, создавая внутренний экземпляр Twig для эскейпинга).
-    2. В `config/services.yaml` для `PoemRepository`. Ручная конфигурация через фабрику `doctrine->getRepository()` вызывала цикл при загрузке метаданных сущности `Poem`. Исправлено путем добавления стандартного конструктора в `PoemRepository.php` и удаления ручной конфигурации из `services.yaml`.
-- Исправлены синтаксические ошибки в JavaScript шаблона `templates/work/index.html.twig` (отсутствовало определение метода `cancelEdit` и была лишняя закрывающая скобка, вызывавшая `SyntaxError`). Также восстановлен отсутствовавший метод `api` в компоненте Alpine.js, что вызывало `TypeError: this.api is not a function`.
-- Реализована панель статистики для корзины в мастерской: добавлен метод `countByStatus` в `PoemRepository`, обновлен API статистики в `WorkController` и интерфейс в `index.html.twig`. Исправлена ошибка отсутствия метода `countByStatus`, приводившая к неработоспособности списка стихов.
-- Исправлена видимость дашборда статистики в мастерской: добавлены необходимые CSS-стили в `work.css` и скорректирована логика отображения в шаблоне (убрана блокировка по флагу `loading`).
-- Исправлена ошибка в `WorkController`, приводившая к некорректному отображению количества стихов на панели статистики (0 вместо реального количества). Проблема была вызвана конфликтом маршрутов, из-за которого запрос статистики перехватывался маршрутом деталей стиха. Маршрут статистики перемещен выше, и добавлены ограничения `requirements` для параметров ID. Также улучшена надежность обновления статистики на фронтенде.
-- Улучшен интерфейс мастерской: панель статистики (`dashboard-panel`) опущена ниже (добавлен `margin-top`) для более сбалансированного визуального восприятия.
-- Методы `WorkController` переведены на использование Symfony Serializer для формирования JSON-ответов. В сущности `Poem` используются группы сериализации `poem:list` и `poem:detail` для контроля выводимых полей.
-- Исправлена ошибка `Typed property App\Admin\UserAdmin::$passwordHasher must not be accessed before initialization` при смене пароля в админке. Проблема решена добавлением атрибута `#[Required]` к сеттеру `setPasswordHasher` в `UserAdmin.php`, что позволило Symfony автоматически инициализировать зависимость через автовайринг.
+- Исправлена ошибка `Unknown "stimulus_controller" function` в шаблонах Sonata Admin. Пакет `symfony/stimulus-bundle`
+  присутствовал в `vendor`, но не был зарегистрирован. Вместо добавления в `config/bundles.php` (который загрузил бы
+  сервисы, зависящие от `asset_mapper`), создан `config/packages/stimulus.yaml` с ручным определением `stimulus.helper`
+  и Twig-расширения `StimulusTwigExtension`. Пакет добавлен в `composer.json` как явная зависимость.
+- Исправлена критическая ошибка `Fatal error: Allowed memory size exhausted` на сайте `lo.work.poethrenoff.ru`. Причины
+  были в двух циклических зависимостях:
+    1. В `config/packages/stimulus.yaml` (`twig` -> `extension` -> `helper` -> `twig`). Цикл разорван путем передачи
+       `null` вместо `@twig` в `stimulus.helper` (бандл корректно обрабатывает это, создавая внутренний экземпляр Twig
+       для эскейпинга).
+    2. В `config/services.yaml` для `PoemRepository`. Ручная конфигурация через фабрику `doctrine->getRepository()`
+       вызывала цикл при загрузке метаданных сущности `Poem`. Исправлено путем добавления стандартного конструктора в
+       `PoemRepository.php` и удаления ручной конфигурации из `services.yaml`.
+- Исправлены синтаксические ошибки в JavaScript шаблона `templates/work/index.html.twig` (отсутствовало определение
+  метода `cancelEdit` и была лишняя закрывающая скобка, вызывавшая `SyntaxError`). Также восстановлен отсутствовавший
+  метод `api` в компоненте Alpine.js, что вызывало `TypeError: this.api is not a function`.
+- Реализована панель статистики для корзины в мастерской: добавлен метод `countByStatus` в `PoemRepository`, обновлен
+  API статистики в `WorkController` и интерфейс в `index.html.twig`. Исправлена ошибка отсутствия метода
+  `countByStatus`, приводившая к неработоспособности списка стихов.
+- Исправлена видимость дашборда статистики в мастерской: добавлены необходимые CSS-стили в `work.css` и скорректирована
+  логика отображения в шаблоне (убрана блокировка по флагу `loading`).
+- Исправлена ошибка в `WorkController`, приводившая к некорректному отображению количества стихов на панели статистики
+  (0 вместо реального количества). Проблема была вызвана конфликтом маршрутов, из-за которого запрос статистики
+  перехватывался маршрутом деталей стиха. Маршрут статистики перемещен выше, и добавлены ограничения `requirements` для
+  параметров ID. Также улучшена надежность обновления статистики на фронтенде.
+- Улучшен интерфейс мастерской: панель статистики (`dashboard-panel`) опущена ниже (добавлен `margin-top`) для более
+  сбалансированного визуального восприятия.
+- Методы `WorkController` переведены на использование Symfony Serializer для формирования JSON-ответов. В сущности
+  `Poem` используются группы сериализации `poem:list` и `poem:detail` для контроля выводимых полей.
+- Исправлена ошибка `Typed property App\Admin\UserAdmin::$passwordHasher must not be accessed before initialization` при
+  смене пароля в админке. Проблема решена добавлением атрибута `#[Required]` к сеттеру `setPasswordHasher` в
+  `UserAdmin.php`, что позволило Symfony автоматически инициализировать зависимость через автовайринг.
 
 ## 2026-07-20
 
@@ -406,8 +776,10 @@
 - Добавлена админка для управления пользователями (`UserAdmin`).
 - Добавлены админ-панели для всех сущностей (Блог, Стихи, Мастерская, Медиа, Статические тексты).
 - Настроены фикстуры для тестового админа: `admin@example.com` / `admin`.
-- Настроен автоматический запуск миграций и загрузка фикстур при старте Docker-контейнера `php` через блок `command` в `docker-compose.yml`.
-- Исправлен `docker-compose.yml`: настроена сеть `symfony_net` и передача `DATABASE_URL` через переменные окружения. Логика ожидания БД и миграций реализована в блоке `command`.
+- Настроен автоматический запуск миграций и загрузка фикстур при старте Docker-контейнера `php` через блок `command` в
+  `docker-compose.yml`.
+- Исправлен `docker-compose.yml`: настроена сеть `symfony_net` и передача `DATABASE_URL` через переменные окружения.
+  Логика ожидания БД и миграций реализована в блоке `command`.
 - История коммитов объединена в один инициализационный коммит (2026-07-20).
 - Реализована архитектура Multi-Domain с тремя точками входа в `htdocs/` (`www`, `blog`, `work`).
 - `Kernel` настроен на работу с контекстом сайта (`app.site_context`), разделяя кэш и логи.
@@ -416,19 +788,37 @@
 - В `DefaultController` реализованы отдельные точки входа для каждого сайта с использованием `condition` в роутах.
 - Настроена сквозная авторизация между всеми доменами через общий `cookie_domain` (`.poethrenoff.ru`).
 - Исправлена ошибка отсутствия сервиса `knp_menu.factory`: зарегистрирован `KnpMenuBundle` в `config/bundles.php`.
-- Восстановлена стандартная конфигурация `services.yaml` (добавлены `_defaults` и автозагрузка из `src/`), исправлен автовайринг в `MigrateLegacyCommand`.
-- Исправлена ошибка `Undefined array key "currentPageNumber"` в `SiteController`: обновлены ключи пагинации для `KnpPaginator`.
-- Реализован полноценный блог `blog.poethrenoff.ru` (контроллер `BlogController`, шаблоны в `templates/blog/`, стили в `blog.css`).
-- В качестве WYSIWYG-редактора в админке интегрирован **Trumbowyg** (вместо CKEditor 5). Он используется для редактирования постов блога, комментариев и статических текстов. Кастомный шаблон `admin/layout.html.twig` подключается выборочно через конфигурацию сервисов только для необходимых админок.
-- Тяжелые выпадающие списки (`ModelType`) в админ-панели заменены на поля с автодополнением (`ModelAutocompleteType`) для улучшения производительности при большом количестве данных.
-- Строковые ссылки на классы сущностей в админ-панелях (например, `'class' => 'App\Entity\BlogPost'`) заменены на современный синтаксис `::class` (например, `'class' => BlogPost::class`).
-- Конфигурация сервисов в `services.yaml` переписана в современном стиле Symfony: в качестве идентификаторов сервисов админок используются FQCN, удалены избыточные параметры (`class`, `autowire`).
+- Восстановлена стандартная конфигурация `services.yaml` (добавлены `_defaults` и автозагрузка из `src/`), исправлен
+  автовайринг в `MigrateLegacyCommand`.
+- Исправлена ошибка `Undefined array key "currentPageNumber"` в `SiteController`: обновлены ключи пагинации для
+  `KnpPaginator`.
+- Реализован полноценный блог `blog.poethrenoff.ru` (контроллер `BlogController`, шаблоны в `templates/blog/`, стили в
+  `blog.css`).
+- В качестве WYSIWYG-редактора в админке интегрирован **Trumbowyg** (вместо CKEditor 5). Он используется для
+  редактирования постов блога, комментариев и статических текстов. Кастомный шаблон `admin/layout.html.twig`
+  подключается выборочно через конфигурацию сервисов только для необходимых админок.
+- Тяжелые выпадающие списки (`ModelType`) в админ-панели заменены на поля с автодополнением (`ModelAutocompleteType`)
+  для улучшения производительности при большом количестве данных.
+- Строковые ссылки на классы сущностей в админ-панелях (например, `'class' => 'App\Entity\BlogPost'`) заменены на
+  современный синтаксис `::class` (например, `'class' => BlogPost::class`).
+- Конфигурация сервисов в `services.yaml` переписана в современном стиле Symfony: в качестве идентификаторов сервисов
+  админок используются FQCN, удалены избыточные параметры (`class`, `autowire`).
 - Настроены SEO-заголовки `X-Robots-Tag: noindex, nofollow` для блога на уровне контроллера и `.htaccess`.
-- Отключено назойливое окно подтверждения выхода в админ-панели (`confirm_exit: false`) для предотвращения ложных срабатываний при использовании WYSIWYG-редактора.
-- Установлена глобальная таймзона `Europe/Moscow` для PHP, Twig и Docker-контейнеров. Также во всех формах и списках админ-панели для полей даты и времени явно указана таймзона `Europe/Moscow` (`view_timezone` в формах и `timezone` в списках).
-- Добавлена кнопка прокрутки вверх в мастерской: после прокрутки ленты стихов вниз (более 400px) в левом нижнем углу появляется иконка-стрелка, перематывающая ленту в начало с плавной анимацией. Кнопка скрывается в представлении корзины и когда пользователь находится в верхней части страницы. Реализовано через Alpine.js (`scrolled` свойство и слушатель `scroll`), CSS (`position: fixed`, bottom-left, круглая кнопка с тенью) и шаблон Twig.
+- Отключено назойливое окно подтверждения выхода в админ-панели (`confirm_exit: false`) для предотвращения ложных
+  срабатываний при использовании WYSIWYG-редактора.
+- Установлена глобальная таймзона `Europe/Moscow` для PHP, Twig и Docker-контейнеров. Также во всех формах и списках
+  админ-панели для полей даты и времени явно указана таймзона `Europe/Moscow` (`view_timezone` в формах и `timezone` в
+  списках).
+- Добавлена кнопка прокрутки вверх в мастерской: после прокрутки ленты стихов вниз (более 400px) в левом нижнем углу
+  появляется иконка-стрелка, перематывающая ленту в начало с плавной анимацией. Кнопка скрывается в представлении
+  корзины и когда пользователь находится в верхней части страницы. Реализовано через Alpine.js (`scrolled` свойство и
+  слушатель `scroll`), CSS (`position: fixed`, bottom-left, круглая кнопка с тенью) и шаблон Twig.
 
 ## 2026-07-31
 
-- Удалён неэффективный `activeChildren|merge([child])` из Twig-шаблона `templates/common/comments/tree.html.twig`. Фильтрация по `isActive` перенесена в PHP-метод `buildCommentTree` в `CommentUtilsTrait`, вызываемый в контроллерах. Это устраняет построение нового массива на каждой итерации в Twig.
-- Удалён `eval()` из `src/Command/MigrateLegacyCommand.php`: вместо выполнения строки как PHP-кода теперь записывается временный PHP-файл с `return`, который подключается через `include`. Это устраняет критическую уязвимость remote code execution при обработке legacy-миграционных файлов.
+- Удалён неэффективный `activeChildren|merge([child])` из Twig-шаблона `templates/common/comments/tree.html.twig`.
+  Фильтрация по `isActive` перенесена в PHP-метод `buildCommentTree` в `CommentUtilsTrait`, вызываемый в контроллерах.
+  Это устраняет построение нового массива на каждой итерации в Twig.
+- Удалён `eval()` из `src/Command/MigrateLegacyCommand.php`: вместо выполнения строки как PHP-кода теперь записывается
+  временный PHP-файл с `return`, который подключается через `include`. Это устраняет критическую уязвимость remote code
+  execution при обработке legacy-миграционных файлов.

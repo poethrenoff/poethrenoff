@@ -1,0 +1,9 @@
+{% extends '@SonataAdmin/CRUD/base_show_field.html.twig' %}
+
+{% block field %}
+    {% if value %}
+        <pre style="max-height: 400px; overflow: auto; white-space: pre-wrap; word-break: break-word;">{{ value|json_encode(constant('JSON_PRETTY_PRINT') b-or constant('JSON_UNESCAPED_UNICODE')) }}</pre>
+    {% else %}
+        -
+    {% endif %}
+{% endblock %}
