@@ -21,6 +21,25 @@ class WorkGroupRepository extends ServiceEntityRepository
         parent::__construct($registry, WorkGroup::class);
     }
 
+    public function findNextPosition(): float
+    {
+        return (float) $this->createQueryBuilder('wg')
+            ->select('MAX(wg.position)')
+            ->getQuery()
+            ->getSingleScalarResult() + 1.0;
+    }
+
+    public function findLastAddedFavorite(): ?WorkGroup
+    {
+        return $this->createQueryBuilder('wg')
+            ->where('wg.isFavorite = :favorite')
+            ->setParameter('favorite', true)
+            ->orderBy('wg.id', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     /**
      * @return list<WorkGroup>
      */

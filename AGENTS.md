@@ -148,6 +148,7 @@ docker compose exec php bin/console debug:router
 docker compose exec php bin/console app:create-admin <email> <password>
 docker compose exec php bin/console app:migrate:legacy
 docker compose exec php bin/console app:telegram:send <chatId> <text>
+docker compose exec php bin/console app:transfer:poems   # перенос стихов из Мастерской на сайт (интерактивно)
 docker compose exec php bin/phpstan analyse --no-progress
 ```
 
