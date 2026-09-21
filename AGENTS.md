@@ -149,6 +149,7 @@ docker compose exec php bin/console app:create-admin <email> <password>
 docker compose exec php bin/console app:migrate:legacy
 docker compose exec php bin/console app:telegram:send <chatId> <text>
 docker compose exec php bin/console app:transfer:poems   # перенос стихов из Мастерской на сайт (интерактивно)
+docker compose exec php bin/console app:stihiru:publish  # публикация последнего сборника на stihi.ru (--dry-run для проверки)
 docker compose exec php bin/phpstan analyse --no-progress
 ```
 
@@ -291,6 +292,36 @@ BREAKING CHANGE: old payment API endpoints are removed
   `getUpdates` (ошибка 409). На проде webhook должен быть удалён (демон работает
   через `getUpdates`). Если webhook уже настроен на боте, снимите его
   `deleteWebhook` с токена на AWS.
+
+## Публикация на stihi.ru (`app:stihiru:publish`)
+
+- Команда публикует последний сборник сайта на stihi.ru. Заменила legacy-скрипт
+  `var/public.php`, где сборник/смещение были захардкожены; теперь всё
+  вычисляется на лету.
+- **Логика отбора:** публикуется `WorkGroup` с `is_favorite = true`
+  и минимальной `position` (`WorkGroupRepository::findFavoriteActiveSorted()`).
+  Произведения берутся из раздела по `position` **DESC** (обратный порядок),
+  смещение на `offset` уже опубликованных на сайте произведений, за раз — не
+  более `--limit` (по умолчанию 20, лимит сайта на сутки).
+- **Сервис `StihiRuService`** (`src/Service/`), HTTP через Symfony HttpClient
+  с ручным хранением cookies:
+  - `login()` — `POST /cgi-bin/login/intro.pl`, из `Set-Cookie` извлекает
+    `login=`/`pcode=`. Логин/пароль — `STIHIRU_LOGIN`/`STIHIRU_PASSWORD` из `.env`
+    (`#[Autowire(env: ...)]`).
+  - `findDestinationCollection()` — парсит `?list`: верхний сборник
+    (`book=NN`) + число опубликованных в нём произведений (смещение).
+  - `publishWork(Work, int $bookId)` — `code` со страницы `?add`, POST на
+    `/cgi-bin/login/page.pl` (`title`, `text`, `code`, `block=save`,
+    `text_topic=03`, `dogovor=on`), из ответа достаёт `link=YYYY/MM/DD/NNNN`
+    и переносит в сборник через `/login/page.html?put&link=...&to={book}`;
+    возвращает публичный URL `https://stihi.ru/YYYY/MM/DD/NNNN`.
+  - **Кодировка:** сайт Windows-1251. Текст/заголовок/комментарий
+    конвертируются `iconv('UTF-8', 'Windows-1251', ...)`; при неконвертируемых
+    символах бросается `\RuntimeException` с перечнем символов.
+  - Форматирование текста наследует legacy: удвоение ведущих/внутренних пробелов
+    (`/^ +| {2,}/m`), комментарий добавляется через `\r\n\r\n`.
+- **Проверка без публикации:** `--dry-run` логинится, получает сборник и выводит
+  план, ничего не постит.
 
 ## Операционные заметки
 
