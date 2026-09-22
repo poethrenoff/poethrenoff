@@ -127,3 +127,9 @@ services:
         public: true
         tags:
             - { name: sonata.admin, manager_type: orm, group: site, label: Голоса, model_class: App\Entity\WorkVote }
+
+    # MonsterAdmin
+    App\Admin\MonsterAdmin:
+        public: true
+        tags:
+            - { name: sonata.admin, manager_type: orm, group: monster, label: Монстры, model_class: App\Entity\Monster }

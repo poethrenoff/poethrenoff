@@ -1,0 +1,8 @@
+{% extends '@SonataAdmin/CRUD/base_list_field.html.twig' %}
+
+{% block field %}
+    {% set author_link %}
+        <a href="https://stihi.ru/avtor/{{ object.login }}" target="_blank"{% if object.login == 'poethrenoff' %} id="me"{% endif %}>{{ value }}</a>
+    {% endset %}
+    {% if not object.isActive %}<s>{{ author_link }}</s>{% else %}{{ author_link }}{% endif %}
+{% endblock %}

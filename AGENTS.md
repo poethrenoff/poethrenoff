@@ -63,6 +63,16 @@
   валидация автора
 - `WorkService` — версионирование стихов, переупорядочивание, парсинг дат,
   trash/restore/delete
+- `MonsterService` — рейтинг авторов Стихи.ру (таблица `Monster`, «Монстры»):
+  `fetchAuthorData()` загружает страницу `https://stihi.ru/avtor/{login}`
+  (Windows-1251 → UTF-8) и парсит количество произведений, имя автора и дату
+  последней активности; `recalculatePlaces()` пересчитывает `place`/`place_old`
+  по убыванию количества произведений. Обновление запускается командой
+  `app:monster:update` вручную (без cron). Sonata-админ `MonsterAdmin` —
+  только список (группа «Рейтинг Стихи.ру»), с дельтами мест/количества,
+  выделением ника `poethrenoff` и зачёркиванием неактивных авторов. Начальный
+  список (582 автора, все ≥5000 произведений) — из дампа старого сайта через
+  `app:migrate:legacy`; барьер в 5000 применит будущий парсер произведений.
 - `RecognizeService` — state machine для асинхронного распознавания речи:
   создание задач, пошаговое выполнение через poll, обработка ошибок
 - `YandexService` — распознавание речи (асинхронное через STT v3)
@@ -150,6 +160,7 @@ docker compose exec php bin/console app:migrate:legacy
 docker compose exec php bin/console app:telegram:send <chatId> <text>
 docker compose exec php bin/console app:transfer:poems   # перенос стихов из Мастерской на сайт (интерактивно)
 docker compose exec php bin/console app:stihiru:publish  # публикация последнего сборника на stihi.ru (--dry-run для проверки)
+docker compose exec php bin/console app:monster:update   # обновление рейтинга авторов Стихи.ру (--login/--limit/--dry-run)
 docker compose exec php bin/phpstan analyse --no-progress
 ```
 

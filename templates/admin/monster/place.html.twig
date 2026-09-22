@@ -1,0 +1,12 @@
+{% extends '@SonataAdmin/CRUD/base_list_field.html.twig' %}
+
+{% block field %}
+    {% set shift = object.place - object.placeOld %}
+    {% if shift < 0 %}
+        <nobr>{{ value }} <sup style="color: green">+{{ -shift }}</sup></nobr>
+    {% elseif shift > 0 %}
+        <nobr>{{ value }} <sup style="color: red">-{{ shift }}</sup></nobr>
+    {% else %}
+        {{ value }}
+    {% endif %}
+{% endblock %}
