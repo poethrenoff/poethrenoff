@@ -30,6 +30,19 @@ class MonsterService
     {
         $html = mb_convert_encoding($this->getRaw($login), 'UTF-8', 'Windows-1251');
 
+        return $this->parseAuthorHtml($html);
+    }
+
+    /**
+     * Parses an author page HTML (already converted to UTF-8): the number of
+     * published works, the displayed name and the date of the latest activity.
+     *
+     * @return array{author: string, poems: int, lastVisitDate: \DateTimeImmutable}
+     *
+     * @throws \RuntimeException when the page cannot be parsed
+     */
+    public function parseAuthorHtml(string $html): array
+    {
         if (!preg_match('/Произведений:\s*<b>(\d+)<\/b>/', $html, $matches)) {
             throw new \RuntimeException('Не удалось получить количество произведений');
         }
