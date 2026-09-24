@@ -28,6 +28,9 @@ analyze:
 cache-clear:
 	@docker compose -f docker-compose.yml exec php bin/console cache:clear
 
+sitemap:
+	@docker compose -f docker-compose.yml exec php bin/console app:sitemap:generate
+
 makemigrations:
 	@docker compose -f docker-compose.yml exec php bin/console doctrine:migrations:diff --no-interaction --formatted
 

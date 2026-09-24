@@ -169,6 +169,25 @@ class WorkRepository extends ServiceEntityRepository
     }
 
     /**
+     * Returns all active works for sitemap generation.
+     *
+     * @return list<array{id: int}>
+     */
+    public function findAllActiveForSitemap(): array
+    {
+        /** @var list<array{id: int}> $result */
+        $result = $this->createQueryBuilder('w')
+            ->select(['w.id'])
+            ->andWhere('w.isActive = :active')
+            ->setParameter('active', true)
+            ->orderBy('w.id', 'ASC')
+            ->getQuery()
+            ->getScalarResult();
+
+        return $result;
+    }
+
+    /**
      * Finds a random active work.
      * Efficiently fetches a random record by using a random offset based on total count.
      */

@@ -1,2 +1,4 @@
 User-agent: *
 Disallow: /work/random
+
+Sitemap: https://poethrenoff.ru/sitemap.xml

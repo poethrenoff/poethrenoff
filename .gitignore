@@ -19,3 +19,5 @@ __pycache__
 /.phpcs-cache
 /phpcs.xml
 ###< squizlabs/php_codesniffer ###
+
+/htdocs/www/sitemap.xml
