@@ -207,6 +207,7 @@ docker compose exec php bin/console app:transfer:poems   # перенос сти
 docker compose exec php bin/console app:stihiru:publish  # публикация последнего сборника на stihi.ru (--dry-run для проверки)
 docker compose exec php bin/console app:monster:update   # обновление рейтинга авторов Стихи.ру (--login/--limit/--dry-run)
 docker compose exec php bin/console app:monster:discover # поиск новых «монстров» по потоку stihi.ru (--from/--to/--concurrency/--recheck-days/--dry-run/--reset)
+docker compose exec php bin/console app:export:corpus    # экспорт корпуса в JSONL (--output, по умолчанию var/export/corpus)
 docker compose exec php bin/phpstan analyse --no-progress
 ```
 
@@ -379,6 +380,29 @@ BREAKING CHANGE: old payment API endpoints are removed
     (`/^ +| {2,}/m`), комментарий добавляется через `\r\n\r\n`.
 - **Проверка без публикации:** `--dry-run` логинится, получает сборник и выводит
   план, ничего не постит.
+
+## Экспорт корпуса для ИИ-чатов (`app:export:corpus`)
+
+- Контекст: проект «100000» (цель — 100 000 стихов), ведётся в чатах claude.ai
+  с общей памятью. Решение Штаба (2026-09-26): источник истины для ИИ — БД
+  сайта, не парсинг HTML и не txt-архив. Шаг 1 — экспорт в JSONL, шаг 2 —
+  удалённый MCP-сервер только на чтение (проектируется, кода нет).
+- Команда только читает БД через `EntityManager` и сущности (`toIterable()`
+  + `clear()` батчами по 500, to-one связи fetch-join'ятся). Пишет в `--output`
+  (по умолчанию `var/export/corpus`, каталог создаётся; `var/` в .gitignore).
+  Контейнер php видит только папку проекта, поэтому в `~/Документы/100000/data/`
+  файлы копирует Дмитрий сам.
+- Файлы: `groups.jsonl`, `works.jsonl`, `poems.jsonl` (включая корзину),
+  `publications.jsonl`, `blog_posts.jsonl` (с тегами), `blog_comments.jsonl`
+  (без `info`), `manifest.json`. В `works.jsonl` поле `date` — ISO из строки
+  `work.comment` (`dd.mm.yyyy` через `WorkService::parseCommentDate()`),
+  `date_raw` — исходная строка; в `poems.jsonl` `date` — из `poem.comment`
+  типа DATE. Нераспознанная дата — `date: null`, запись не входит в счёт
+  дней; порога по числу строк нет — всё в базе считается законченным
+  произведением. Счётчики для manifest копятся в самой команде.
+- Локальная БД — копия продовой: дамп с хостинга накатывается `make restore`
+  (`bin/restore <dir>`). Перед экспортом для Штаба — свежий дамп, иначе
+  manifest устаревший.
 
 ## Операционные заметки
 
