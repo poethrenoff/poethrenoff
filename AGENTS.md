@@ -208,6 +208,7 @@ docker compose exec php bin/console app:stihiru:publish  # публикация 
 docker compose exec php bin/console app:monster:update   # обновление рейтинга авторов Стихи.ру (--login/--limit/--dry-run)
 docker compose exec php bin/console app:monster:discover # поиск новых «монстров» по потоку stihi.ru (--from/--to/--concurrency/--recheck-days/--dry-run/--reset)
 docker compose exec php bin/console app:export:corpus    # экспорт корпуса в JSONL (--output, по умолчанию var/export/corpus)
+docker compose exec php bin/console debug:mcp            # инструменты MCP-сервера
 docker compose exec php bin/phpstan analyse --no-progress
 ```
 
@@ -403,6 +404,35 @@ BREAKING CHANGE: old payment API endpoints are removed
 - Локальная БД — копия продовой: дамп с хостинга накатывается `make restore`
   (`bin/restore <dir>`). Перед экспортом для Штаба — свежий дамп, иначе
   manifest устаревший.
+
+## MCP-сервер корпуса (`/mcp`, `symfony/mcp-bundle`)
+
+- Зачем: ИИ-чаты проекта «100000» (claude.ai, ChatGPT, Claude Code и любые
+  другие MCP-клиенты) читают корпус напрямую из БД сайта. План и решения —
+  в документах проекта claude.ai (`mcp-plan.md`); здесь — как устроено в коде.
+- **Без авторизации** — решение владельца (2026-09-26): черновики Мастерской
+  тоже отдаются. Следствия: адрес не публикуется, `/mcp` не попадает в sitemap,
+  инструментов записи нет и не будет без отдельного решения. Firewall `mcp`
+  (`^/mcp`, `security: false`) в `security.yaml` стоит выше `main`.
+- Маршруты бандла импортируются в `config/routes.yaml` (`type: mcp`) с тем же
+  условием `APP_SITE_CONTEXT == 'www'`, что и у `SiteController`. Если Flex
+  создаст `config/routes/mcp.yaml` — удалить, иначе импорт задвоится.
+- Конфиг `config/packages/mcp.yaml`: сервер `default`, транспорты stdio + http,
+  сессии — файлы в `%kernel.cache_dir%/mcp-sessions` (кэш контекстно-зависимый),
+  `allowed_hosts` по `BASE_DOMAIN` (в dev выключено). Реестр — только
+  пространство `App\Mcp\`: любой класс там с `#[McpTool]` попадает наружу
+  автоматически, поэтому в `src/Mcp/` не класть ничего, что не должно быть видно.
+- Инструменты — методы с `#[McpTool(name, description)]`, параметры описываются
+  `#[Schema(description)]`; возвращают массивы (SDK сам сериализует в JSON).
+  Имена инструментов после выхода не переименовывать — только добавлять.
+  Сервисы получают репозитории, не `EntityManager` — чтение на уровне типов.
+  Сейчас: `corpus_summary`, `list_groups` (`CorpusTools`), `get_work`,
+  `search_works` (`WorkTools`).
+- Проверка: `bin/console debug:mcp` (список инструментов),
+  `bin/console mcp:server` (stdio для MCP Inspector),
+  `curl -X POST http://localhost/mcp -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"curl","version":"0"}}}'`
+  (запросы в контейнере — с заголовком `Host` домена www и `APP_SITE_CONTEXT`,
+  как у nginx).
 
 ## Операционные заметки
 

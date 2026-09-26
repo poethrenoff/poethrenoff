@@ -188,6 +188,30 @@ class WorkRepository extends ServiceEntityRepository
     }
 
     /**
+     * Number of active works per group, keyed by group id.
+     *
+     * @return array<int, int>
+     */
+    public function countActiveByGroup(): array
+    {
+        /** @var list<array{groupId: int|string, cnt: int|string}> $rows */
+        $rows = $this->createQueryBuilder('w')
+            ->select('IDENTITY(w.group) AS groupId', 'COUNT(w.id) AS cnt')
+            ->andWhere('w.isActive = :active')
+            ->setParameter('active', true)
+            ->groupBy('w.group')
+            ->getQuery()
+            ->getScalarResult();
+
+        $counts = [];
+        foreach ($rows as $row) {
+            $counts[(int) $row['groupId']] = (int) $row['cnt'];
+        }
+
+        return $counts;
+    }
+
+    /**
      * Finds a random active work.
      * Efficiently fetches a random record by using a random offset based on total count.
      */

@@ -1,0 +1,41 @@
+mcp:
+    servers:
+        default:
+            name: 'poethrenoff'
+            version: '1.0.0'
+            description: 'Корпус стихов Поэта Хренова: сайт poethrenoff.ru, сборники, черновики Мастерской, блог. Только чтение.'
+            website_url: 'https://poethrenoff.ru'
+            pagination_limit: 50
+            instructions: |
+                Корпус стихов Поэта Хренова (Дмитрий Константинов), ~11 600 произведений
+                с 1997 года. Разделы с is_favorite = true — основные сборники стихов
+                (2010–настоящее время), это и есть «архив». Разделы «Плохие стихи…» —
+                отбракованные автором. Черновики Мастерской — свежие стихи, ещё не
+                перенесённые на сайт. Даты — ISO 8601, тексты отдаются целиком.
+                Сервер только читает; никаких изменений через него сделать нельзя.
+
+            transports:
+                stdio: true
+                http: true
+
+            http:
+                path: /mcp
+                allowed_hosts: ['%env(BASE_DOMAIN)%', 'www.%env(BASE_DOMAIN)%']
+
+            session:
+                store: file
+                directory: '%kernel.cache_dir%/mcp-sessions/default'
+                ttl: 3600
+
+            registry:
+                tools: ['App\Mcp\']
+                prompts: []
+                resources: []
+                resource_templates: []
+
+when@dev:
+    mcp:
+        servers:
+            default:
+                http:
+                    allowed_hosts: false

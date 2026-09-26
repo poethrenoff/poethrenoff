@@ -5,6 +5,23 @@
 
 ## 2026-09-26
 
+- Каркас MCP-сервера корпуса (`symfony/mcp-bundle`, проект «100000», задание
+  Штаба «Доступ ИИ к корпусу», часть Б, этап 1). Только чтение, без авторизации
+  (решение владельца), путь `/mcp` в контексте `www`.
+  - `config/packages/mcp.yaml`: сервер `default`, Streamable HTTP на `/mcp`,
+    сессии в `%kernel.cache_dir%/mcp-sessions`, DNS-rebinding allowlist
+    по `BASE_DOMAIN` (в dev выключен), реестр — только `App\Mcp\`.
+  - `config/routes.yaml`: импорт `type: mcp` с условием контекста `www`;
+    `security.yaml`: firewall `mcp` (`^/mcp`, `security: false`) перед `main`.
+  - `src/Mcp/CorpusTools.php`: инструменты `corpus_summary`, `list_groups`.
+  - `src/Mcp/WorkTools.php`: инструменты `get_work`, `search_works`
+    (поверх `WorkRepository::search`/`findPrevNext`).
+  - `WorkRepository::countActiveByGroup()` — число активных произведений
+    по разделам одним запросом.
+  - Проверено на проде (`https://poethrenoff.ru/mcp`): handshake, `tools/list`,
+    вызовы всех четырёх инструментов. По итогам: `list_groups` возвращает объект
+    `{total, groups}` вместо голого списка (иначе SDK не даёт `structuredContent`);
+    `get_work` нормализует переводы строк в LF.
 - Добавлена команда `app:export:corpus` — экспорт всего корпуса в JSONL
   (проект «100000», задание Штаба «Доступ ИИ к корпусу», часть А).
   Только чтение БД через `EntityManager` и сущности сайта (потоковое

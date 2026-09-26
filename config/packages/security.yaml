@@ -16,6 +16,10 @@ security:
             # Ensure dev tools and static assets are always allowed
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
+        mcp:
+            # Corpus MCP server: no authorization at the owner's discretion (read-only)
+            pattern: ^/mcp
+            security: false
         main:
             lazy: true
             provider: app_user_provider

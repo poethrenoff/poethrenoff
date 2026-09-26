@@ -14,6 +14,11 @@ bot:
     type: attribute
     condition: "request.server.get('APP_SITE_CONTEXT') == 'www'"
 
+mcp:
+    resource: .
+    type: mcp
+    condition: "request.server.get('APP_SITE_CONTEXT') == 'www'"
+
 blog:
     resource: '../src/Controller/BlogController.php'
     type: attribute
