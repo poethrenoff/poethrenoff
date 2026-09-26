@@ -3,6 +3,7 @@
 namespace App\Mcp;
 
 use App\Entity\Work;
+use App\Repository\WorkGroupRepository;
 use App\Repository\WorkRepository;
 use App\Service\WorkService;
 use Mcp\Capability\Attribute\McpTool;
@@ -17,6 +18,7 @@ class WorkTools
 
     public function __construct(
         private WorkRepository $workRepository,
+        private WorkGroupRepository $workGroupRepository,
         private WorkService $workService,
     ) {
     }
@@ -94,6 +96,61 @@ class WorkTools
     /**
      * @return array<string, mixed>
      */
+    #[McpTool(
+        name: 'list_works',
+        description: 'Произведения одного раздела (сборника) по порядку, страницами, без полного текста. '
+            . 'Id раздела — из list_groups; текст — через get_work.',
+    )]
+    public function listWorks(
+        #[Schema(description: 'Id раздела (сборника)')]
+        int $groupId,
+        #[Schema(description: 'Номер страницы, с 1')]
+        int $page = 1,
+        #[Schema(description: 'Размер страницы, не больше 50')]
+        int $limit = 50,
+    ): array {
+        $group = $this->workGroupRepository->find($groupId);
+        if ($group === null) {
+            return ['error' => sprintf('Раздел %d не найден', $groupId)];
+        }
+
+        $page = max(1, $page);
+        $limit = max(1, min(self::MAX_LIMIT, $limit));
+
+        $works = $this->workRepository->findActiveByGroup($group);
+        $total = count($works);
+        $pageWorks = array_slice($works, ($page - 1) * $limit, $limit);
+
+        return [
+            'group_id' => $group->getId(),
+            'group_title' => $group->getTitle(),
+            'total' => $total,
+            'page' => $page,
+            'pages' => (int) ceil($total / $limit),
+            'items' => array_map(fn (Work $work): array => $this->formatWork($work, false), $pageWorks),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    #[McpTool(
+        name: 'random_work',
+        description: 'Случайное произведение целиком из основных сборников (is_favorite).',
+    )]
+    public function randomWork(): array
+    {
+        $work = $this->workRepository->findRandomActiveFromFavorites();
+        if ($work === null) {
+            return ['error' => 'В основных сборниках нет произведений'];
+        }
+
+        return $this->formatWork($work, true);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     private function formatWork(Work $work, bool $withText): array
     {
         $group = $work->getGroup();
@@ -112,7 +169,8 @@ class WorkTools
         ];
 
         if ($withText) {
-            $result['text'] = $work->getText();
+            // В базе встречаются CRLF; клиентам отдаём единообразный LF.
+            $result['text'] = preg_replace('/\R/u', "\n", $work->getText()) ?? $work->getText();
         }
 
         return $result;

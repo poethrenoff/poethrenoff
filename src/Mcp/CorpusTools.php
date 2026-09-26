@@ -61,7 +61,7 @@ class CorpusTools
     }
 
     /**
-     * @return list<array<string, mixed>>
+     * @return array<string, mixed>
      */
     #[McpTool(
         name: 'list_groups',
@@ -84,7 +84,8 @@ class CorpusTools
             $result[] = $this->formatGroup($group, $countsByGroup[(int) $group->getId()] ?? 0);
         }
 
-        return $result;
+        // Объект, а не список: так SDK отдаёт и structuredContent, и текст.
+        return ['total' => count($result), 'groups' => $result];
     }
 
     /**

@@ -426,8 +426,18 @@ BREAKING CHANGE: old payment API endpoints are removed
   `#[Schema(description)]`; возвращают массивы (SDK сам сериализует в JSON).
   Имена инструментов после выхода не переименовывать — только добавлять.
   Сервисы получают репозитории, не `EntityManager` — чтение на уровне типов.
-  Сейчас: `corpus_summary`, `list_groups` (`CorpusTools`), `get_work`,
-  `search_works` (`WorkTools`).
+  Сейчас: `corpus_summary`, `list_groups` (`CorpusTools`); `get_work`,
+  `search_works`, `list_works`, `random_work` (`WorkTools`); `list_drafts`,
+  `get_draft`, `publications` (`WorkshopTools`); `list_blog_posts`,
+  `get_blog_post` (`BlogTools`). Возвращать всегда объект (ассоциативный
+  массив), не список: для списка SDK не формирует `structuredContent`.
+  Ответы `/mcp` получают `X-Robots-Tag: noindex` (`McpNoIndexListener`).
+- Проверка прода из чата Claude: облачная песочница до сайта не достаёт
+  (корпоративный прокси), поэтому вызовы делаются из встроенного браузера
+  на странице `https://poethrenoff.ru/mcp` через `fetch('/mcp', {method: 'POST'})`.
+- Новые файлы, созданные мостом Claude на Fedora, контейнер не читает
+  («File cannot be read» при валидном YAML) — SELinux-метка; лечится
+  `chcon --reference=<соседний файл> <новый файл>`.
 - Проверка: `bin/console debug:mcp` (список инструментов),
   `bin/console mcp:server` (stdio для MCP Inspector),
   `curl -X POST http://localhost/mcp -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"curl","version":"0"}}}'`
