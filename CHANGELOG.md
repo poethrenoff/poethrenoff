@@ -3,6 +3,14 @@
 > Подробная история всех изменений, исправлений и улучшений, внесённых в проект.
 > Актуальные инструкции для агента — в [`AGENTS.md`](AGENTS.md).
 
+## 2026-10-31
+
+- Обновление зависимостей через Composer (`aws/aws-sdk-php`, `doctrine/doctrine-bundle`,
+  `doctrine/doctrine-migrations-bundle`, `knplabs/knp-paginator-bundle`, `symfony/flex`,
+  `symfony/mcp-bundle`, `phpstan/phpstan`, `symfony/maker-bundle`), обновлён `config/reference.php`.
+- Исправлено предупреждение PHPStan 2.3 `arrayValues.list` для отсортированного списка тегов
+  в `BlogTools`.
+
 ## 2026-09-26
 
 - Каркас MCP-сервера корпуса (`symfony/mcp-bundle`, проект «100000», задание
@@ -18,10 +26,10 @@
     (поверх `WorkRepository::search`/`findPrevNext`).
   - `WorkRepository::countActiveByGroup()` — число активных произведений
     по разделам одним запросом.
-  - Проверено на проде (`https://poethrenoff.ru/mcp`): handshake, `tools/list`,
-    вызовы всех четырёх инструментов. По итогам: `list_groups` возвращает объект
-    `{total, groups}` вместо голого списка (иначе SDK не даёт `structuredContent`);
-    `get_work` нормализует переводы строк в LF.
+- Проверено на проде (`https://poethrenoff.ru/mcp`): handshake, `tools/list`,
+  вызовы всех 11 инструментов. По итогам: `list_groups` возвращает объект
+  `{total, groups}` вместо голого списка (иначе SDK не даёт `structuredContent`);
+  `get_work` нормализует переводы строк в LF.
 - MCP-сервер, этап 2: остальные инструменты чтения и `noindex`.
   - `WorkTools`: `list_works` (произведения раздела страницами, без текста),
     `random_work` (случайное из основных сборников).

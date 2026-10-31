@@ -113,7 +113,7 @@ class BlogTools
         return [
             'id' => $post->getId(),
             'published_at' => $post->getPublishedAt()->format(\DateTimeInterface::ATOM),
-            'tags' => array_values($tags),
+            'tags' => $tags,
         ];
     }
 
